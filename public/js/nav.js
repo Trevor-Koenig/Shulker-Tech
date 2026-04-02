@@ -1,3 +1,16 @@
+// Nav shrink on scroll
+(function () {
+    const nav = document.querySelector('.nav');
+    if (!nav) return;
+
+    function onScroll() {
+        nav.classList.toggle('nav--scrolled', window.scrollY > 24);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+}());
+
 document.addEventListener('DOMContentLoaded', function () {
     const hamburger = document.getElementById('nav-hamburger');
     const mobileMenu = document.getElementById('nav-mobile-menu');
