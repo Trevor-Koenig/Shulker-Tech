@@ -1,35 +1,30 @@
-# Use a lightweight base
-FROM debian:bookworm-slim
+# Use the official PHP + Apache image
+FROM php:8.2-apache
 
-# Install packages
-RUN apt-get update && apt-get install -y \
-        nginx \
-        php8.2-fpm \
-        php8.2-cli \
-        php8.2-mbstring \
-        php8.2-xml \
-        php8.2-zip \
-        unzip \
-        ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# Enable mod_rewrite for clean URLs
+RUN a2enmod rewrite
 
-# Copy your source code
-COPY src/ /var/www/html
+# Install MariaDB client library, PHP extensions, and Composer
+RUN apt-get update && apt-get install -y libmariadb-dev-compat unzip \
+    && rm -rf /var/lib/apt/lists/* \
+    && docker-php-ext-install mysqli pdo pdo_mysql \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copy nginx configuration (adjust upstream to php-fpm socket)
-COPY nginx.conf /etc/nginx/nginx.conf
+# Install Composer dependencies
+COPY composer.json composer.lock /var/www/
+RUN cd /var/www && composer install --no-dev --optimize-autoloader
 
-# Ensure the php‑fpm socket is readable by nginx
-RUN mkdir -p /var/run/php && \
-    chown -R www-data:www-data /var/www/html /var/run/php
+# Copy PHP configuration
+COPY docker/php.ini /usr/local/etc/php/conf.d/app.ini
 
-# Set up supervisord to run both services
-RUN apt-get update && apt-get install -y supervisor && rm -rf /var/lib/apt/lists/*
+# Copy application source
+COPY public/ /var/www/html/
+COPY src/ /var/www/src/
 
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Set Apache document root to public/
+ENV APACHE_DOCUMENT_ROOT=/var/www/html
 
-# Expose web port
+RUN sed -i 's|/var/www/html|${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/sites-available/000-default.conf \
+    && sed -i 's|/var/www/html|${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/apache2.conf
+
 EXPOSE 80
-
-# Start supervisord
-CMD ["/usr/bin/supervisord", "-n"]
