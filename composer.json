@@ -1,0 +1,15 @@
+{
+    "name": "trevor/shulker-tech",
+    "description": "My homebrew wiki for my minecraft server",
+    "autoload": {
+        "psr-4": {
+            "Trevor\\ShulkerTech\\": "src/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.0",
+        "squizlabs/php_codesniffer": "^4.0",
+        "friendsofphp/php-cs-fixer": "^3.9",
+        "voku/portable-ascii": "^2.0"
+    }
+}
