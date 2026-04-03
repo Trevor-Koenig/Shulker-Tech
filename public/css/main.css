@@ -19,6 +19,9 @@
     --purple: #9d4edd;
     --purple-dim: rgba(157, 78, 221, 0.1);
 
+    --redstone: #e8390e;
+    --redstone-dim: rgba(232, 57, 14, 0.12);
+
     --color-success: #4a9668;
     --color-success-dim: rgba(74, 150, 104, 0.12);
     --color-info: #4a8ec4;
@@ -63,6 +66,9 @@
 
     --purple: #7b2fd4;
     --purple-dim: rgba(123, 47, 212, 0.08);
+
+    --redstone: #c42d08;
+    --redstone-dim: rgba(196, 45, 8, 0.12);
 
     --color-success: #2e7a4a;
     --color-success-dim: rgba(46, 122, 74, 0.12);
@@ -257,6 +263,27 @@ p:last-child {
     margin-left: auto;
 }
 
+.nav__username {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.nav__logout-form {
+    display: flex;
+}
+
+.nav__mobile-logout {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--color-danger);
+    cursor: pointer;
+    text-align: left;
+}
+
 /* Hamburger */
 .nav__hamburger {
     display: flex;
@@ -337,19 +364,28 @@ p:last-child {
    Theme Toggle
    ===================== */
 
-.theme-toggle {
+.nav__theme-toggle {
     background: none;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: 0.4rem 0.7rem;
+    padding: 0.35rem;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
     transition: border-color 0.2s, color 0.2s;
-    line-height: 1;
+    flex-shrink: 0;
 }
 
-.theme-toggle:hover {
+.nav__theme-toggle svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.nav__theme-toggle:hover {
     border-color: var(--accent);
     color: var(--accent);
 }
@@ -482,6 +518,39 @@ p:last-child {
             var(--bg-base) 100%);
 }
 
+/* Map switcher dots */
+.hero__map-dots {
+    position: absolute;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    z-index: 2;
+}
+
+.hero__map-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.hero__map-dot:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.2);
+}
+
+.hero__map-dot--active {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.2);
+}
+
 /* Hero content sits above the map */
 .hero__content {
     position: relative;
@@ -531,13 +600,14 @@ p:last-child {
     color: var(--text-primary);
     margin-bottom: 1.25rem;
     line-height: 1.15;
+    transition: color 0.2s;
 }
 
-.hero__title-shulker {
+.hero__title span {
     color: var(--purple);
 }
 
-.hero__title-tech {
+.hero__title:hover {
     color: var(--accent);
 }
 
@@ -662,15 +732,26 @@ p:last-child {
     color: #fff;
 }
 
-.btn--outline {
+.btn--ghost {
     background-color: transparent;
     border: 1px solid var(--border);
     color: var(--text-secondary);
 }
 
-.btn--outline:hover {
+.btn--ghost:hover {
     border-color: var(--accent);
     color: var(--accent);
+}
+
+.btn--outline {
+    background-color: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+}
+
+.btn--outline:hover {
+    background-color: var(--accent);
+    color: #fff;
 }
 
 /* =====================
@@ -1173,8 +1254,20 @@ p:last-child {
     margin: 0 auto;
 }
 
+.discord-section__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+}
+
 .discord-section__header {
-    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .discord-section__title {
@@ -1188,17 +1281,53 @@ p:last-child {
 .discord-section__subtitle {
     font-size: 0.9rem;
     color: var(--text-secondary);
-    margin-top: 0.25rem;
+    line-height: 1.6;
+}
+
+.discord-section__cta {
+    display: inline-block;
+    margin-top: 0.5rem;
 }
 
 .discord-widget-wrap {
     display: flex;
+    flex-shrink: 0;
 }
 
 .discord-widget-wrap iframe {
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     border: 1px solid var(--border);
+    width: 100%;
     max-width: 100%;
+}
+
+@media (min-width: 768px) {
+    .discord-widget-wrap iframe {
+        width: 350px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .discord-section__inner {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 3rem;
+    }
+
+    .discord-section__header {
+        flex: 1;
+        justify-content: center;
+        padding: 1rem 0;
+    }
+
+    .discord-section__title {
+        font-size: 1.6rem;
+    }
+
+    .discord-section__subtitle {
+        font-size: 1rem;
+        max-width: 40ch;
+    }
 }
 
 /* =====================
@@ -1358,7 +1487,6 @@ p:last-child {
 .admin-table__actions {
     text-align: right;
     white-space: nowrap;
-    display: flex;
     gap: 0.4rem;
     justify-content: flex-end;
     align-items: center;
@@ -1560,6 +1688,40 @@ p:last-child {
     display: flex;
     gap: 0.75rem;
     margin-top: 0.5rem;
+}
+
+/* URL list */
+.url-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.url-list__row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.url-list__row .form__input {
+    flex: 1;
+    margin: 0;
+}
+
+.url-list__hidden {
+    display: none;
+}
+
+.url-list__add {
+    align-self: flex-start;
+}
+
+.form__hint {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
 }
 
 /* =====================

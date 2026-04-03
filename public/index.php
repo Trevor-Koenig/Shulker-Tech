@@ -4,6 +4,19 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// Share session across all subdomains in production (e.g. SESSION_DOMAIN=.example.com)
+$sessionDomain = $_ENV['SESSION_DOMAIN'] ?? '';
+if ($sessionDomain !== '') {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'domain'   => $sessionDomain,
+        'secure'   => true,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
 session_start();
 
 use Trevor\ShulkerTech\Auth;
@@ -12,6 +25,7 @@ use Trevor\ShulkerTech\Router;
 use Trevor\ShulkerTech\Models\User;
 use Trevor\ShulkerTech\Models\Role;
 use Trevor\ShulkerTech\Models\Server;
+use Trevor\ShulkerTech\Models\Setting;
 
 // Determine subdomain — use override for local dev, Host header in production.
 $subdomain = ($_ENV['SUBDOMAIN_OVERRIDE'] ?? '') !== ''
@@ -272,17 +286,50 @@ switch ($subdomain) {
             exit;
         });
 
+        // Settings
+        $router->get('/settings', function () {
+            Auth::requirePermission('admin.access');
+            $title    = 'Settings — Shulker Tech Admin';
+            $settings = Setting::all();
+            require __DIR__ . '/../src/Views/admin/settings.php';
+        });
+        $router->post('/settings', function () {
+            Auth::requirePermission('admin.access');
+            Csrf::verifyRequest();
+            foreach ($_POST['settings'] ?? [] as $key => $value) {
+                Setting::set((string) $key, (string) $value);
+            }
+            $title    = 'Settings — Shulker Tech Admin';
+            $settings = Setting::all();
+            $success  = 'Settings saved.';
+            require __DIR__ . '/../src/Views/admin/settings.php';
+        });
+
         ob_end_clean(); // Admin views manage their own output buffering
         $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
         exit;
 
     case 'wiki':
+        // Logout from public subdomains
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) === '/logout') {
+            Csrf::verifyRequest();
+            Auth::logout();
+            header('Location: ' . ($_ENV['HOME_URL'] ?? '/'));
+            exit;
+        }
         $title = 'Wiki — Shulker Tech';
         $activePage = 'wiki';
         require __DIR__ . '/../src/Views/wiki.php';
         break;
 
     default:
+        // Logout from public subdomains
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) === '/logout') {
+            Csrf::verifyRequest();
+            Auth::logout();
+            header('Location: ' . ($_ENV['HOME_URL'] ?? '/'));
+            exit;
+        }
         $title = 'Shulker Tech';
         $activePage = 'home';
         require __DIR__ . '/../src/Views/home.php';

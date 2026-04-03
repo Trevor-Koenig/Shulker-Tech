@@ -29,6 +29,8 @@
                     class="nav__link <?= ($activeSection ?? '') === 'users' ? 'nav__link--active' : '' ?>">Users</a>
                 <a href="/roles"
                     class="nav__link <?= ($activeSection ?? '') === 'roles' ? 'nav__link--active' : '' ?>">Roles</a>
+                <a href="/settings"
+                    class="nav__link <?= ($activeSection ?? '') === 'settings' ? 'nav__link--active' : '' ?>">Settings</a>
                 <form method="POST" action="/logout" style="display:inline">
                     <?= \Trevor\ShulkerTech\Csrf::tokenField() ?>
                     <button type="submit" class="nav__link btn btn--ghost btn--sm">Logout</button>

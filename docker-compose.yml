@@ -9,7 +9,6 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      BLUEMAP_URL: ${BLUEMAP_URL}
       HOME_URL: ${HOME_URL}
       WIKI_URL: ${WIKI_URL}
       ADMIN_URL: ${ADMIN_URL}
@@ -17,6 +16,7 @@ services:
       ADMIN_SETUP_TOKEN: ${ADMIN_SETUP_TOKEN:-}
       CACHE_DIR: /var/www/cache
       SUBDOMAIN_OVERRIDE: ${SUBDOMAIN_OVERRIDE:-}
+      SESSION_DOMAIN: ${SESSION_DOMAIN:-}
     depends_on:
       db:
         condition: service_healthy
