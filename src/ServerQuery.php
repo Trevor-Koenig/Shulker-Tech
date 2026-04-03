@@ -185,22 +185,42 @@ class ServerQuery
 
     /** Minecraft colour code → CSS hex */
     private const COLOR_MAP = [
-        '0' => '#000000', '1' => '#0000AA', '2' => '#00AA00', '3' => '#00AAAA',
-        '4' => '#AA0000', '5' => '#AA00AA', '6' => '#FFAA00', '7' => '#AAAAAA',
-        '8' => '#555555', '9' => '#5555FF', 'a' => '#55FF55', 'b' => '#55FFFF',
-        'c' => '#FF5555', 'd' => '#FF55FF', 'e' => '#FFFF55', 'f' => '#FFFFFF',
+        '0' => '#000000',
+        '1' => '#0000AA',
+        '2' => '#00AA00',
+        '3' => '#00AAAA',
+        '4' => '#AA0000',
+        '5' => '#AA00AA',
+        '6' => '#FFAA00',
+        '7' => '#AAAAAA',
+        '8' => '#555555',
+        '9' => '#5555FF',
+        'a' => '#55FF55',
+        'b' => '#55FFFF',
+        'c' => '#FF5555',
+        'd' => '#FF55FF',
+        'e' => '#FFFF55',
+        'f' => '#FFFFFF',
     ];
 
     /** Minecraft named colour (modern chat component) → CSS hex */
     private const NAMED_COLOR_MAP = [
-        'black'        => '#000000', 'dark_blue'    => '#0000AA',
-        'dark_green'   => '#00AA00', 'dark_aqua'    => '#00AAAA',
-        'dark_red'     => '#AA0000', 'dark_purple'  => '#AA00AA',
-        'gold'         => '#FFAA00', 'gray'         => '#AAAAAA',
-        'dark_gray'    => '#555555', 'blue'         => '#5555FF',
-        'green'        => '#55FF55', 'aqua'         => '#55FFFF',
-        'red'          => '#FF5555', 'light_purple' => '#FF55FF',
-        'yellow'       => '#FFFF55', 'white'        => '#FFFFFF',
+        'black' => '#000000',
+        'dark_blue' => '#0000AA',
+        'dark_green' => '#00AA00',
+        'dark_aqua' => '#00AAAA',
+        'dark_red' => '#AA0000',
+        'dark_purple' => '#AA00AA',
+        'gold' => '#FFAA00',
+        'gray' => '#AAAAAA',
+        'dark_gray' => '#555555',
+        'blue' => '#5555FF',
+        'green' => '#55FF55',
+        'aqua' => '#55FFFF',
+        'red' => '#FF5555',
+        'light_purple' => '#FF55FF',
+        'yellow' => '#FFFF55',
+        'white' => '#FFFFFF',
     ];
 
     /**
@@ -210,9 +230,12 @@ class ServerQuery
     private static function formatMotd(mixed $description): string
     {
         if (is_array($description)) {
-            return self::formatChatComponent($description);
+            $html = self::formatChatComponent($description);
+        } else {
+            $html = self::formatLegacyString((string) $description);
         }
-        return self::formatLegacyString((string) $description);
+        // Final pass: convert any remaining newlines (real or literal \n) to <br>
+        return str_replace(['\\n', "\n"], '<br>', $html);
     }
 
     /** Render a modern JSON chat component recursively. */
@@ -228,12 +251,20 @@ class ServerQuery
                 $styles[] = 'color:' . $hex;
             }
         }
-        if (!empty($c['bold']))          $styles[] = 'font-weight:bold';
-        if (!empty($c['italic']))        $styles[] = 'font-style:italic';
-        if (!empty($c['underlined']))    $styles[] = 'text-decoration:underline';
-        if (!empty($c['strikethrough'])) $styles[] = 'text-decoration:line-through';
+        if (!empty($c['bold']))
+            $styles[] = 'font-weight:bold';
+        if (!empty($c['italic']))
+            $styles[] = 'font-style:italic';
+        if (!empty($c['underlined']))
+            $styles[] = 'text-decoration:underline';
+        if (!empty($c['strikethrough']))
+            $styles[] = 'text-decoration:line-through';
 
-        $inner = htmlspecialchars($c['text'] ?? '', ENT_QUOTES);
+        $rawText = str_replace(['\\n', "\r\n", "\r"], ["\n", "\n", "\n"], $c['text'] ?? '');
+        $inner = implode('<br>', array_map(
+            fn($l) => htmlspecialchars($l, ENT_QUOTES),
+            explode("\n", $rawText)
+        ));
 
         if (isset($c['extra']) && is_array($c['extra'])) {
             foreach ($c['extra'] as $part) {
@@ -251,44 +282,60 @@ class ServerQuery
     /** Convert a legacy § colour-coded string to HTML. */
     private static function formatLegacyString(string $text): string
     {
+        // Normalise both real newlines and literal \n sequences
+        $text = str_replace(['\\n', "\r\n", "\r"], ["\n", "\n", "\n"], $text);
+
         // Split on § + one char, keeping the delimiter
         $parts = preg_split('/(§[0-9a-fk-or])/ui', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 
-        $html       = '';
-        $color      = null;
-        $bold       = false;
-        $italic     = false;
-        $underline  = false;
-        $strike     = false;
+        $html = '';
+        $color = null;
+        $bold = false;
+        $italic = false;
+        $underline = false;
+        $strike = false;
 
         foreach ($parts as $part) {
             if (preg_match('/^§([0-9a-fk-or])$/ui', $part, $m)) {
                 $code = strtolower($m[1]);
 
                 if ($code === 'r') {
-                    $color = null; $bold = $italic = $underline = $strike = false;
+                    $color = null;
+                    $bold = $italic = $underline = $strike = false;
                 } elseif (isset(self::COLOR_MAP[$code])) {
                     $color = self::COLOR_MAP[$code];
                     $bold = $italic = $underline = $strike = false;
-                } elseif ($code === 'l') { $bold      = true;
-                } elseif ($code === 'o') { $italic    = true;
-                } elseif ($code === 'n') { $underline = true;
-                } elseif ($code === 'm') { $strike    = true;
+                } elseif ($code === 'l') {
+                    $bold = true;
+                } elseif ($code === 'o') {
+                    $italic = true;
+                } elseif ($code === 'n') {
+                    $underline = true;
+                } elseif ($code === 'm') {
+                    $strike = true;
                 }
                 // §k (obfuscated) — skip
                 continue;
             }
 
-            if ($part === '') continue;
+            if ($part === '')
+                continue;
 
-            $escaped = htmlspecialchars($part, ENT_QUOTES);
-            $styles  = [];
+            // Split on literal \n within the segment so line breaks become <br>
+            $lines = explode("\n", $part);
+            $escaped = implode('<br>', array_map(fn($l) => htmlspecialchars($l, ENT_QUOTES), $lines));
+            $styles = [];
 
-            if ($color)     $styles[] = 'color:' . $color;
-            if ($bold)      $styles[] = 'font-weight:bold';
-            if ($italic)    $styles[] = 'font-style:italic';
-            if ($underline) $styles[] = 'text-decoration:underline';
-            if ($strike)    $styles[] = 'text-decoration:line-through';
+            if ($color)
+                $styles[] = 'color:' . $color;
+            if ($bold)
+                $styles[] = 'font-weight:bold';
+            if ($italic)
+                $styles[] = 'font-style:italic';
+            if ($underline)
+                $styles[] = 'text-decoration:underline';
+            if ($strike)
+                $styles[] = 'text-decoration:line-through';
 
             $html .= $styles
                 ? '<span style="' . implode(';', $styles) . '">' . $escaped . '</span>'

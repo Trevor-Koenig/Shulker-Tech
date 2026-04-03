@@ -59,4 +59,11 @@ class Cache
             unlink($path);
         }
     }
+
+    public static function flush(): void
+    {
+        foreach (glob(self::dir() . '/*.json') ?: [] as $file) {
+            unlink($file);
+        }
+    }
 }

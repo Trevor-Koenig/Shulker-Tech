@@ -17,6 +17,9 @@ RUN cd /var/www && composer install --no-dev --optimize-autoloader
 # Copy PHP configuration
 COPY docker/php.ini /usr/local/etc/php/conf.d/app.ini
 
+# Copy Apache VirtualHost config (enables AllowOverride All for .htaccess)
+COPY docker/vhost.conf /etc/apache2/sites-available/000-default.conf
+
 # Copy application source
 COPY public/ /var/www/html/
 COPY src/ /var/www/src/
@@ -27,12 +30,6 @@ COPY startup.php /var/www/startup.php
 
 # Create writable cache directory
 RUN mkdir -p /var/www/cache && chown www-data:www-data /var/www/cache
-
-# Set Apache document root to public/
-ENV APACHE_DOCUMENT_ROOT=/var/www/html
-
-RUN sed -i 's|/var/www/html|${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/sites-available/000-default.conf \
-    && sed -i 's|/var/www/html|${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/apache2.conf
 
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

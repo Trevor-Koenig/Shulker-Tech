@@ -10,10 +10,17 @@ ob_start();
             <h1 class="admin-page__title">Settings</h1>
             <p class="admin-page__subtitle">Site-wide configuration</p>
         </div>
+        <form method="POST" action="/cache/flush">
+            <?= Csrf::tokenField() ?>
+            <button type="submit" class="btn btn--ghost btn--sm">Flush Cache</button>
+        </form>
     </div>
 
     <?php if (!empty($success)): ?>
         <div class="alert alert--success"><?= htmlspecialchars($success) ?></div>
+    <?php endif; ?>
+    <?php if (isset($_GET['flushed'])): ?>
+        <div class="alert alert--success">Cache flushed.</div>
     <?php endif; ?>
 
     <div class="admin-form-card">

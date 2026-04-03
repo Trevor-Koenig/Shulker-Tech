@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// Share session across all subdomains in production (e.g. SESSION_DOMAIN=.example.com)
+// Share session across all subdomains (e.g. SESSION_DOMAIN=.localhost or .example.com)
 $sessionDomain = $_ENV['SESSION_DOMAIN'] ?? '';
 if ($sessionDomain !== '') {
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['SERVER_PORT'] ?? 80) == 443);
     session_set_cookie_params([
         'lifetime' => 0,
         'path'     => '/',
         'domain'   => $sessionDomain,
-        'secure'   => true,
+        'secure'   => $isSecure,
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
@@ -304,33 +306,80 @@ switch ($subdomain) {
             $success  = 'Settings saved.';
             require __DIR__ . '/../src/Views/admin/settings.php';
         });
+        $router->post('/cache/flush', function () {
+            Auth::requirePermission('admin.access');
+            Csrf::verifyRequest();
+            \Trevor\ShulkerTech\Cache::flush();
+            header('Location: /settings?flushed=1');
+            exit;
+        });
 
         ob_end_clean(); // Admin views manage their own output buffering
         $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
         exit;
 
     case 'wiki':
-        // Logout from public subdomains
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) === '/logout') {
+        $path   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        if ($method === 'POST' && $path === '/logout') {
             Csrf::verifyRequest();
             Auth::logout();
-            header('Location: ' . ($_ENV['HOME_URL'] ?? '/'));
+            header('Location: ' . ($_ENV['WIKI_URL'] ?? '/'));
             exit;
         }
-        $title = 'Wiki — Shulker Tech';
+
+        if ($path === '/login') {
+            if ($method === 'POST') {
+                Csrf::verifyRequest();
+                $user = User::findByEmail(trim($_POST['email'] ?? ''));
+                if ($user && User::verifyPassword(trim($_POST['password'] ?? ''), $user['password_hash'])) {
+                    Auth::login($user);
+                    header('Location: /');
+                    exit;
+                }
+                $error = 'Invalid email or password.';
+            }
+            $title      = 'Login — Shulker Tech';
+            $activePage = '';
+            require __DIR__ . '/../src/Views/login.php';
+            break;
+        }
+
+        $title      = 'Wiki — Shulker Tech';
         $activePage = 'wiki';
         require __DIR__ . '/../src/Views/wiki.php';
         break;
 
     default:
-        // Logout from public subdomains
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) === '/logout') {
+        $path   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        if ($method === 'POST' && $path === '/logout') {
             Csrf::verifyRequest();
             Auth::logout();
             header('Location: ' . ($_ENV['HOME_URL'] ?? '/'));
             exit;
         }
-        $title = 'Shulker Tech';
+
+        if ($path === '/login') {
+            if ($method === 'POST') {
+                Csrf::verifyRequest();
+                $user = User::findByEmail(trim($_POST['email'] ?? ''));
+                if ($user && User::verifyPassword(trim($_POST['password'] ?? ''), $user['password_hash'])) {
+                    Auth::login($user);
+                    header('Location: /');
+                    exit;
+                }
+                $error = 'Invalid email or password.';
+            }
+            $title      = 'Login — Shulker Tech';
+            $activePage = '';
+            require __DIR__ . '/../src/Views/login.php';
+            break;
+        }
+
+        $title      = 'Shulker Tech';
         $activePage = 'home';
         require __DIR__ . '/../src/Views/home.php';
         break;

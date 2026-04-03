@@ -46,8 +46,8 @@ $authUser = Auth::user();
                     <?= Csrf::tokenField() ?>
                     <button type="submit" class="btn btn--ghost btn--sm">Logout</button>
                 </form>
-            <?php elseif ($adminUrl !== ''): ?>
-                <a href="<?= $adminUrl ?>/login" class="btn btn--ghost btn--sm">Login</a>
+            <?php else: ?>
+                <a href="/login" class="btn btn--ghost btn--sm">Login</a>
             <?php endif; ?>
             <button class="nav__theme-toggle" id="themeToggle" aria-label="Toggle theme">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -80,8 +80,8 @@ $authUser = Auth::user();
                 <?= Csrf::tokenField() ?>
                 <button type="submit" class="nav__mobile-logout">Logout</button>
             </form>
-        <?php elseif ($adminUrl !== ''): ?>
-            <a href="<?= $adminUrl ?>/login">Login</a>
+        <?php else: ?>
+            <a href="/login">Login</a>
         <?php endif; ?>
     </div>
 
