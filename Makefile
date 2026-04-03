@@ -3,3 +3,6 @@ dev:
 
 prod:
 	docker compose up
+
+test:
+	vendor/bin/phpunit

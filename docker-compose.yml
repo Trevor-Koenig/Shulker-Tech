@@ -12,6 +12,10 @@ services:
       BLUEMAP_URL: ${BLUEMAP_URL}
       HOME_URL: ${HOME_URL}
       WIKI_URL: ${WIKI_URL}
+      ADMIN_URL: ${ADMIN_URL}
+      DISCORD_SERVER_ID: ${DISCORD_SERVER_ID}
+      ADMIN_SETUP_TOKEN: ${ADMIN_SETUP_TOKEN:-}
+      CACHE_DIR: /var/www/cache
       SUBDOMAIN_OVERRIDE: ${SUBDOMAIN_OVERRIDE:-}
     depends_on:
       db:
@@ -28,7 +32,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
       interval: 10s
       timeout: 5s
       retries: 5
