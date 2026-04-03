@@ -1,6 +1,5 @@
 -- ============================================================
 -- Shulker Tech — Initial Schema
--- Run: docker exec -i shulker-tech-db-1 mariadb -u root -p<password> shulkertech < database/001_schema.sql
 -- ============================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
