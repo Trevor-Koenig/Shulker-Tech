@@ -17,7 +17,7 @@ class MigrationTest extends TestCase
 
     public function testSingleStatementIsPreserved(): void
     {
-        $sql    = 'CREATE TABLE `foo` (`id` INT PRIMARY KEY)';
+        $sql = 'CREATE TABLE `foo` (`id` INT PRIMARY KEY)';
         $result = array_values($this->splitSql($sql));
 
         $this->assertCount(1, $result);
@@ -48,7 +48,7 @@ class MigrationTest extends TestCase
     public function testEmptyStatementsFromTrailingSemicolonAreExcluded(): void
     {
         // Files commonly end with a trailing semicolon + newline, producing an empty token
-        $sql    = "CREATE TABLE `a` (`id` INT);\n";
+        $sql = "CREATE TABLE `a` (`id` INT);\n";
         $result = $this->splitSql($sql);
 
         $this->assertCount(1, $result);
@@ -56,7 +56,7 @@ class MigrationTest extends TestCase
 
     public function testBlankLinesAndWhitespaceOnlyTokensAreExcluded(): void
     {
-        $sql    = "CREATE TABLE `a` (`id` INT);\n\n   \nCREATE TABLE `b` (`id` INT);";
+        $sql = "CREATE TABLE `a` (`id` INT);\n\n   \nCREATE TABLE `b` (`id` INT);";
         $result = array_values($this->splitSql($sql));
 
         $this->assertCount(2, $result);
@@ -64,10 +64,10 @@ class MigrationTest extends TestCase
 
     public function testRealSchemaFileProducesMultipleStatements(): void
     {
-        $file = __DIR__ . '/../database/001_schema.sql';
+        $file = __DIR__ . '/../migrations/001_schema.sql';
         $this->assertFileExists($file);
 
-        $sql    = file_get_contents($file);
+        $sql = file_get_contents($file);
         $result = $this->splitSql($sql);
 
         // The schema has at least: SET FK_CHECKS, 6 CREATE TABLEs, SET FK_CHECKS, INSERTs

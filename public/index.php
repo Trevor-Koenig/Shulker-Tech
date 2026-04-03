@@ -11,9 +11,9 @@ if ($sessionDomain !== '') {
         || (($_SERVER['SERVER_PORT'] ?? 80) == 443);
     session_set_cookie_params([
         'lifetime' => 0,
-        'path'     => '/',
-        'domain'   => $sessionDomain,
-        'secure'   => $isSecure,
+        'path' => '/',
+        'domain' => $sessionDomain,
+        'secure' => $isSecure,
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
@@ -34,12 +34,16 @@ $subdomain = ($_ENV['SUBDOMAIN_OVERRIDE'] ?? '') !== ''
     ? $_ENV['SUBDOMAIN_OVERRIDE']
     : explode('.', $_SERVER['HTTP_HOST'] ?? '')[0];
 
+define('HOME_URL', htmlspecialchars(rtrim($_ENV['HOME_URL'], '/') ?? '/'));
+define('WIKI_URL', htmlspecialchars(rtrim($_ENV['WIKI_URL'], '/') ?? '/'));
+define('ADMIN_URL', htmlspecialchars(rtrim($_ENV['ADMIN_URL'], '/') ?? '/'));
+
 ob_start();
 
 // Redirect to setup wizard if no users exist yet
 if (User::count() === 0) {
     $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-    $onSetup     = $subdomain === 'admin' && $currentPath === '/setup';
+    $onSetup = $subdomain === 'admin' && $currentPath === '/setup';
     if (!$onSetup) {
         $adminUrl = rtrim($_ENV['ADMIN_URL'] ?? '', '/');
         header("Location: {$adminUrl}/setup");
@@ -291,7 +295,7 @@ switch ($subdomain) {
         // Settings
         $router->get('/settings', function () {
             Auth::requirePermission('admin.access');
-            $title    = 'Settings — Shulker Tech Admin';
+            $title = 'Settings — Shulker Tech Admin';
             $settings = Setting::all();
             require __DIR__ . '/../src/Views/admin/settings.php';
         });
@@ -301,9 +305,9 @@ switch ($subdomain) {
             foreach ($_POST['settings'] ?? [] as $key => $value) {
                 Setting::set((string) $key, (string) $value);
             }
-            $title    = 'Settings — Shulker Tech Admin';
+            $title = 'Settings — Shulker Tech Admin';
             $settings = Setting::all();
-            $success  = 'Settings saved.';
+            $success = 'Settings saved.';
             require __DIR__ . '/../src/Views/admin/settings.php';
         });
         $router->post('/cache/flush', function () {
@@ -319,7 +323,7 @@ switch ($subdomain) {
         exit;
 
     case 'wiki':
-        $path   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
         $method = $_SERVER['REQUEST_METHOD'];
 
         if ($method === 'POST' && $path === '/logout') {
@@ -340,19 +344,19 @@ switch ($subdomain) {
                 }
                 $error = 'Invalid email or password.';
             }
-            $title      = 'Login — Shulker Tech';
+            $title = 'Login — Shulker Tech';
             $activePage = '';
             require __DIR__ . '/../src/Views/login.php';
             break;
         }
 
-        $title      = 'Wiki — Shulker Tech';
+        $title = 'Wiki — Shulker Tech';
         $activePage = 'wiki';
         require __DIR__ . '/../src/Views/wiki.php';
         break;
 
     default:
-        $path   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
         $method = $_SERVER['REQUEST_METHOD'];
 
         if ($method === 'POST' && $path === '/logout') {
@@ -373,13 +377,13 @@ switch ($subdomain) {
                 }
                 $error = 'Invalid email or password.';
             }
-            $title      = 'Login — Shulker Tech';
+            $title = 'Login — Shulker Tech';
             $activePage = '';
             require __DIR__ . '/../src/Views/login.php';
             break;
         }
 
-        $title      = 'Shulker Tech';
+        $title = 'Shulker Tech';
         $activePage = 'home';
         require __DIR__ . '/../src/Views/home.php';
         break;

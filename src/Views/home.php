@@ -5,15 +5,12 @@ use Trevor\ShulkerTech\ServerQuery;
 use Trevor\ShulkerTech\Models\Server;
 use Trevor\ShulkerTech\Models\Setting;
 
-$bluemapUrls    = array_values(array_filter(array_map('trim', explode("\n", Setting::get('bluemap_url')))));
-$initialIndex   = !empty($bluemapUrls) ? array_rand($bluemapUrls) : 0;
-$rawBluemapUrl  = $bluemapUrls[$initialIndex] ?? '';
-$bluemapUrl     = htmlspecialchars($rawBluemapUrl);
-$bluemapOnline  = $rawBluemapUrl !== '' && Health::isReachable($rawBluemapUrl);
+$bluemapUrls = array_values(array_filter(array_map('trim', explode("\n", Setting::get('bluemap_url')))));
+$initialIndex = !empty($bluemapUrls) ? array_rand($bluemapUrls) : 0;
+$rawBluemapUrl = $bluemapUrls[$initialIndex] ?? '';
+$bluemapUrl = htmlspecialchars($rawBluemapUrl);
+$bluemapOnline = $rawBluemapUrl !== '' && Health::isReachable($rawBluemapUrl);
 $bluemapUrlsJson = htmlspecialchars(json_encode(array_values($bluemapUrls)), ENT_QUOTES);
-
-$homeUrl = htmlspecialchars($_ENV['HOME_URL'] ?? '/');
-$wikiUrl = htmlspecialchars($_ENV['WIKI_URL'] ?? '/wiki');
 
 // Load active servers with cached status
 $servers = Server::allActive();
@@ -40,11 +37,8 @@ $discordServerId = htmlspecialchars($_ENV['DISCORD_SERVER_ID'] ?? '');
             <?php if (count($bluemapUrls) > 1): ?>
                 <div class="hero__map-dots" id="heroMapDots">
                     <?php foreach ($bluemapUrls as $i => $url): ?>
-                        <button
-                            class="hero__map-dot <?= $i === $initialIndex ? 'hero__map-dot--active' : '' ?>"
-                            data-index="<?= $i ?>"
-                            aria-label="Map <?= $i + 1 ?>"
-                        ></button>
+                        <button class="hero__map-dot <?= $i === $initialIndex ? 'hero__map-dot--active' : '' ?>"
+                            data-index="<?= $i ?>" aria-label="Map <?= $i + 1 ?>"></button>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -53,13 +47,13 @@ $discordServerId = htmlspecialchars($_ENV['DISCORD_SERVER_ID'] ?? '');
 
     <div class="hero__content">
         <p class="hero__eyebrow">Welcome to the Server</p>
-        <a href="<?= $homeUrl ?>">
+        <a href="<?= HOME_URL ?>">
             <h1 class="hero__title"><span>SHULKER</span> TECH</h1>
         </a>
         <p class="hero__subtitle">
             One Site to rule them all, One Site to find them, One Site to bring them all, and in the darkness bind them.
         </p>
-        <a href="<?= $wikiUrl ?>" <?= ($activePage ?? '') === 'wiki' ? 'class="active"' : '' ?>"
+        <a href="<?= WIKI_URL ?>" <?= ($activePage ?? '') === 'wiki' ? 'class="active"' : '' ?>"
             class="btn btn--primary">Browse the Wiki</a>
     </div>
 </section>
@@ -174,11 +168,11 @@ $discordServerId = htmlspecialchars($_ENV['DISCORD_SERVER_ID'] ?? '');
         // Map switcher
         var heroMap = document.getElementById('heroMap');
         if (heroMap) {
-            var frame   = document.getElementById('heroMapFrame');
-            var maps    = JSON.parse(heroMap.dataset.maps || '[]');
+            var frame = document.getElementById('heroMapFrame');
+            var maps = JSON.parse(heroMap.dataset.maps || '[]');
             var current = parseInt(heroMap.dataset.current, 10) || 0;
-            var dots    = document.querySelectorAll('.hero__map-dot');
-            var timer   = null;
+            var dots = document.querySelectorAll('.hero__map-dot');
+            var timer = null;
 
             function switchTo(index) {
                 current = (index + maps.length) % maps.length;
@@ -216,25 +210,25 @@ $discordServerId = htmlspecialchars($_ENV['DISCORD_SERVER_ID'] ?? '');
     </div>
 
     <div class="card-grid">
-        <a href="/wiki/getting-started" class="card">
+        <a href="<?= WIKI_URL ?>/getting-started" class="card">
             <div class="card__icon">🚀</div>
             <div class="card__title">Getting Started</div>
             <p class="card__desc">New to the server? Start here for everything you need to know before jumping in.</p>
             <span class="card__cta">Read more →</span>
         </a>
-        <a href="/wiki/rules" class="card">
+        <a href="<?= WIKI_URL ?>/rules" class="card">
             <div class="card__icon">📜</div>
             <div class="card__title">Rules</div>
             <p class="card__desc">Server rules and community guidelines to keep things fun and fair for everyone.</p>
             <span class="card__cta">Read more →</span>
         </a>
-        <a href="/wiki/tech" class="card">
+        <a href="<?= WIKI_URL ?>/tech" class="card">
             <div class="card__icon">⚙️</div>
             <div class="card__title">Tech Guides</div>
             <p class="card__desc">Redstone, automation, farms, and technical Minecraft resources.</p>
             <span class="card__cta">Read more →</span>
         </a>
-        <a href="/wiki/community" class="card">
+        <a href="<?= WIKI_URL ?>community" class="card">
             <div class="card__icon">🌐</div>
             <div class="card__title">Community</div>
             <p class="card__desc">Player projects, events, and highlights from around the server.</p>
