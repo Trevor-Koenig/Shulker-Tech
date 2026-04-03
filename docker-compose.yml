@@ -9,6 +9,10 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+      BLUEMAP_URL: ${BLUEMAP_URL}
+      HOME_URL: ${HOME_URL}
+      WIKI_URL: ${WIKI_URL}
+      SUBDOMAIN_OVERRIDE: ${SUBDOMAIN_OVERRIDE:-}
     depends_on:
       db:
         condition: service_healthy

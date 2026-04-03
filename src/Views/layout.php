@@ -1,3 +1,7 @@
+<?php
+$homeUrl = htmlspecialchars($_ENV['HOME_URL'] ?? '/');
+$wikiUrl = htmlspecialchars($_ENV['WIKI_URL'] ?? '/wiki');
+?>
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -11,10 +15,10 @@
 <body>
 
 <nav class="nav">
-    <a href="/" class="nav__logo"><span>SHULKER</span> TECH</a>
+    <a href="<?= $homeUrl ?>" class="nav__logo"><span>SHULKER</span> TECH</a>
     <ul class="nav__links">
-        <li><a href="/" <?= ($activePage ?? '') === 'home' ? 'class="active"' : '' ?>>Home</a></li>
-        <li><a href="/wiki" <?= ($activePage ?? '') === 'wiki' ? 'class="active"' : '' ?>>Wiki</a></li>
+        <li><a href="<?= $homeUrl ?>" <?= ($activePage ?? '') === 'home' ? 'class="active"' : '' ?>>Home</a></li>
+        <li><a href="<?= $wikiUrl ?>" <?= ($activePage ?? '') === 'wiki' ? 'class="active"' : '' ?>>Wiki</a></li>
     </ul>
     <div class="nav__actions">
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀</button>
@@ -26,8 +30,8 @@
     </div>
 </nav>
 <div class="nav__mobile-menu" id="nav-mobile-menu">
-    <a href="/" <?= ($activePage ?? '') === 'home' ? 'class="active"' : '' ?>>Home</a>
-    <a href="/wiki" <?= ($activePage ?? '') === 'wiki' ? 'class="active"' : '' ?>>Wiki</a>
+    <a href="<?= $homeUrl ?>" <?= ($activePage ?? '') === 'home' ? 'class="active"' : '' ?>>Home</a>
+    <a href="<?= $wikiUrl ?>" <?= ($activePage ?? '') === 'wiki' ? 'class="active"' : '' ?>>Wiki</a>
 </div>
 
 <div class="page">
