@@ -83,7 +83,7 @@ $discordServerId = htmlspecialchars($_ENV['DISCORD_SERVER_ID'] ?? '');
                     </div>
 
                     <?php if ($online): ?>
-                        <div class="server-card__motd"><?= htmlspecialchars($s['motd'] ?? '') ?></div>
+                        <div class="server-card__motd"><?= $s['motd'] ?? '' ?></div>
 
                         <div class="server-card__meta">
                             <span class="server-card__players">
@@ -148,7 +148,7 @@ $discordServerId = htmlspecialchars($_ENV['DISCORD_SERVER_ID'] ?? '');
                     + '<span class="server-card__name">' + escHtml(srv.name) + '</span>'
                     + '<span class="server-card__status-label">Online</span>'
                     + '</div>'
-                    + '<div class="server-card__motd">' + escHtml(s.motd || '') + '</div>'
+                    + '<div class="server-card__motd">' + (s.motd || '') + '</div>'
                     + '<div class="server-card__meta">'
                     + '<span class="server-card__players">' + (players.online || 0) + '/' + (players.max || 0) + ' players</span>'
                     + '<span class="server-card__version">' + escHtml(s.version || '') + '</span>'
