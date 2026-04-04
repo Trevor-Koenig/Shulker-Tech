@@ -3,3 +3,5 @@ services:
     volumes:
       - ./public:/var/www/html
       - ./src:/var/www/src
+      - ./migrations:/var/www/migrations
+      - ./docker/certs:/etc/apache2/certs:ro

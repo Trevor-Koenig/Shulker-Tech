@@ -12,8 +12,8 @@
 }());
 
 document.addEventListener('DOMContentLoaded', function () {
-    const hamburger = document.getElementById('nav-hamburger');
-    const mobileMenu = document.getElementById('nav-mobile-menu');
+    const hamburger = document.getElementById('navHamburger');
+    const mobileMenu = document.getElementById('navMobileMenu');
 
     if (!hamburger || !mobileMenu) return;
 
