@@ -1,19 +1,55 @@
 {
     "name": "trevor/shulker-tech",
-    "description": "My homebrew wiki for my minecraft server",
+    "description": "Shulker Tech — Minecraft server companion app",
+    "type": "project",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "laravel/tinker": "^2.9",
+        "filament/filament": "^3.2",
+        "spatie/laravel-permission": "^6.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "laravel/sail": "^1.0",
+        "fakerphp/faker": "^1.23"
+    },
     "autoload": {
         "psr-4": {
-            "Trevor\\ShulkerTech\\": "src/"
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Trevor\\ShulkerTech\\Tests\\": "tests/"
+            "Tests\\": "tests/"
         }
     },
-    "require-dev": {
-        "phpunit/phpunit": "^13.0",
-        "squizlabs/php_codesniffer": "^4.0",
-        "voku/portable-ascii": "^2.0"
-    }
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi",
+            "@php artisan filament:upgrade"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

@@ -474,3 +474,12 @@ composer.phar
 *.css.map
 *.sass.map
 *.scss.map
+
+##### Laravel
+/storage/*.key
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/views/
+/storage/logs/
+!/storage/logs/.gitkeep
+/bootstrap/cache/*.php

@@ -7,3 +7,9 @@ prod:
 
 test:
 	vendor/bin/phpunit
+
+artisan:
+	docker compose exec app php artisan $(cmd)
+
+tinker:
+	docker compose exec app php artisan tinker

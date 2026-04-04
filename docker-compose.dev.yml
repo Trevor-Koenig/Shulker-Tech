@@ -1,7 +1,10 @@
 services:
   app:
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
     volumes:
-      - ./public:/var/www/html
-      - ./src:/var/www/src
-      - ./migrations:/var/www/migrations
+      - .:/var/www/html
       - ./docker/certs:/etc/apache2/certs:ro
+      - /var/www/html/vendor         # keep vendor from image, don't override
+      - /var/www/html/bootstrap/cache

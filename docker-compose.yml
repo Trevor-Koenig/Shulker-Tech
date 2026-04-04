@@ -5,19 +5,29 @@ services:
       - "80:80"
       - "443:443"
     environment:
+      APP_NAME: "Shulker Tech"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_URL: ${HOME_URL}
+      APP_DOMAIN: ${APP_DOMAIN}
+      HOME_DOMAIN: ${HOME_DOMAIN:-${APP_DOMAIN}}
+      WIKI_DOMAIN: ${WIKI_DOMAIN:-wiki.${APP_DOMAIN}}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:-admin.${APP_DOMAIN}}
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      HOME_URL: ${HOME_URL}
-      WIKI_URL: ${WIKI_URL}
-      ADMIN_URL: ${ADMIN_URL}
-      DISCORD_SERVER_ID: ${DISCORD_SERVER_ID}
+      DB_SSL_CA: ${DB_SSL_CA:-}
+      DB_SSL_CERT: ${DB_SSL_CERT:-}
+      DB_SSL_KEY: ${DB_SSL_KEY:-}
+      DB_SSL_VERIFY: ${DB_SSL_VERIFY:-true}
+      CACHE_STORE: file
+      SESSION_DOMAIN: ${SESSION_DOMAIN:-.localhost}
+      DISCORD_SERVER_ID: ${DISCORD_SERVER_ID:-}
       ADMIN_SETUP_TOKEN: ${ADMIN_SETUP_TOKEN:-}
-      CACHE_DIR: /var/www/cache
       SUBDOMAIN_OVERRIDE: ${SUBDOMAIN_OVERRIDE:-}
-      SESSION_DOMAIN: ${SESSION_DOMAIN:-}
     depends_on:
       db:
         condition: service_healthy
@@ -33,7 +43,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 5s
       retries: 5
