@@ -53,9 +53,12 @@ class Auth
     }
 
     /** Guard: redirect to login if not authenticated. */
-    public static function requireLogin(): void
+    public static function requireLogin(?string $requestUri = NULL): void
     {
         if (!self::check()) {
+            if (!empty($requestUri)) {
+                $_SESSION['request_uri'] = $requestUri;
+            }
             header('Location: /login');
             exit;
         }

@@ -10,4 +10,8 @@ ob_start();
 </div>
 <?php
 $content = ob_get_clean();
-require __DIR__ . '/layout.php';
+if(CURRENT_SUBDOMAIN == 'admin') {
+    require __DIR__ . '/admin/layout.php';
+} else {
+    require __DIR__ . '/layout.php';
+}

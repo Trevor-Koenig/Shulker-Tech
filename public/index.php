@@ -37,6 +37,7 @@ $subdomain = ($_ENV['SUBDOMAIN_OVERRIDE'] ?? '') !== ''
 define('HOME_URL', htmlspecialchars(rtrim($_ENV['HOME_URL'], '/') ?? '/'));
 define('WIKI_URL', htmlspecialchars(rtrim($_ENV['WIKI_URL'], '/') ?? '/'));
 define('ADMIN_URL', htmlspecialchars(rtrim($_ENV['ADMIN_URL'], '/') ?? '/'));
+define('CURRENT_SUBDOMAIN', $subdomain);
 
 ob_start();
 
@@ -51,14 +52,18 @@ if (User::count() === 0) {
     }
 }
 
+// Declare the new router - this will be initialized differently depending on the subdomain
+$router = new Router();
+
 switch ($subdomain) {
+    // Define all valid paths in the admin subdomain
     case 'admin':
-        $router = new Router();
 
         // Auth routes
         $router->get('/login', function () {
             $title = 'Login — Shulker Tech Admin';
             require __DIR__ . '/../src/Views/admin/login.php';
+            exit;
         });
         $router->post('/login', function () {
             Csrf::verifyRequest();
@@ -67,7 +72,13 @@ switch ($subdomain) {
             $user = User::findByEmail($email);
             if ($user && User::verifyPassword($password, $user['password_hash'])) {
                 Auth::login($user);
-                header('Location: /');
+                if (!empty($_SESSION['request_uri'])) {
+                    $returnUri = $_SESSION['request_uri'];
+                    unset($_SESSION['request_uri']);
+                    header("Location: $returnUri");
+                } else {
+                    header('Location: /');
+                }
                 exit;
             }
             $error = 'Invalid email or password.';
@@ -128,7 +139,7 @@ switch ($subdomain) {
 
         // Dashboard
         $router->get('/', function () {
-            Auth::requireLogin();
+            Auth::requireLogin($_SERVER['REQUEST_URI']);
             $title = 'Dashboard — Shulker Tech Admin';
             require __DIR__ . '/../src/Views/admin/dashboard.php';
         });
@@ -318,42 +329,44 @@ switch ($subdomain) {
             exit;
         });
 
+        // Now all paths are defined so dispatch the user to their requested location - router handles 404 automatically
         ob_end_clean(); // Admin views manage their own output buffering
-        $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
+        $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], function () {
+            Auth::requireLogin($_SERVER['REQUEST_URI']);
+        });
         exit;
 
     case 'wiki':
-        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-        $method = $_SERVER['REQUEST_METHOD'];
 
-        if ($method === 'POST' && $path === '/logout') {
+        $router->post('/logout', function () {
             Csrf::verifyRequest();
             Auth::logout();
             header('Location: ' . ($_ENV['WIKI_URL'] ?? '/'));
-            exit;
-        }
+        });
 
-        if ($path === '/login') {
-            if ($method === 'POST') {
-                Csrf::verifyRequest();
-                $user = User::findByEmail(trim($_POST['email'] ?? ''));
-                if ($user && User::verifyPassword(trim($_POST['password'] ?? ''), $user['password_hash'])) {
-                    Auth::login($user);
-                    header('Location: /');
-                    exit;
-                }
-                $error = 'Invalid email or password.';
+        $router->post('/login', function () {
+            Csrf::verifyRequest();
+            $user = User::findByEmail(trim($_POST['email'] ?? ''));
+            if ($user && User::verifyPassword(trim($_POST['password'] ?? ''), $user['password_hash'])) {
+                Auth::login($user);
+                header('Location: /');
             }
+        });
+
+        $router->get('/login', function () {
+            $error = 'Invalid email or password.';
             $title = 'Login — Shulker Tech';
             $activePage = '';
             require __DIR__ . '/../src/Views/login.php';
-            break;
-        }
+        });
 
-        $title = 'Wiki — Shulker Tech';
-        $activePage = 'wiki';
-        require __DIR__ . '/../src/Views/wiki.php';
-        break;
+        $router->get('/', function () {
+            $title = 'Wiki — Shulker Tech';
+            $activePage = 'wiki';
+            require __DIR__ . '/../src/Views/wiki/home.php';
+        });
+
+        $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
 
     default:
         $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
@@ -380,6 +393,9 @@ switch ($subdomain) {
             $title = 'Login — Shulker Tech';
             $activePage = '';
             require __DIR__ . '/../src/Views/login.php';
+
+
+
             break;
         }
 

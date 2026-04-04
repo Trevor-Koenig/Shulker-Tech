@@ -19,7 +19,7 @@ class Router
         $this->routes[] = ['method' => 'POST', 'path' => $path, 'handler' => $handler, 'guard' => $guard];
     }
 
-    public function dispatch(string $method, string $uri): void
+    public function dispatch(string $method, string $uri, ?callable $notFoundGuard = null): void
     {
         $path = parse_url($uri, PHP_URL_PATH) ?? '/';
         $path = '/' . trim($path, '/');
@@ -54,6 +54,9 @@ class Router
             return;
         }
 
+        if($notFoundGuard !== null) {
+            $notFoundGuard();
+        }
         http_response_code(404);
         require __DIR__ . '/Views/404.php';
     }
