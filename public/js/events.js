@@ -1,5 +1,5 @@
 /**
- * SSE client — connects to /api/events.php and dispatches named events
+ * SSE client — connects to /api/events and dispatches named events
  * to registered handlers. Automatically reconnects on failure.
  *
  * Usage:
@@ -11,7 +11,7 @@
 (function () {
     'use strict';
 
-    const ENDPOINT        = '/api/events.php';
+    const ENDPOINT        = '/api/events';
     const RECONNECT_DELAY = 5000; // ms before reconnect attempt
 
     const handlers = {};
