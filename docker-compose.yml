@@ -7,7 +7,7 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: 3306
-      ADMIN_SETUP_TOKEN: setupadmin
+      ADMIN_SETUP_TOKEN: ${ADMIN_SETUP_TOKEN:-changeme}
       # optional for discord integration
       DISCORD_SERVER_ID: ${DISCORD_SERVER_ID:-}
       # optional flags for database connect - only use if your db is on a different server

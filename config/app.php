@@ -10,7 +10,11 @@ return [
     'fallback_locale' => 'en',
     'faker_locale' => 'en_US',
     'cipher' => 'AES-256-CBC',
-    'key' => env('APP_KEY'),
+    'key' => env('APP_KEY') ?: (
+        is_readable(storage_path('.key'))
+            ? trim(file_get_contents(storage_path('.key')))
+            : null
+    ),
     'previous_keys' => [
         ...array_filter(
             explode(',', env('APP_PREVIOUS_KEYS', ''))
@@ -19,6 +23,8 @@ return [
     'maintenance' => [
         'driver' => 'file',
     ],
+
+    'setup_token' => env('ADMIN_SETUP_TOKEN', ''),
 
     // The base domain used for subdomain routing (e.g. "localhost" or "shulkertech.com")
     'domain' => env('APP_DOMAIN', 'localhost'),

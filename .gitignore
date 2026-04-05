@@ -483,3 +483,5 @@ composer.phar
 /storage/logs/
 !/storage/logs/.gitkeep
 /bootstrap/cache/*.php
+_ide_helper.php
+_ide_helper_models.php

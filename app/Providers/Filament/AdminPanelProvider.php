@@ -44,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                \App\Http\Middleware\EnsureAppIsSetUp::class,
             ])
             ->authMiddleware([Authenticate::class])
             ->authGuard('web')
@@ -51,15 +52,5 @@ class AdminPanelProvider extends PanelProvider
             ->spa();
     }
 
-    /**
-     * Only users with admin.access permission can access the panel.
-     */
-    public function register(): void
-    {
-        parent::register();
 
-        \Filament\Facades\Filament::auth()->extend('admin', function () {
-            return app(\Illuminate\Auth\SessionGuard::class, ['name' => 'web']);
-        });
-    }
 }

@@ -27,7 +27,7 @@ class SetupController extends Controller
         }
 
         $token = $request->input('setup_token', '');
-        if (!hash_equals(env('ADMIN_SETUP_TOKEN', ''), $token)) {
+        if (!hash_equals(config('app.setup_token'), $token)) {
             return view('auth.setup', ['error' => 'Invalid setup token.']);
         }
 

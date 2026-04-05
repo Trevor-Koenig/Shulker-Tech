@@ -1,0 +1,30 @@
+# Dependencies (installed during build)
+vendor/
+node_modules/
+
+# Runtime directories (created by entrypoint)
+storage/
+bootstrap/cache/*.php
+
+# Local dev / secrets
+.env
+docker/certs/
+
+# Git history
+.git/
+
+# IDE and dev tooling
+_ide_helper.php
+_ide_helper_models.php
+.phpunit.result.cache
+phpunit.xml
+phpcs.xml
+tests/
+
+# Compose override files (not needed in image)
+docker-compose*.yml
+Makefile
+
+# Docs
+README.md
+LICENSE

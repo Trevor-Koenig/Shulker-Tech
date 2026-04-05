@@ -12,7 +12,7 @@ return [
     'lottery' => [2, 100],
     'cookie' => env('SESSION_COOKIE', 'shulkertech_session'),
     'path' => env('SESSION_PATH', '/'),
-    'domain' => env('SESSION_DOMAIN'),
+    'domain' => env('SESSION_DOMAIN', '.'.env('APP_DOMAIN', 'localhost')),
     'secure' => env('SESSION_SECURE_COOKIE', true),
     'http_only' => env('SESSION_HTTP_ONLY', true),
     'same_site' => env('SESSION_SAME_SITE', 'lax'),

@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Setup — Shulker Tech'])
+@extends('layouts.auth', ['title' => 'Setup — Shulker Tech'])
 
 @section('content')
 <div class="auth-page">

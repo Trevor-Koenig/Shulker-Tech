@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.4-apache
 
 # Enable mod_rewrite and mod_ssl
 RUN a2enmod rewrite ssl headers
@@ -41,16 +41,12 @@ RUN mkdir -p /etc/apache2/certs && \
         -out    /etc/apache2/certs/cert.pem \
         -subj "/CN=localhost"
 
-# Install Composer deps first (cached layer)
-# Uses composer update on first build (no lock file); subsequent builds use install once lock is committed
-COPY composer.json /var/www/html/
-RUN cd /var/www/html && composer update --no-dev --optimize-autoloader --no-scripts
+# Install Composer deps first (cached layer — rebuilt only when composer.json or composer.lock changes)
+COPY composer.json composer.lock /var/www/html/
+RUN cd /var/www/html && composer install --no-dev --optimize-autoloader --no-scripts
 
 # Copy full application
 COPY . /var/www/html/
-
-# Run post-install scripts now that the full app is present
-RUN cd /var/www/html && composer run-script post-autoload-dump --no-interaction 2>/dev/null || true
 
 # Storage and cache dirs writable by www-data
 RUN mkdir -p /var/www/html/storage/{app/public,framework/{cache/data,sessions,views},logs} \

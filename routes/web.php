@@ -5,7 +5,6 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SetupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Wiki\WikiController;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 // ── First-run setup ──────────────────────────────────────────────────────────
@@ -16,15 +15,21 @@ Route::middleware('web')->group(function () {
 });
 
 // ── Home subdomain ───────────────────────────────────────────────────────────
-Route::domain(config('app.home_domain'))->middleware('web')->group(function () {
+// Registered twice: once scoped to the configured domain, once as a bare
+// fallback so local dev works even if APP_DOMAIN isn't wired up yet.
+$homeRoutes = function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
-
     Route::get('/login',  [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
     Route::get('/api/events', [EventsController::class, 'stream']);
-});
+};
+
+Route::domain(config('app.home_domain'))->middleware('web')->group($homeRoutes);
+
+// Fallback: no-domain group catches requests when domain routing doesn't match
+// (e.g. first-time local dev before APP_DOMAIN is configured).
+Route::middleware('web')->group($homeRoutes);
 
 // ── Wiki subdomain ───────────────────────────────────────────────────────────
 Route::domain(config('app.wiki_domain'))->middleware('web')->group(function () {

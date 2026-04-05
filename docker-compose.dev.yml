@@ -6,5 +6,6 @@ services:
     volumes:
       - .:/var/www/html
       - ./docker/certs:/etc/apache2/certs:ro
-      - /var/www/html/vendor         # keep vendor from image, don't override
-      - /var/www/html/bootstrap/cache
+      - /var/www/html/vendor                    # keep vendor from image, don't override
+      - /var/www/html/bootstrap/cache           # entrypoint regenerates on start
+      - /var/www/html/storage/framework         # sessions, views, cache — owned by www-data
