@@ -5,6 +5,19 @@
 
 @if (SignInManager.IsSignedIn(User))
 {
+    var _currentUser = await UserManager.GetUserAsync(User);
+    if (_currentUser?.IsAdmin == true)
+    {
+        var _host = Context.Request.Host.Host;
+        var _firstSegment = _host.Split('.')[0];
+        string[] _knownSubdomains = ["wiki", "admin"];
+        var _rootHost = _knownSubdomains.Contains(_firstSegment, StringComparer.OrdinalIgnoreCase)
+            ? _host[(_firstSegment.Length + 1)..]
+            : _host;
+        var _port = Context.Request.Host.Port;
+        var _adminBase = $"{Context.Request.Scheme}://admin.{_rootHost}{(_port.HasValue ? $":{_port}" : "")}";
+        <li><a class="nav-link" href="@_adminBase/">ADMIN</a></li>
+    }
     <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })" method="post">
         <span class="nav-link" style="color: var(--color-plasma); font-family: var(--font-mono); font-size: 0.7rem;">
             @User.Identity?.Name

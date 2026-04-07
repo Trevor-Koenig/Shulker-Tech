@@ -1,14 +1,72 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "Admin";
+    ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 style="font-family: var(--font-display); color: var(--color-rune); font-size: 2rem; letter-spacing: 0.1em;">
-        ADMIN
-    </h1>
-    <p style="color: var(--color-muted); margin-top: 0.5rem;">
-        Server administration panel.
-    </p>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    <div class="mb-10">
+        <p class="text-xs tracking-widest mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; CONTROL CENTRE</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            ADMIN DASHBOARD
+        </h1>
+        <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+            Signed in as @User.Identity?.Name
+        </p>
+    </div>
+
+    @* Stats row *@
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+
+        <div class="panel p-5 flex flex-col gap-1">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">USERS</span>
+            <span style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-plasma);">@Model.TotalUsers</span>
+        </div>
+
+        <div class="panel p-5 flex flex-col gap-1">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">ACTIVE INVITES</span>
+            <span style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-plasma);">@Model.ActiveInviteCodes</span>
+        </div>
+
+        <div class="panel p-5 flex flex-col gap-1">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">MAP SERVERS</span>
+            <span style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-plasma);">@Model.TotalMapServers</span>
+        </div>
+
+        <div class="panel p-5 flex flex-col gap-1">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">MAPS ACTIVE</span>
+            <span style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-plasma);">@Model.ActiveMapServers</span>
+        </div>
+
+    </div>
+
+    @* Nav cards *@
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        <a asp-page="/Users/Index" class="panel panel-arcane p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; USERS</span>
+            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Manage accounts, assign roles, and review members.
+            </p>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
+        </a>
+
+        <a asp-page="/Invites/Index" class="panel panel-arcane p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; INVITES</span>
+            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Generate and revoke invite codes to control who can register.
+            </p>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
+        </a>
+
+        <a asp-page="/Maps/Index" class="panel panel-arcane p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; MAP SERVERS</span>
+            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Configure and toggle the live map server integrations.
+            </p>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
+        </a>
+
+    </div>
 </div>

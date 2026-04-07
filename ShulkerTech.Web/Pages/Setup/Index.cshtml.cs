@@ -34,7 +34,12 @@ public class IndexModel(
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    public void OnGet() { }
+    public IActionResult OnGet()
+    {
+        if (userManager.Users.Any())
+            return RedirectToPage("/Account/Login", new { area = "Identity" });
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {
@@ -62,6 +67,7 @@ public class IndexModel(
             return Page();
         }
 
+        await userManager.AddToRoleAsync(user, "Admin");
         await signInManager.SignInAsync(user, isPersistent: false);
         return RedirectToPage("/Index");
     }

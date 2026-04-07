@@ -29,16 +29,27 @@ public class SubdomainRoutingMiddleware(RequestDelegate next)
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Global paths bypass subdomain routing entirely
+        var host = context.Request.Host.Host;
+        var subdomain = host.Split('.')[0];
+
+        // Global paths (setup, login, etc.) always live on the root domain.
+        // Redirect to root if accessed from a subdomain so relative redirects
+        // within those pages don't stay on the wrong subdomain.
         var path = context.Request.Path.Value ?? string.Empty;
         if (GlobalPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
         {
+            var rootHost = host[(subdomain.Length + 1)..];
+            if (rootHost.Contains('.'))
+            {
+                var port = context.Request.Host.Port;
+                var portSuffix = port.HasValue ? $":{port}" : string.Empty;
+                context.Response.Redirect($"{context.Request.Scheme}://{rootHost}{portSuffix}{context.Request.Path}{context.Request.QueryString}");
+                return;
+            }
+
             await next(context);
             return;
         }
-
-        var host = context.Request.Host.Host;
-        var subdomain = host.Split('.')[0];
 
         if (SubdomainAreaMap.TryGetValue(subdomain, out var area))
         {
