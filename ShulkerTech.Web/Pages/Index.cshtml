@@ -1,10 +1,133 @@
-﻿@page
+@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Shulker Tech";
+    Layout = "/Pages/Shared/_Layout.cshtml";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@section Head {
+    <style>
+        /* Pull hero flush to the top, behind the fixed nav */
+        body { padding-top: 0; }
+    </style>
+}
+
+@* ── Hero ────────────────────────────────────────────────────────────────── *@
+<section class="relative w-full scanlines" style="height: 100svh; min-height: 500px;">
+
+    @* Map iframe *@
+    @if (Model.MapUrl is not null)
+    {
+        <iframe src="@Model.MapUrl"
+                class="absolute inset-0 w-full h-full"
+                style="border: none;"
+                loading="lazy"
+                title="Shulker Tech world map"
+                sandbox="allow-scripts allow-same-origin allow-popups">
+        </iframe>
+    }
+    else
+    {
+        @* Fallback when no map is configured *@
+        <div class="absolute inset-0" style="background: radial-gradient(ellipse at 60% 40%, var(--color-nebula), var(--color-void));"></div>
+    }
+
+    @* Dark gradient overlay — pointer-events: none lets the iframe stay interactive *@
+    <div class="absolute inset-0 pointer-events-none"
+         style="background:
+            linear-gradient(to bottom,
+                color-mix(in oklab, var(--color-void) 70%, transparent) 0%,
+                color-mix(in oklab, var(--color-void) 20%, transparent) 35%,
+                color-mix(in oklab, var(--color-void) 20%, transparent) 65%,
+                color-mix(in oklab, var(--color-void) 85%, transparent) 100%
+            );">
+    </div>
+
+    @* Hero content *@
+    <div class="absolute inset-0 flex flex-col items-center justify-center px-4 text-center pointer-events-none">
+
+        @* Eyebrow *@
+        <p class="mb-4 text-xs tracking-widest uppercase pointer-events-none"
+           style="font-family: var(--font-mono); color: var(--color-plasma); text-shadow: 0 0 10px var(--color-plasma);">
+            &#9670; &nbsp; Online Now &nbsp; &#9670;
+        </p>
+
+        @* Title *@
+        <h1 class="mb-6 pointer-events-none"
+            style="font-family: var(--font-display);
+                   font-size: clamp(2.5rem, 8vw, 6rem);
+                   font-weight: 900;
+                   letter-spacing: 0.08em;
+                   line-height: 1;
+                   color: var(--color-crystal);
+                   text-shadow: 0 0 40px color-mix(in oklab, var(--color-plasma) 60%, transparent),
+                                0 0 80px color-mix(in oklab, var(--color-arcane) 30%, transparent);">
+            SHULKER<br>
+            <span style="color: var(--color-plasma);">TECH</span>
+        </h1>
+
+        @* Tagline *@
+        <p class="mb-10 max-w-md pointer-events-none"
+           style="font-family: var(--font-body); font-size: 1.1rem; font-weight: 300;
+                  color: color-mix(in oklab, var(--color-crystal) 80%, transparent);
+                  text-shadow: 0 2px 8px var(--color-void);">
+            Where builders forge worlds and adventurers become legends.
+        </p>
+
+        @* CTAs — pointer-events: auto so they're clickable through the overlay *@
+        <div class="flex flex-col sm:flex-row gap-4 pointer-events-auto">
+            <a asp-page="/Wiki/Index" asp-area="Wiki"
+               class="btn-primary px-8 py-3 text-sm">
+                EXPLORE THE WIKI
+            </a>
+            <a href="#about"
+               class="px-8 py-3 rounded text-sm"
+               style="font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.1em;
+                      text-transform: uppercase; color: var(--color-crystal);
+                      border: 1px solid color-mix(in oklab, var(--color-crystal) 30%, transparent);
+                      transition: border-color 150ms, color 150ms; text-decoration: none;"
+               onmouseover="this.style.borderColor='var(--color-plasma)'; this.style.color='var(--color-plasma)';"
+               onmouseout="this.style.borderColor='color-mix(in oklab, var(--color-crystal) 30%, transparent)'; this.style.color='var(--color-crystal)';">
+                LEARN MORE
+            </a>
+        </div>
+    </div>
+
+    @* Scroll indicator *@
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center gap-2"
+         style="color: var(--color-muted); opacity: 0.6;">
+        <span class="text-xs" style="font-family: var(--font-mono); letter-spacing: 0.1em;">SCROLL</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+    </div>
+</section>
+
+@* ── About section ─────────────────────────────────────────────────────── *@
+<section id="about" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 grid sm:grid-cols-3 gap-12">
+
+    <div class="panel panel-arcane p-6 flex flex-col gap-3">
+        <span style="font-size: 1.5rem; color: var(--color-arcane);">&#9670;</span>
+        <h3 style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.85rem; letter-spacing: 0.1em;">BUILD</h3>
+        <p style="font-size: 0.875rem; color: var(--color-muted); line-height: 1.6;">
+            Craft, engineer, and construct across a persistent world shaped entirely by its players.
+        </p>
+    </div>
+
+    <div class="panel p-6 flex flex-col gap-3">
+        <span style="font-size: 1.5rem; color: var(--color-plasma);">&#9670;</span>
+        <h3 style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.85rem; letter-spacing: 0.1em;">EXPLORE</h3>
+        <p style="font-size: 0.875rem; color: var(--color-muted); line-height: 1.6;">
+            Venture into uncharted territories. Every biome hides secrets waiting to be uncovered.
+        </p>
+    </div>
+
+    <div class="panel p-6 flex flex-col gap-3" style="border-color: color-mix(in oklab, var(--color-rune) 30%, transparent);">
+        <span style="font-size: 1.5rem; color: var(--color-rune);">&#9670;</span>
+        <h3 style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.85rem; letter-spacing: 0.1em;">CONNECT</h3>
+        <p style="font-size: 0.875rem; color: var(--color-muted); line-height: 1.6;">
+            Join a community of builders and thinkers. Your story becomes part of something larger.
+        </p>
+    </div>
+
+</section>

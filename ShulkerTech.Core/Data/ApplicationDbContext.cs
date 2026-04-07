@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using ShulkerTech.Core.Models;
 
 namespace ShulkerTech.Core.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
 {
-    // Domain DbSets go here as models are added to ShulkerTech.Core.Models
+    public DbSet<MapServer> MapServers => Set<MapServer>();
 }
