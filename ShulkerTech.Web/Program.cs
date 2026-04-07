@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
+using ShulkerTech.Core.Models;
+using ShulkerTech.Core.Services;
 using ShulkerTech.Web.Hubs;
 using ShulkerTech.Web.Middleware;
 
@@ -14,9 +15,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         npgsql.MigrationsAssembly("ShulkerTech.Web")));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddHttpClient<MojangService>();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
@@ -40,6 +42,7 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<FirstRunMiddleware>();
 app.UseMiddleware<SubdomainRoutingMiddleware>();
 app.UseRouting();
 app.UseAuthorization();

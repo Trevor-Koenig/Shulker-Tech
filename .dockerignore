@@ -10,6 +10,7 @@
 tailwindcss
 ShulkerTech.Web/app.db
 ShulkerTech.Web/appsettings.Development.json
+docker-compose.override.yml
 
 # Tailwind source — only the compiled output is needed
 ShulkerTech.Web/wwwroot/css/app.css

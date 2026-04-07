@@ -10,14 +10,33 @@ namespace ShulkerTech.Web.Middleware;
 /// </summary>
 public class SubdomainRoutingMiddleware(RequestDelegate next)
 {
-    private static readonly Dictionary<string, string> SubdomainAreaMap = new(StringComparer.OrdinalIgnoreCase)
+    public static readonly Dictionary<string, string> SubdomainAreaMap = new(StringComparer.OrdinalIgnoreCase)
     {
         ["wiki"]  = "Wiki",
         ["admin"] = "Admin",
     };
 
+    // Paths that are served from the root app regardless of subdomain.
+    // These are never prefixed with an area path.
+    private static readonly string[] GlobalPaths =
+    [
+        "/setup",
+        "/Account",
+        "/css/",
+        "/js/",
+        "/favicon.ico",
+    ];
+
     public async Task InvokeAsync(HttpContext context)
     {
+        // Global paths bypass subdomain routing entirely
+        var path = context.Request.Path.Value ?? string.Empty;
+        if (GlobalPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+        {
+            await next(context);
+            return;
+        }
+
         var host = context.Request.Host.Host;
         var subdomain = host.Split('.')[0];
 

@@ -1,38 +1,37 @@
-.PHONY: dev css css-watch db deploy setup migration
+.PHONY: dev deploy setup migration clean
 
 # ── First-time setup ──────────────────────────────────────────────────────────
 
-# Install dev tools required on the local machine (not needed in Docker)
+# Install dev tools required on the local machine
 setup:
 	dotnet tool install --global dotnet-ef || dotnet tool update --global dotnet-ef
-	@echo "Tailwind: download tailwindcss binary to repo root if not present"
+	dotnet tool install --global dotnet-aspnet-codegenerator || dotnet tool update --global dotnet-aspnet-codegenerator
 	@test -f tailwindcss || (curl -sLo tailwindcss https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64 && chmod +x tailwindcss)
 
 # Create a new EF Core migration (usage: make migration NAME=AddArticleTable)
 migration:
 	cd ShulkerTech.Web && dotnet ef migrations add $(NAME)
 
-# ── Development ──────────────────────────────────────────────────────────────
+# ── Development ───────────────────────────────────────────────────────────────
 
-# Start PostgreSQL only (app runs natively via dotnet)
-db:
-	docker compose up -d db
-
-# Run the app with hot-reload
+# Start dev environment in Docker (db + app with hot reload + Tailwind watch)
+# docker-compose.override.yml is merged automatically by Docker Compose
 dev:
-	cd ShulkerTech.Web && dotnet watch
+	docker compose up
 
-# Compile Tailwind once
-css:
-	./tailwindcss -i ShulkerTech.Web/wwwroot/css/app.css -o ShulkerTech.Web/wwwroot/css/app.out.css --minify
+build:
+	docker compose up --build
 
-# Watch and recompile Tailwind on save
-css-watch:
-	./tailwindcss -i ShulkerTech.Web/wwwroot/css/app.css -o ShulkerTech.Web/wwwroot/css/app.out.css --watch
+# Same but detached
+dev-bg:
+	docker compose up -d
+
+# Stop all dev containers
+stop:
+	docker compose down
 
 # ── Production ────────────────────────────────────────────────────────────────
 
-# Build CSS then bring up the full stack (db + app) in Docker
+# Deploy production stack — explicitly excludes the dev override
 deploy:
-	$(MAKE) css
-	docker compose up -d --build
+	docker compose -f docker-compose.yml up -d --build

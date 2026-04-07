@@ -1,0 +1,104 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Invite Codes";
+}
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    <div class="flex items-center justify-between mb-8">
+        <h1 style="font-family: var(--font-display); color: var(--color-rune); font-size: 1.5rem; letter-spacing: 0.1em;">
+            INVITE CODES
+        </h1>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-plasma); font-family: var(--font-mono);">
+            @Model.StatusMessage
+        </div>
+    }
+
+    @* Generate form *@
+    <div class="panel p-6 mb-8">
+        <h2 class="text-sm mb-4" style="font-family: var(--font-display); color: var(--color-crystal); letter-spacing: 0.08em;">
+            GENERATE CODE
+        </h2>
+        <form method="post" asp-page-handler="Generate" class="flex flex-col sm:flex-row gap-3 flex-wrap">
+            <input asp-for="Input.Note" placeholder="Note (e.g. Wave 3 - Discord)"
+                   class="flex-1 px-3 py-2 rounded text-sm"
+                   style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent); color: var(--color-crystal);" />
+            <div class="flex items-center gap-2">
+                <label class="text-xs whitespace-nowrap" style="color: var(--color-muted); font-family: var(--font-mono);">MAX USES</label>
+                <input asp-for="Input.MaxUses" type="number" min="1" max="100"
+                       class="w-20 px-3 py-2 rounded text-sm text-center"
+                       style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent); color: var(--color-crystal);" />
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-xs whitespace-nowrap" style="color: var(--color-muted); font-family: var(--font-mono);">EXPIRES</label>
+                <input asp-for="Input.ExpiresAt" type="date"
+                       class="px-3 py-2 rounded text-sm"
+                       style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent); color: var(--color-crystal);" />
+            </div>
+            <button type="submit" class="btn-primary px-6 py-2 text-sm whitespace-nowrap">GENERATE</button>
+        </form>
+    </div>
+
+    @* Code list *@
+    <div class="flex flex-col gap-3">
+        @foreach (var code in Model.Codes)
+        {
+            var isExpired = code.ExpiresAt.HasValue && code.ExpiresAt < DateTime.UtcNow;
+            var isExhausted = code.UseCount >= code.MaxUses;
+            var statusColor = code.IsRevoked ? "var(--color-rune)"
+                            : isExpired || isExhausted ? "var(--color-muted)"
+                            : "var(--color-plasma)";
+            var statusLabel = code.IsRevoked ? "REVOKED"
+                            : isExpired ? "EXPIRED"
+                            : isExhausted ? "EXHAUSTED"
+                            : "ACTIVE";
+
+            <div class="panel p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <code class="text-sm font-bold" style="font-family: var(--font-mono); color: var(--color-crystal); letter-spacing: 0.1em;">
+                            @code.Code
+                        </code>
+                        <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: @statusColor; border: 1px solid @statusColor; opacity: 0.9;">
+                            @statusLabel
+                        </span>
+                    </div>
+                    <div class="flex gap-4 mt-1 text-xs flex-wrap" style="color: var(--color-muted); font-family: var(--font-mono);">
+                        <span>@code.UseCount / @code.MaxUses uses</span>
+                        @if (!string.IsNullOrEmpty(code.Note))
+                        {
+                            <span>@code.Note</span>
+                        }
+                        @if (code.ExpiresAt.HasValue)
+                        {
+                            <span>expires @code.ExpiresAt.Value.ToString("yyyy-MM-dd")</span>
+                        }
+                        <span>created @code.CreatedAt.ToString("yyyy-MM-dd")</span>
+                    </div>
+                </div>
+                @if (!code.IsRevoked)
+                {
+                    <form method="post" asp-page-handler="Revoke" class="flex-none">
+                        <input type="hidden" name="id" value="@code.Id" />
+                        <button type="submit" class="px-3 py-1 rounded text-xs"
+                                style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-rune); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent);">
+                            REVOKE
+                        </button>
+                    </form>
+                }
+            </div>
+        }
+
+        @if (!Model.Codes.Any())
+        {
+            <p class="text-center py-8 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                No invite codes yet. Generate one above.
+            </p>
+        }
+    </div>
+</div>

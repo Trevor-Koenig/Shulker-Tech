@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+
+# Download Tailwind standalone CLI into the image — no npm needed
+RUN curl -sLo /usr/local/bin/tailwindcss \
+    https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64 \
+    && chmod +x /usr/local/bin/tailwindcss
+
+WORKDIR /workspace
+
+# Source is mounted at runtime via docker-compose.override.yml volume.
+# We pre-restore packages here so the first `dotnet watch` startup is fast.
+# This layer is only invalidated when csproj files change.
+COPY ShulkerTech.Core/ShulkerTech.Core.csproj ShulkerTech.Core/
+COPY ShulkerTech.Web/ShulkerTech.Web.csproj ShulkerTech.Web/
+RUN dotnet restore ShulkerTech.Web/ShulkerTech.Web.csproj
+
+# Tailwind watch + dotnet watch run concurrently.
+# Tailwind writes to the mounted volume so changes are live immediately.
+CMD tailwindcss \
+        -i ShulkerTech.Web/wwwroot/css/app.css \
+        -o ShulkerTech.Web/wwwroot/css/app.out.css \
+        --watch & \
+    cd ShulkerTech.Web && dotnet watch --no-launch-profile

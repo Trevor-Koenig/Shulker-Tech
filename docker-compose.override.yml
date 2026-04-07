@@ -1,0 +1,40 @@
+# Automatically merged with docker-compose.yml by `docker compose up`.
+# Overrides the app service for local development:
+#   - Uses SDK image with Tailwind built in
+#   - Mounts source as a volume so dotnet watch hot-reload works
+#   - NuGet and build caches are named volumes so restores stay fast between restarts
+#   - Sets Development environment and hardcoded SETUP_CODE
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ShulkerTech.Web/Dockerfile.dev
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - SETUP_CODE=${SETUP_CODE:-dev-setup}
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=shulkertech;Username=shulker;Password=changeme
+      - DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount the full repo so hot reload sees all source changes
+      - .:/workspace
+      # Isolate build output from the host — prevents bin/obj conflicts
+      - dev-web-obj:/workspace/ShulkerTech.Web/obj
+      - dev-web-bin:/workspace/ShulkerTech.Web/bin
+      - dev-core-obj:/workspace/ShulkerTech.Core/obj
+      - dev-core-bin:/workspace/ShulkerTech.Core/bin
+      # Persist NuGet cache across image rebuilds
+      - dev-nuget:/root/.nuget/packages
+      # Persist DataProtection keys so sessions survive container restarts
+      - dev-dataprotection:/root/.aspnet/DataProtection-Keys
+
+volumes:
+  dev-web-obj:
+  dev-web-bin:
+  dev-core-obj:
+  dev-core-bin:
+  dev-nuget:
+  dev-dataprotection:

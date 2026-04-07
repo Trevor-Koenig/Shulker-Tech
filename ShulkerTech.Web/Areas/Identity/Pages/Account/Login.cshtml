@@ -1,0 +1,116 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Sign In";
+}
+
+<div class="min-h-screen flex items-center justify-center px-4 py-16"
+     style="background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--color-nebula) 60%, transparent), var(--color-void) 70%);">
+
+    <div class="w-full max-w-sm">
+
+        @* Header *@
+        <div class="text-center mb-8">
+            <p class="text-xs tracking-widest mb-3" style="font-family: var(--font-mono); color: var(--color-plasma);">&#9670; SHULKER TECH &#9670;</p>
+            <h1 style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+                SIGN IN
+            </h1>
+        </div>
+
+        @* Card *@
+        <div class="panel p-8 flex flex-col gap-5">
+
+            @* Validation errors *@
+            <div asp-validation-summary="ModelOnly" class="text-xs p-3 rounded" role="alert"
+                 style="color: var(--color-rune); background: color-mix(in oklab, var(--color-rune) 10%, transparent); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent); font-family: var(--font-mono); display: @(ViewData.ModelState.IsValid ? "none" : "block");">
+            </div>
+
+            <form id="account" method="post" class="flex flex-col gap-4">
+
+                @* Email *@
+                <div class="flex flex-col gap-1">
+                    <label asp-for="Input.Email" class="text-xs tracking-wider"
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">EMAIL</label>
+                    <input asp-for="Input.Email" type="email" autocomplete="username" aria-required="true"
+                           placeholder="commander@example.com"
+                           class="w-full px-3 py-2 rounded text-sm"
+                           style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent); color: var(--color-crystal); outline: none;"
+                           onfocus="this.style.borderColor='var(--color-plasma)'; this.style.boxShadow='0 0 8px color-mix(in oklab, var(--color-plasma) 30%, transparent)';"
+                           onblur="this.style.borderColor='color-mix(in oklab, var(--color-plasma) 30%, transparent)'; this.style.boxShadow='none';" />
+                    <span asp-validation-for="Input.Email" class="text-xs" style="color: var(--color-rune); font-family: var(--font-mono);"></span>
+                </div>
+
+                @* Password *@
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                        <label asp-for="Input.Password" class="text-xs tracking-wider"
+                               style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">PASSWORD</label>
+                        <a asp-page="./ForgotPassword" class="text-xs" style="color: var(--color-plasma); font-family: var(--font-mono); text-decoration: none;"
+                           onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">Forgot?</a>
+                    </div>
+                    <input asp-for="Input.Password" type="password" autocomplete="current-password" aria-required="true"
+                           placeholder="••••••••"
+                           class="w-full px-3 py-2 rounded text-sm"
+                           style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent); color: var(--color-crystal); outline: none;"
+                           onfocus="this.style.borderColor='var(--color-plasma)'; this.style.boxShadow='0 0 8px color-mix(in oklab, var(--color-plasma) 30%, transparent)';"
+                           onblur="this.style.borderColor='color-mix(in oklab, var(--color-plasma) 30%, transparent)'; this.style.boxShadow='none';" />
+                    <span asp-validation-for="Input.Password" class="text-xs" style="color: var(--color-rune); font-family: var(--font-mono);"></span>
+                </div>
+
+                @* Remember me *@
+                <label class="flex items-center gap-2 cursor-pointer select-none text-sm" style="color: var(--color-muted);">
+                    <input asp-for="Input.RememberMe" type="checkbox"
+                           class="rounded"
+                           style="accent-color: var(--color-plasma); width: 1rem; height: 1rem;" />
+                    <span style="font-family: var(--font-mono); font-size: 0.75rem;">Remember this terminal</span>
+                </label>
+
+                <button type="submit" class="btn-primary w-full py-3 mt-1">
+                    AUTHENTICATE
+                </button>
+            </form>
+
+            @* External logins *@
+            @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+            {
+                <div class="flex items-center gap-3 my-1">
+                    <div class="flex-1 h-px" style="background: color-mix(in oklab, var(--color-plasma) 15%, transparent);"></div>
+                    <span class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">OR</span>
+                    <div class="flex-1 h-px" style="background: color-mix(in oklab, var(--color-plasma) 15%, transparent);"></div>
+                </div>
+                <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="flex flex-col gap-2">
+                    @foreach (var provider in Model.ExternalLogins!)
+                    {
+                        <button type="submit" name="provider" value="@provider.Name"
+                                class="w-full py-2 rounded text-xs"
+                                style="font-family: var(--font-display); letter-spacing: 0.08em; color: var(--color-crystal);
+                                       border: 1px solid color-mix(in oklab, var(--color-crystal) 20%, transparent);
+                                       transition: border-color 150ms, color 150ms;"
+                                onmouseover="this.style.borderColor='var(--color-arcane)'; this.style.color='var(--color-arcane)';"
+                                onmouseout="this.style.borderColor='color-mix(in oklab, var(--color-crystal) 20%, transparent)'; this.style.color='var(--color-crystal)';">
+                            CONTINUE WITH @provider.DisplayName?.ToUpper()
+                        </button>
+                    }
+                </form>
+            }
+
+            @* Footer links *@
+            <div class="flex flex-col gap-1 pt-2 text-center" style="border-top: 1px solid color-mix(in oklab, var(--color-plasma) 10%, transparent);">
+                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl"
+                   class="text-xs" style="color: var(--color-plasma); font-family: var(--font-mono); text-decoration: none;"
+                   onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">
+                    New recruit? Create an account
+                </a>
+                <a id="resend-confirmation" asp-page="./ResendEmailConfirmation"
+                   class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono); text-decoration: none;"
+                   onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">
+                    Resend confirmation email
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

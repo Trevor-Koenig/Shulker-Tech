@@ -21,8 +21,12 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=shulkertech;Username=shulker;Password=changeme
+      - SETUP_CODE=${SETUP_CODE:?SETUP_CODE env var is required}
+    volumes:
+      - dataprotection:/root/.aspnet/DataProtection-Keys
     depends_on:
       - db
 
 volumes:
   pgdata:
+  dataprotection:

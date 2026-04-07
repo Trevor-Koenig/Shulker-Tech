@@ -1,0 +1,41 @@
+@page
+@model LogoutModel
+@{
+    ViewData["Title"] = "Sign Out";
+}
+
+<div class="min-h-screen flex items-center justify-center px-4"
+     style="background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--color-nebula) 60%, transparent), var(--color-void) 70%);">
+    <div class="text-center">
+        <p class="text-xs tracking-widest mb-3" style="font-family: var(--font-mono); color: var(--color-plasma);">&#9670; SHULKER TECH &#9670;</p>
+        <h1 class="mb-6" style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <span>TERMINATE SESSION?</span>
+            }
+            else
+            {
+                <span>SIGNED OUT</span>
+            }
+        </h1>
+
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
+                <button type="submit" class="btn-primary px-10 py-3">
+                    CONFIRM SIGN OUT
+                </button>
+            </form>
+        }
+        else
+        {
+            <p class="mb-8 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Your session has been terminated. Safe travels.
+            </p>
+            <a asp-page="/Index" asp-area=""
+               class="btn-primary px-10 py-3" style="text-decoration: none;">
+                RETURN HOME
+            </a>
+        }
+    </div>
+</div>
