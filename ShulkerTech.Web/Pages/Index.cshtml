@@ -47,28 +47,27 @@
     <div class="absolute inset-0 flex flex-col items-center justify-center px-4 text-center pointer-events-none">
 
         @* Eyebrow *@
-        <p class="mb-4 text-xs tracking-widest uppercase pointer-events-none"
-           style="font-family: var(--font-mono); color: var(--color-plasma); text-shadow: 0 0 10px var(--color-plasma);">
-            &#9670; &nbsp; Online Now &nbsp; &#9670;
+        <p class="mb-5 tracking-widest pointer-events-none"
+           style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-gold); text-shadow: 0 0 12px var(--color-gold); text-transform: uppercase; animation: rune-shimmer 4s ease-in-out infinite;">
+            ✦ &nbsp; The Realm is Active &nbsp; ✦
         </p>
 
         @* Title *@
         <h1 class="mb-6 pointer-events-none"
-            style="font-family: var(--font-display);
-                   font-size: clamp(2.5rem, 8vw, 6rem);
-                   font-weight: 900;
-                   letter-spacing: 0.08em;
+            style="font-size: clamp(2.5rem, 8vw, 6.5rem);
+                   font-weight: 700;
                    line-height: 1;
                    color: var(--color-crystal);
                    text-shadow: 0 0 40px color-mix(in oklab, var(--color-plasma) 60%, transparent),
-                                0 0 80px color-mix(in oklab, var(--color-arcane) 30%, transparent);">
-            SHULKER<br>
-            <span style="color: var(--color-plasma);">TECH</span>
+                                0 0 80px color-mix(in oklab, var(--color-arcane) 30%, transparent),
+                                0 0 120px color-mix(in oklab, var(--color-gold) 15%, transparent);">
+            <span style="font-family: var(--font-fantasy); letter-spacing: 0.06em;">SHULKER</span><br>
+            <span style="font-family: var(--font-display); letter-spacing: 0.12em; font-weight: 900; color: var(--color-plasma);">TECH</span>
         </h1>
 
         @* Tagline *@
-        <p class="mb-10 max-w-md pointer-events-none"
-           style="font-family: var(--font-body); font-size: 1.1rem; font-weight: 300;
+        <p class="mb-12 max-w-lg pointer-events-none"
+           style="font-family: var(--font-body); font-size: 1.15rem; font-weight: 300;
                   color: color-mix(in oklab, var(--color-crystal) 80%, transparent);
                   text-shadow: 0 2px 8px var(--color-void);">
             Where builders forge worlds and adventurers become legends.
@@ -77,16 +76,16 @@
         @* CTAs — pointer-events: auto so they're clickable through the overlay *@
         <div class="flex flex-col sm:flex-row gap-4 pointer-events-auto">
             <a asp-page="/Wiki/Index" asp-area="Wiki"
-               class="btn-primary px-8 py-3 text-sm">
-                EXPLORE THE WIKI
+               class="btn-primary px-10 py-3">
+                ✦ EXPLORE THE WIKI
             </a>
             <a href="#about"
-               class="px-8 py-3 rounded text-sm"
-               style="font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.1em;
+               class="px-10 py-3 rounded"
+               style="font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em;
                       text-transform: uppercase; color: var(--color-crystal);
                       border: 1px solid color-mix(in oklab, var(--color-crystal) 30%, transparent);
                       transition: border-color 150ms, color 150ms; text-decoration: none;"
-               onmouseover="this.style.borderColor='var(--color-plasma)'; this.style.color='var(--color-plasma)';"
+               onmouseover="this.style.borderColor='var(--color-gold)'; this.style.color='var(--color-gold)';"
                onmouseout="this.style.borderColor='color-mix(in oklab, var(--color-crystal) 30%, transparent)'; this.style.color='var(--color-crystal)';">
                 LEARN MORE
             </a>
@@ -103,29 +102,34 @@
     </div>
 </section>
 
-@* ── About section ─────────────────────────────────────────────────────── *@
-<section id="about" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 grid sm:grid-cols-3 gap-12">
+@* ── Rune divider ───────────────────────────────────────────────────────── *@
+<div class="max-w-6xl mx-auto px-4 sm:px-8">
+    <div class="rune-divider" style="font-family: var(--font-fantasy); font-size: 1.1rem; letter-spacing: 0.2em;">✦ ✧ ✦</div>
+</div>
 
-    <div class="panel panel-arcane p-6 flex flex-col gap-3">
-        <span style="font-size: 1.5rem; color: var(--color-arcane);">&#9670;</span>
-        <h3 style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.85rem; letter-spacing: 0.1em;">BUILD</h3>
-        <p style="font-size: 0.875rem; color: var(--color-muted); line-height: 1.6;">
+@* ── About section ─────────────────────────────────────────────────────── *@
+<section id="about" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 grid sm:grid-cols-3 gap-10 sm:gap-14">
+
+    <div class="panel panel-gold p-8 flex flex-col gap-4">
+        <span class="magic-glow" style="font-size: 2rem; color: var(--color-gold);">⚔</span>
+        <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1rem; letter-spacing: 0.08em;">BUILD</h3>
+        <p style="font-size: 1rem; color: var(--color-muted); line-height: 1.7;">
             Craft, engineer, and construct across a persistent world shaped entirely by its players.
         </p>
     </div>
 
-    <div class="panel p-6 flex flex-col gap-3">
-        <span style="font-size: 1.5rem; color: var(--color-plasma);">&#9670;</span>
-        <h3 style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.85rem; letter-spacing: 0.1em;">EXPLORE</h3>
-        <p style="font-size: 0.875rem; color: var(--color-muted); line-height: 1.6;">
+    <div class="panel p-8 flex flex-col gap-4">
+        <span class="magic-glow" style="font-size: 2rem; color: var(--color-plasma);">✦</span>
+        <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1rem; letter-spacing: 0.08em;">EXPLORE</h3>
+        <p style="font-size: 1rem; color: var(--color-muted); line-height: 1.7;">
             Venture into uncharted territories. Every biome hides secrets waiting to be uncovered.
         </p>
     </div>
 
-    <div class="panel p-6 flex flex-col gap-3" style="border-color: color-mix(in oklab, var(--color-rune) 30%, transparent);">
-        <span style="font-size: 1.5rem; color: var(--color-rune);">&#9670;</span>
-        <h3 style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.85rem; letter-spacing: 0.1em;">CONNECT</h3>
-        <p style="font-size: 0.875rem; color: var(--color-muted); line-height: 1.6;">
+    <div class="panel panel-arcane p-8 flex flex-col gap-4">
+        <span class="magic-glow" style="font-size: 2rem; color: var(--color-arcane);">✧</span>
+        <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1rem; letter-spacing: 0.08em;">CONNECT</h3>
+        <p style="font-size: 1rem; color: var(--color-muted); line-height: 1.7;">
             Join a community of builders and thinkers. Your story becomes part of something larger.
         </p>
     </div>
