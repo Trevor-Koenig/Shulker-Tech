@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// Share session across all subdomains (e.g. SESSION_DOMAIN=.localhost or .example.com)
-$sessionDomain = $_ENV['SESSION_DOMAIN'] ?? '';
-if ($sessionDomain !== '') {
-    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['SERVER_PORT'] ?? 80) == 443);
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'path' => '/',
-        'domain' => $sessionDomain,
-        'secure' => $isSecure,
-        'httponly' => true,
-        'samesite' => 'Lax',
-    ]);
-}
+// Share session across all subdomains by scoping the cookie to the base domain.
+$_sessionHost   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$_baseDomain    = preg_replace('/^(wiki|admin)\./', '', $_sessionHost);
+$_sessionDomain = !empty($_ENV['SESSION_DOMAIN']) ? $_ENV['SESSION_DOMAIN'] : ".$_baseDomain";
+$_isSecure      = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
+                  || ($_SERVER['SERVER_PORT'] ?? 80) == 443;
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path'     => '/',
+    'domain'   => $_sessionDomain,
+    'secure'   => $_isSecure,
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
 
 session_start();
 
@@ -29,14 +29,16 @@ use Trevor\ShulkerTech\Models\Role;
 use Trevor\ShulkerTech\Models\Server;
 use Trevor\ShulkerTech\Models\Setting;
 
-// Determine subdomain — use override for local dev, Host header in production.
-$subdomain = ($_ENV['SUBDOMAIN_OVERRIDE'] ?? '') !== ''
-    ? $_ENV['SUBDOMAIN_OVERRIDE']
-    : explode('.', $_SERVER['HTTP_HOST'] ?? '')[0];
+$_host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$_scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ($_SERVER['SERVER_PORT'] ?? 80) == 443 ? 'https' : 'http';
 
-define('HOME_URL', htmlspecialchars(rtrim($_ENV['HOME_URL'], '/') ?? '/'));
-define('WIKI_URL', htmlspecialchars(rtrim($_ENV['WIKI_URL'], '/') ?? '/'));
-define('ADMIN_URL', htmlspecialchars(rtrim($_ENV['ADMIN_URL'], '/') ?? '/'));
+// Strip any known subdomain prefix to get the base domain.
+$_domain   = preg_replace('/^(wiki|admin)\./', '', $_host);
+$subdomain = $_domain === $_host ? 'home' : explode('.', $_host)[0];
+
+define('HOME_URL',  "$_scheme://$_domain");
+define('WIKI_URL',  "$_scheme://wiki.$_domain");
+define('ADMIN_URL', "$_scheme://admin.$_domain");
 define('CURRENT_SUBDOMAIN', $subdomain);
 
 ob_start();
@@ -46,8 +48,7 @@ if (User::count() === 0) {
     $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
     $onSetup = $subdomain === 'admin' && $currentPath === '/setup';
     if (!$onSetup) {
-        $adminUrl = rtrim($_ENV['ADMIN_URL'] ?? '', '/');
-        header("Location: {$adminUrl}/setup");
+        header('Location: ' . ADMIN_URL . '/setup');
         exit;
     }
 }
@@ -375,7 +376,7 @@ switch ($subdomain) {
         if ($method === 'POST' && $path === '/logout') {
             Csrf::verifyRequest();
             Auth::logout();
-            header('Location: ' . ($_ENV['HOME_URL'] ?? '/'));
+            header('Location: ' . HOME_URL);
             exit;
         }
 
@@ -391,12 +392,12 @@ switch ($subdomain) {
                 $error = 'Invalid email or password.';
             }
             $title = 'Login — Shulker Tech';
-            $activePage = '';
+            ob_end_clean();
+            ob_start();
             require __DIR__ . '/../src/Views/login.php';
-
-
-
-            break;
+            $content = ob_get_clean();
+            require __DIR__ . '/../src/Views/auth-layout.php';
+            exit;
         }
 
         $title = 'Shulker Tech';
