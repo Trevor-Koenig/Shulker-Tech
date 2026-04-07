@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
@@ -15,20 +16,49 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         npgsql.MigrationsAssembly("ShulkerTech.Web")));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders()
+    .AddDefaultUI();
 
 builder.Services.AddHttpClient<MojangService>();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
+// Scope auth cookies (and antiforgery) to the root domain so they are shared
+// across all subdomains (wiki., admin., etc.) without hardcoding any domain name.
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.OnAppendCookie = ctx =>
+    {
+        var host = ctx.Context.Request.Host.Host;
+        var firstSegment = host.Split('.')[0];
+        string[] knownSubdomains = ["wiki", "admin"];
+        var rootHost = knownSubdomains.Contains(firstSegment, StringComparer.OrdinalIgnoreCase)
+            ? host[(firstSegment.Length + 1)..]
+            : host;
+
+        // Browsers reject a Domain attribute of "localhost" — leave it unset so the
+        // cookie is still sent for localhost requests but won't break anything.
+        if (!rootHost.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+            ctx.CookieOptions.Domain = $".{rootHost}";
+    };
+});
+
 var app = builder.Build();
 
-// Auto-apply pending migrations on startup (dev + production)
+// Auto-apply pending migrations and seed roles on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.MigrateAsync();
+
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    foreach (var role in new[] { "Admin", "Moderator", "Member" })
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+            await roleManager.CreateAsync(new IdentityRole(role));
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -42,6 +72,7 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseCookiePolicy();
 app.UseMiddleware<FirstRunMiddleware>();
 app.UseMiddleware<SubdomainRoutingMiddleware>();
 app.UseRouting();

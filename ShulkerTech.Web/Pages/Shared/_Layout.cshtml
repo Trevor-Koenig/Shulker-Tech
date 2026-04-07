@@ -1,3 +1,18 @@
+@{
+    // Build subdomain URLs from the current request so this works in any environment
+    // (dev: shulker.dev:8080, prod: shulkertech.com) without hardcoding domains.
+    var _host = Context.Request.Host.Host;
+    var _firstSegment = _host.Split('.')[0];
+    string[] _knownSubdomains = ["wiki", "admin"];
+    var _rootHost = _knownSubdomains.Contains(_firstSegment, StringComparer.OrdinalIgnoreCase)
+        ? _host[(_firstSegment.Length + 1)..]
+        : _host;
+    var _port = Context.Request.Host.Port;
+    var _portSuffix = _port.HasValue ? $":{_port}" : string.Empty;
+    var _scheme = Context.Request.Scheme;
+    var _base = $"{_scheme}://{_rootHost}{_portSuffix}";
+    var _wikiBase = $"{_scheme}://wiki.{_rootHost}{_portSuffix}";
+}
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
@@ -21,7 +36,7 @@
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
 
             <!-- Brand -->
-            <a asp-page="/Index" class="flex items-center gap-2" style="font-family: var(--font-display); color: var(--color-plasma); text-shadow: 0 0 12px var(--color-plasma); font-size: 1rem; letter-spacing: 0.15em; font-weight: 900; text-decoration: none;">
+            <a href="@_base/" class="flex items-center gap-2" style="font-family: var(--font-display); color: var(--color-plasma); text-shadow: 0 0 12px var(--color-plasma); font-size: 1rem; letter-spacing: 0.15em; font-weight: 900; text-decoration: none;">
                 &#9670; SHULKER TECH
             </a>
 
@@ -35,16 +50,16 @@
 
             <!-- Desktop links -->
             <ul class="hidden sm:flex items-center gap-6">
-                <li><a class="nav-link" asp-page="/Index">Home</a></li>
-                <li><a class="nav-link" asp-page="/Wiki/Index">Wiki</a></li>
+                <li><a class="nav-link" href="@_base/">Home</a></li>
+                <li><a class="nav-link" href="@_wikiBase/">Wiki</a></li>
                 <partial name="_LoginPartial" />
             </ul>
         </nav>
 
         <!-- Mobile links -->
         <div id="nav-menu" class="hidden sm:hidden px-4 pb-4 flex flex-col gap-3">
-            <a class="nav-link" asp-page="/Index">Home</a>
-            <a class="nav-link" asp-page="/Wiki/Index">Wiki</a>
+            <a class="nav-link" href="@_base/">Home</a>
+            <a class="nav-link" href="@_wikiBase/">Wiki</a>
             <partial name="_LoginPartial" />
         </div>
     </header>

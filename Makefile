@@ -17,14 +17,11 @@ migration:
 # Start dev environment in Docker (db + app with hot reload + Tailwind watch)
 # docker-compose.override.yml is merged automatically by Docker Compose
 dev:
-	docker compose up
-
-build:
 	docker compose up --build
 
 # Same but detached
 dev-bg:
-	docker compose up -d
+	docker compose up --build -d
 
 # Stop all dev containers
 stop:

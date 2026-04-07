@@ -1,0 +1,90 @@
+@page "{id}"
+@model EditModel
+@{
+    ViewData["Title"] = $"User — {Model.Member?.UserName}";
+}
+
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    <div class="flex items-center gap-4 mb-8">
+        <a asp-page="Index" class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">← USERS</a>
+        <h1 style="font-family: var(--font-display); color: var(--color-rune); font-size: 1.5rem; letter-spacing: 0.1em;">
+            @Model.Member!.UserName?.ToUpper()
+        </h1>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-plasma); font-family: var(--font-mono);">
+            @Model.StatusMessage
+        </div>
+    }
+
+    @* User info *@
+    <div class="panel p-6 mb-6">
+        <h2 class="text-xs mb-4" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">ACCOUNT</h2>
+        <dl class="flex flex-col gap-2 text-sm" style="font-family: var(--font-mono);">
+            <div class="flex gap-4">
+                <dt style="color: var(--color-muted); min-width: 8rem;">Email</dt>
+                <dd style="color: var(--color-crystal);">@Model.Member.Email</dd>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.Member.MinecraftUsername))
+            {
+                <div class="flex gap-4">
+                    <dt style="color: var(--color-muted); min-width: 8rem;">Minecraft</dt>
+                    <dd style="color: var(--color-crystal);">@Model.Member.MinecraftUsername</dd>
+                </div>
+            }
+            <div class="flex gap-4">
+                <dt style="color: var(--color-muted); min-width: 8rem;">Joined</dt>
+                <dd style="color: var(--color-crystal);">@Model.Member.CreatedAt.ToString("yyyy-MM-dd")</dd>
+            </div>
+            <div class="flex gap-4">
+                <dt style="color: var(--color-muted); min-width: 8rem;">Owner</dt>
+                <dd style="color: var(--color-crystal);">@(Model.Member.IsAdmin ? "Yes" : "No")</dd>
+            </div>
+        </dl>
+    </div>
+
+    @* Role assignment *@
+    <div class="panel p-6">
+        <h2 class="text-xs mb-4" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">ROLES</h2>
+
+        <div class="flex flex-col gap-3">
+            @foreach (var role in Model.AllRoles)
+            {
+                var assigned = Model.AssignedRoles.Contains(role);
+                <div class="flex items-center justify-between py-2"
+                     style="border-bottom: 1px solid color-mix(in oklab, var(--color-arcane) 10%, transparent);">
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm" style="font-family: var(--font-mono); color: var(--color-crystal);">@role</span>
+                        @if (assigned)
+                        {
+                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-plasma); border: 1px solid color-mix(in oklab, var(--color-plasma) 40%, transparent);">ASSIGNED</span>
+                        }
+                    </div>
+                    @if (assigned)
+                    {
+                        <form method="post" asp-page-handler="Remove" asp-route-id="@Model.Member.Id">
+                            <input type="hidden" name="role" value="@role" />
+                            <button type="submit" class="px-3 py-1 rounded text-xs"
+                                    style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-rune); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent);">
+                                REMOVE
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="Assign" asp-route-id="@Model.Member.Id">
+                            <input type="hidden" name="role" value="@role" />
+                            <button type="submit" class="px-3 py-1 rounded text-xs"
+                                    style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-arcane); border: 1px solid color-mix(in oklab, var(--color-arcane) 30%, transparent);">
+                                ASSIGN
+                            </button>
+                        </form>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

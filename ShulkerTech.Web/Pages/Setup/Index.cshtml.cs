@@ -36,9 +36,8 @@ public class IndexModel(
 
     public void OnGet() { }
 
-    public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+    public async Task<IActionResult> OnPostAsync()
     {
-        ReturnUrl = returnUrl;
 
         if (!ModelState.IsValid)
             return Page();
