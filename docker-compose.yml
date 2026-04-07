@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shulkertech
+      POSTGRES_USER: shulker
+      POSTGRES_PASSWORD: changeme
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: ShulkerTech.Web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=shulkertech;Username=shulker;Password=changeme
+    depends_on:
+      - db
+
+volumes:
+  pgdata:

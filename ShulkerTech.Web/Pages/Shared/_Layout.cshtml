@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Shulker Tech</title>
+
+    <!-- Google Fonts: sci-fi display + body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Exo+2:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/css/app.out.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body class="min-h-full flex flex-col" style="background-color: var(--color-void); color: var(--color-crystal);">
+
+    <!-- Top navigation -->
+    <header style="background: color-mix(in oklab, var(--color-deep-space) 95%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--color-plasma) 20%, transparent);">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
+
+            <!-- Brand -->
+            <a asp-page="/Index" class="flex items-center gap-2" style="font-family: var(--font-display); color: var(--color-plasma); text-shadow: 0 0 12px var(--color-plasma); font-size: 1rem; letter-spacing: 0.15em; font-weight: 900; text-decoration: none;">
+                &#9670; SHULKER TECH
+            </a>
+
+            <!-- Mobile menu toggle -->
+            <button id="nav-toggle" class="sm:hidden p-2" style="color: var(--color-muted);" aria-label="Toggle menu"
+                    hx-on:click="document.getElementById('nav-menu').classList.toggle('hidden')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+
+            <!-- Desktop links -->
+            <ul class="hidden sm:flex items-center gap-6">
+                <li><a class="nav-link" asp-page="/Index">Home</a></li>
+                <li><a class="nav-link" asp-page="/Wiki/Index">Wiki</a></li>
+                <partial name="_LoginPartial" />
+            </ul>
+        </nav>
+
+        <!-- Mobile links -->
+        <div id="nav-menu" class="hidden sm:hidden px-4 pb-4 flex flex-col gap-3">
+            <a class="nav-link" asp-page="/Index">Home</a>
+            <a class="nav-link" asp-page="/Wiki/Index">Wiki</a>
+            <partial name="_LoginPartial" />
+        </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="flex-1">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-6 px-4" style="border-top: 1px solid color-mix(in oklab, var(--color-plasma) 10%, transparent);">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
+            <span>&copy; @DateTime.UtcNow.Year SHULKER TECH — ALL SYSTEMS NOMINAL</span>
+            <a asp-page="/Privacy" style="color: var(--color-muted);">Privacy</a>
+        </div>
+    </footer>
+
+    <!-- Vendored JS — no CDN, no npm -->
+    <script src="~/js/htmx.min.js"></script>
+    <script src="~/js/signalr.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

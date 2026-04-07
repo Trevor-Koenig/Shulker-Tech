@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  /* Sci-fi / fantasy colour palette */
+  --color-void: #050810;
+  --color-deep-space: #0a0f1e;
+  --color-nebula: #0d1b3e;
+  --color-plasma: #00d4ff;
+  --color-plasma-dim: #0099bb;
+  --color-arcane: #7b2fff;
+  --color-arcane-dim: #5a1fcc;
+  --color-rune: #ff6b35;
+  --color-crystal: #e8f4f8;
+  --color-muted: #8899aa;
+
+  /* Typography */
+  --font-display: 'Orbitron', ui-monospace, monospace;
+  --font-body: 'Exo 2', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Share Tech Mono', ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-void);
+    color: var(--color-crystal);
+    font-family: var(--font-body);
+    scroll-behavior: smooth;
+  }
+
+  /* Scrollbar — dark themed */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-deep-space); }
+  ::-webkit-scrollbar-thumb { background: var(--color-plasma-dim); border-radius: 3px; }
+}
+
+@layer components {
+  /* Glowing border panels — core sci-fi UI element */
+  .panel {
+    background: color-mix(in oklab, var(--color-nebula) 80%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent);
+    border-radius: 0.5rem;
+    box-shadow: 0 0 20px color-mix(in oklab, var(--color-plasma) 10%, transparent),
+                inset 0 0 20px color-mix(in oklab, var(--color-void) 50%, transparent);
+  }
+
+  .panel-arcane {
+    border-color: color-mix(in oklab, var(--color-arcane) 40%, transparent);
+    box-shadow: 0 0 20px color-mix(in oklab, var(--color-arcane) 15%, transparent);
+  }
+
+  /* Nav link with scan-line hover */
+  .nav-link {
+    color: var(--color-muted);
+    transition: color 150ms ease, text-shadow 150ms ease;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .nav-link:hover, .nav-link[aria-current="page"] {
+    color: var(--color-plasma);
+    text-shadow: 0 0 8px var(--color-plasma);
+  }
+
+  /* Primary CTA button */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-arcane), var(--color-plasma-dim));
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.25rem;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: box-shadow 150ms ease, opacity 150ms ease;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 16px var(--color-arcane);
+    opacity: 0.9;
+  }
+
+  /* Scanline overlay — applied to full-bleed hero sections */
+  .scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 2px,
+      color-mix(in oklab, black 8%, transparent) 2px,
+      color-mix(in oklab, black 8%, transparent) 4px
+    );
+    pointer-events: none;
+  }
+}
