@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ShulkerTech.Web.Data;
+using ShulkerTech.Core.Data;
 using ShulkerTech.Web.Hubs;
+using ShulkerTech.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString, npgsql =>
+        npgsql.MigrationsAssembly("ShulkerTech.Web")));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -19,6 +21,13 @@ builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
 var app = builder.Build();
+
+// Auto-apply pending migrations on startup (dev + production)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -31,6 +40,7 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<SubdomainRoutingMiddleware>();
 app.UseRouting();
 app.UseAuthorization();
 

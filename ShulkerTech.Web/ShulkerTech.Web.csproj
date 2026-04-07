@@ -22,4 +22,8 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ShulkerTech.Core\ShulkerTech.Core.csproj" />
+  </ItemGroup>
+
 </Project>

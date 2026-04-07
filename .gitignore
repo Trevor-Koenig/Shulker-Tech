@@ -485,3 +485,6 @@ ShulkerTech.Web/wwwroot/css/app.out.css
 
 ##### Docker
 .env
+
+##### SQLite (leftover from scaffold — not used)
+*.db

@@ -1,9 +1,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY ["ShulkerTech.Web.csproj", "."]
-RUN dotnet restore
+
+# Copy csproj and restore — separate layer so dependencies are cached
+COPY ["ShulkerTech.Web/ShulkerTech.Web.csproj", "ShulkerTech.Web/"]
+RUN dotnet restore "ShulkerTech.Web/ShulkerTech.Web.csproj"
+
+# Copy everything else and publish
 COPY . .
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish "ShulkerTech.Web/ShulkerTech.Web.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
