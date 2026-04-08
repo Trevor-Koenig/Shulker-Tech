@@ -14,9 +14,9 @@
   --color-muted: #8899aa;
 
   /* Minecraft fantasy accent colours */
-  --color-grass: #57a136;
+  --color-redstone: #cc1a1a;
+  --color-redstone-dim: #8b1111;
   --color-earth: #7a4f2e;
-  --color-stone: #9a9a9a;
 
   /* Typography */
   --font-display: 'Orbitron', ui-monospace, monospace;
@@ -45,8 +45,8 @@
 }
 
 @keyframes rune-shimmer {
-  0%, 100% { opacity: 0.5; text-shadow: 0 0 6px var(--color-grass); }
-  50%       { opacity: 1;   text-shadow: 0 0 14px var(--color-grass), 0 0 28px var(--color-arcane); }
+  0%, 100% { opacity: 0.5; text-shadow: 0 0 6px var(--color-redstone); }
+  50%       { opacity: 1;   text-shadow: 0 0 14px var(--color-redstone), 0 0 28px var(--color-arcane); }
 }
 
 @layer components {
@@ -56,7 +56,7 @@
     border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent);
     border-radius: 0.5rem;
     box-shadow: 0 0 20px color-mix(in oklab, var(--color-plasma) 10%, transparent),
-                0 0 40px color-mix(in oklab, var(--color-grass) 4%, transparent),
+                0 0 40px color-mix(in oklab, var(--color-redstone) 4%, transparent),
                 inset 0 0 20px color-mix(in oklab, var(--color-void) 50%, transparent);
   }
 
@@ -65,10 +65,10 @@
     box-shadow: 0 0 20px color-mix(in oklab, var(--color-arcane) 15%, transparent);
   }
 
-  /* Grass-bordered panel variant — Minecraft emerald/grass feel */
-  .panel-grass {
-    border-color: color-mix(in oklab, var(--color-grass) 45%, transparent);
-    box-shadow: 0 0 24px color-mix(in oklab, var(--color-grass) 18%, transparent),
+  /* Redstone-bordered panel variant */
+  .panel-redstone {
+    border-color: color-mix(in oklab, var(--color-redstone) 45%, transparent);
+    box-shadow: 0 0 24px color-mix(in oklab, var(--color-redstone) 18%, transparent),
                 inset 0 0 20px color-mix(in oklab, var(--color-void) 50%, transparent);
   }
 
@@ -111,7 +111,7 @@
     align-items: center;
     gap: 1rem;
     text-align: center;
-    color: var(--color-grass);
+    color: var(--color-redstone);
     animation: rune-shimmer 4s ease-in-out infinite;
   }
 
@@ -123,7 +123,7 @@
     background: linear-gradient(
       to var(--rune-dir, right),
       transparent,
-      color-mix(in oklab, var(--color-grass) 50%, transparent),
+      color-mix(in oklab, var(--color-redstone) 50%, transparent),
       color-mix(in oklab, var(--color-arcane) 30%, transparent)
     );
   }
