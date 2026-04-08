@@ -262,7 +262,7 @@ namespace ShulkerTech.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InviteCodes");
+                    b.ToTable("InviteCodes", (string)null);
                 });
 
             modelBuilder.Entity("ShulkerTech.Core.Models.MapServer", b =>
@@ -289,7 +289,7 @@ namespace ShulkerTech.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MapServers");
+                    b.ToTable("MapServers", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
