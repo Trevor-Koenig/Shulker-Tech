@@ -1,15 +1,57 @@
-@inject SignInManager<IdentityUser> SignInManager
+@using ShulkerTech.Core.Models
+@inject SignInManager<ApplicationUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+
+    string NavStyle(string navClass) =>
+        navClass == "active"
+            ? "font-family: var(--font-display); letter-spacing: 0.06em; color: var(--color-plasma); background: color-mix(in oklab, var(--color-plasma) 10%, transparent); text-decoration: none; display: block;"
+            : "font-family: var(--font-display); letter-spacing: 0.06em; color: var(--color-muted); background: transparent; text-decoration: none; display: block;";
 }
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
+
+<nav class="flex flex-col gap-1">
+
+    <a asp-page="./Index"
+       class="text-xs px-3 py-2 rounded"
+       style="@NavStyle(ManageNavPages.IndexNavClass(ViewContext))"
+       onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
+       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+        PROFILE
+    </a>
+
+    <a asp-page="./Email"
+       class="text-xs px-3 py-2 rounded"
+       style="@NavStyle(ManageNavPages.EmailNavClass(ViewContext))"
+       onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
+       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+        EMAIL
+    </a>
+
+    <a asp-page="./ChangePassword"
+       class="text-xs px-3 py-2 rounded"
+       style="@NavStyle(ManageNavPages.ChangePasswordNavClass(ViewContext))"
+       onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
+       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+        PASSWORD
+    </a>
+
     @if (hasExternalLogins)
     {
-        <li id="external-logins" class="nav-item"><a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">External logins</a></li>
+        <a asp-page="./ExternalLogins"
+           class="text-xs px-3 py-2 rounded"
+           style="@NavStyle(ManageNavPages.ExternalLoginsNavClass(ViewContext))"
+           onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
+           onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+            LINKED ACCOUNTS
+        </a>
     }
-    <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
-</ul>
+
+    <a asp-page="./PersonalData"
+       class="text-xs px-3 py-2 rounded"
+       style="@NavStyle(ManageNavPages.PersonalDataNavClass(ViewContext))"
+       onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
+       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+        PERSONAL DATA
+    </a>
+
+</nav>

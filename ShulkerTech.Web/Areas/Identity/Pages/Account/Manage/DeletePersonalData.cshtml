@@ -1,31 +1,56 @@
-﻿@page
+@page
 @model DeletePersonalDataModel
 @{
-    ViewData["Title"] = "Delete Personal Data";
+    ViewData["Title"] = "Delete Account";
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
 }
 
-<h3>@ViewData["Title"]</h3>
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <div class="flex flex-col sm:flex-row gap-6">
 
-<div class="alert alert-warning" role="alert">
-    <p>
-        <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-    </p>
-</div>
+        <aside class="sm:w-44 flex-shrink-0 panel p-4">
+            <partial name="_ManageNav" />
+        </aside>
 
-<div>
-    <form id="delete-user" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-        @if (Model.RequirePassword)
-        {
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
-                <label asp-for="Input.Password" class="form-label"></label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
+        <div class="flex-1 panel p-8 flex flex-col gap-5">
+
+            <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; color: var(--color-rune);">DELETE ACCOUNT</h2>
+
+            <div class="p-4 rounded text-sm"
+                 style="color: var(--color-rune); background: color-mix(in oklab, var(--color-rune) 8%, transparent); border: 1px solid color-mix(in oklab, var(--color-rune) 25%, transparent); font-family: var(--font-mono); line-height: 1.6;">
+                &#9888; This action is permanent and cannot be undone. All your data will be deleted immediately.
             </div>
-        }
-        <button class="w-100 btn btn-lg btn-danger" type="submit">Delete data and close my account</button>
-    </form>
+
+            <form id="delete-user" method="post" class="flex flex-col gap-4">
+
+                <div asp-validation-summary="ModelOnly" class="text-xs p-3 rounded" role="alert"
+                     style="color: var(--color-rune); background: color-mix(in oklab, var(--color-rune) 10%, transparent); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent); font-family: var(--font-mono); display: @(ViewData.ModelState.IsValid ? "none" : "block");">
+                </div>
+
+                @if (Model.RequirePassword)
+                {
+                    <div class="flex flex-col gap-1">
+                        <label asp-for="Input.Password" class="text-xs tracking-wider"
+                               style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">CONFIRM PASSWORD</label>
+                        <input asp-for="Input.Password" type="password" autocomplete="current-password" aria-required="true"
+                               placeholder="Enter your password to confirm"
+                               class="w-full px-3 py-2 rounded text-sm"
+                               style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent); color: var(--color-crystal); outline: none;"
+                               onfocus="this.style.borderColor='var(--color-rune)'; this.style.boxShadow='0 0 8px color-mix(in oklab, var(--color-rune) 30%, transparent)';"
+                               onblur="this.style.borderColor='color-mix(in oklab, var(--color-rune) 30%, transparent)'; this.style.boxShadow='none';" />
+                        <span asp-validation-for="Input.Password" class="text-xs" style="color: var(--color-rune); font-family: var(--font-mono);"></span>
+                    </div>
+                }
+
+                <button type="submit"
+                        class="py-3 px-6 rounded text-sm self-start"
+                        style="font-family: var(--font-display); letter-spacing: 0.08em; font-weight: 700; color: var(--color-void); background: var(--color-rune); border: none; cursor: pointer; transition: opacity 150ms;"
+                        onmouseover="this.style.opacity='0.85';" onmouseout="this.style.opacity='1';">
+                    DELETE MY ACCOUNT
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
