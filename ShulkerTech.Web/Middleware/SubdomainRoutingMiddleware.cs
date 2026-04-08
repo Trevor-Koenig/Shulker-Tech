@@ -22,8 +22,10 @@ public class SubdomainRoutingMiddleware(RequestDelegate next)
     [
         "/setup",
         "/Account",
+        "/Identity",
         "/css/",
         "/js/",
+        "/images/",
         "/favicon.ico",
     ];
 

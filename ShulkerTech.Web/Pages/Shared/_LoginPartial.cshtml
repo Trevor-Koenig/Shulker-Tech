@@ -16,16 +16,29 @@
             : _host;
         var _port = Context.Request.Host.Port;
         var _adminBase = $"{Context.Request.Scheme}://admin.{_rootHost}{(_port.HasValue ? $":{_port}" : "")}";
-        <li><a class="nav-link" href="@_adminBase/">ADMIN</a></li>
+        <li class="hidden sm:flex"><a class="nav-link" href="@_adminBase/">ADMIN</a></li>
+        <a class="nav-link sm:hidden" href="@_adminBase/">ADMIN</a>
     }
-    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })" method="post">
+
+    <!-- Desktop Links -->
+    <li class="hidden sm:flex">
         <a asp-area="Identity" asp-page="/Account/Manage/Index"
            class="nav-link" style="color: var(--color-plasma); font-family: var(--font-mono); font-size: 0.7rem; text-decoration: none;"
            onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">
             @User.Identity?.Name
         </a>
-        <button type="submit" class="nav-link">SIGN OUT</button>
-    </form>
+    </li>
+    <li class="hidden sm:flex">
+        <a asp-area="Identity" asp-page="/Account/Logout" class="nav-link">SIGN OUT</a>
+    </li>
+
+    <!-- Mobile Links -->
+    <a asp-area="Identity" asp-page="/Account/Manage/Index"
+       class="nav-link sm:hidden" style="color: var(--color-plasma); font-family: var(--font-mono); font-size: 0.7rem; text-decoration: none;"
+       onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">
+        @User.Identity?.Name
+    </a>
+    <a asp-area="Identity" asp-page="/Account/Logout" class="nav-link sm:hidden">SIGN OUT</a>
 }
 else
 {
