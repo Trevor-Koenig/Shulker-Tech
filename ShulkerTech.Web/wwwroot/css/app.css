@@ -33,6 +33,12 @@
     scroll-behavior: smooth;
   }
 
+  /* Arcane theme — swap plasma cyan for arcane purple across the entire UI */
+  html[data-theme="arcane"] {
+    --color-plasma: #7b2fff;
+    --color-plasma-dim: #5a1fcc;
+  }
+
   /* Scrollbar — dark themed */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--color-deep-space); }
@@ -130,6 +136,91 @@
 
   .rune-divider::before { --rune-dir: right; }
   .rune-divider::after  { --rune-dir: left; }
+
+  /* Arcane theme — swaps plasma accent to arcane purple */
+  /* (applied via [data-theme="arcane"] on <html>) */
+
+  /* Vertical separator between nav groups */
+  .nav-separator {
+    width: 1px;
+    height: 1rem;
+    background: color-mix(in oklab, var(--color-plasma) 25%, transparent);
+  }
+
+  /* Settings dropdown panel */
+  .nav-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    min-width: 11rem;
+    display: flex;
+    flex-direction: column;
+    padding: 0.4rem;
+    z-index: 50;
+  }
+
+  .nav-dropdown-item {
+    color: var(--color-muted);
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.15rem;
+    transition: color 150ms ease, background 150ms ease;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    white-space: nowrap;
+  }
+
+  .nav-dropdown-item:hover {
+    color: var(--color-plasma);
+    background: color-mix(in oklab, var(--color-plasma) 8%, transparent);
+  }
+
+  .nav-dropdown-divider {
+    height: 1px;
+    margin: 0.25rem 0.5rem;
+    background: color-mix(in oklab, var(--color-plasma) 15%, transparent);
+  }
+
+  /* Compact nav button — CTA variant for use in the navbar */
+  .btn-nav {
+    background: linear-gradient(135deg, var(--color-arcane-dim), var(--color-plasma-dim));
+    color: var(--color-crystal);
+    padding: 0.3rem 0.85rem;
+    border-radius: 0.2rem;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: box-shadow 150ms ease, opacity 150ms ease;
+    text-decoration: none;
+  }
+  .btn-nav:hover {
+    box-shadow: 0 0 14px var(--color-arcane), 0 0 6px var(--color-plasma-dim);
+    opacity: 0.9;
+  }
+
+  /* Signed-in username chip */
+  .nav-user {
+    color: var(--color-plasma);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    transition: text-shadow 150ms ease;
+    text-decoration: none;
+  }
+  .nav-user::before { content: '['; opacity: 0.5; }
+  .nav-user::after  { content: ']'; opacity: 0.5; }
+  .nav-user:hover {
+    text-shadow: 0 0 8px var(--color-plasma);
+  }
 
   /* Magical pulse for decorative icons */
   .magic-glow {

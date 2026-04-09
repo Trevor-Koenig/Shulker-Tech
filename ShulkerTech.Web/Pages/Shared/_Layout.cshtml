@@ -20,6 +20,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] — Shulker Tech</title>
 
+    <!-- Restore theme before paint to avoid flash of wrong accent color -->
+    <script>(function(){var t=localStorage.getItem('theme')||'plasma';document.documentElement.dataset.theme=t;})()</script>
+
     <!-- Google Fonts: sci-fi display + fantasy accent + body -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -83,6 +86,54 @@
     <!-- Vendored JS — no CDN, no npm -->
     <script src="~/js/htmx.min.js"></script>
     <script src="~/js/signalr.min.js"></script>
+
+    <script>
+        // Settings dropdown
+        var settingsBtn = document.getElementById('settings-btn');
+        var settingsDropdown = document.getElementById('settings-dropdown');
+        if (settingsBtn && settingsDropdown) {
+            settingsBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var nowHidden = settingsDropdown.classList.toggle('hidden');
+                settingsBtn.setAttribute('aria-expanded', String(!nowHidden));
+            });
+            document.addEventListener('click', function () {
+                settingsDropdown.classList.add('hidden');
+                settingsBtn.setAttribute('aria-expanded', 'false');
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    settingsDropdown.classList.add('hidden');
+                    settingsBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        // Theme toggle (plasma ↔ arcane accent)
+        function updateThemeBtn() {
+            var btn = document.getElementById('theme-toggle-btn');
+            if (!btn) return;
+            var current = document.documentElement.dataset.theme || 'plasma';
+            if (current === 'plasma') {
+                btn.textContent = '◈ Arcane Mode';
+                btn.style.color = 'var(--color-arcane)';
+            } else {
+                btn.textContent = '◈ Plasma Mode';
+                btn.style.color = 'var(--color-plasma-dim)';
+            }
+        }
+
+        function toggleTheme() {
+            var html = document.documentElement;
+            var next = html.dataset.theme === 'plasma' ? 'arcane' : 'plasma';
+            html.dataset.theme = next;
+            localStorage.setItem('theme', next);
+            updateThemeBtn();
+        }
+
+        document.getElementById('theme-toggle-btn')?.addEventListener('click', toggleTheme);
+        updateThemeBtn();
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
