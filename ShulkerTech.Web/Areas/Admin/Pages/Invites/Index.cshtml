@@ -14,7 +14,7 @@
 
     @if (!string.IsNullOrEmpty(Model.StatusMessage))
     {
-        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-plasma); font-family: var(--font-mono);">
+        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-accent); font-family: var(--font-mono);">
             @Model.StatusMessage
         </div>
     }
@@ -27,18 +27,18 @@
         <form method="post" asp-page-handler="Generate" class="flex flex-col sm:flex-row gap-3 flex-wrap">
             <input asp-for="Input.Note" placeholder="Note (e.g. Wave 3 - Discord)"
                    class="flex-1 px-3 py-2 rounded text-sm"
-                   style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent); color: var(--color-crystal);" />
+                   style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-crystal);" />
             <div class="flex items-center gap-2">
                 <label class="text-xs whitespace-nowrap" style="color: var(--color-muted); font-family: var(--font-mono);">MAX USES</label>
                 <input asp-for="Input.MaxUses" type="number" min="1" max="100"
                        class="w-20 px-3 py-2 rounded text-sm text-center"
-                       style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent); color: var(--color-crystal);" />
+                       style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-crystal);" />
             </div>
             <div class="flex items-center gap-2">
                 <label class="text-xs whitespace-nowrap" style="color: var(--color-muted); font-family: var(--font-mono);">EXPIRES</label>
                 <input asp-for="Input.ExpiresAt" type="date"
                        class="px-3 py-2 rounded text-sm"
-                       style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent); color: var(--color-crystal);" />
+                       style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-crystal);" />
             </div>
             <button type="submit" class="btn-primary px-6 py-2 text-sm whitespace-nowrap">GENERATE</button>
         </form>
@@ -52,7 +52,7 @@
             var isExhausted = code.UseCount >= code.MaxUses;
             var statusColor = code.IsRevoked ? "var(--color-rune)"
                             : isExpired || isExhausted ? "var(--color-muted)"
-                            : "var(--color-plasma)";
+                            : "var(--color-accent)";
             var statusLabel = code.IsRevoked ? "REVOKED"
                             : isExpired ? "EXPIRED"
                             : isExhausted ? "EXHAUSTED"

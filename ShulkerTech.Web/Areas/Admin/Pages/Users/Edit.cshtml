@@ -15,7 +15,7 @@
 
     @if (!string.IsNullOrEmpty(Model.StatusMessage))
     {
-        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-plasma); font-family: var(--font-mono);">
+        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-accent); font-family: var(--font-mono);">
             @Model.StatusMessage
         </div>
     }
@@ -60,7 +60,7 @@
                         <span class="text-sm" style="font-family: var(--font-mono); color: var(--color-crystal);">@role</span>
                         @if (assigned)
                         {
-                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-plasma); border: 1px solid color-mix(in oklab, var(--color-plasma) 40%, transparent);">ASSIGNED</span>
+                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-accent); border: 1px solid color-mix(in oklab, var(--color-accent) 40%, transparent);">ASSIGNED</span>
                         }
                     </div>
                     @if (assigned)

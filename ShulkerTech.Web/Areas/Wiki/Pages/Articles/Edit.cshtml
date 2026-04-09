@@ -17,7 +17,7 @@
             EDITING
         </h1>
         <p class="mt-1 text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
-            SLUG: <span style="color: var(--color-plasma);">@Model.Article.Slug</span>
+            SLUG: <span style="color: var(--color-accent);">@Model.Article.Slug</span>
             &nbsp;·&nbsp; Slugs are permanent — renaming the title will not change the URL.
         </p>
     </div>
@@ -55,7 +55,7 @@
         <!-- Publish toggle -->
         <label class="flex items-center gap-3 cursor-pointer select-none">
             <input asp-for="Input.IsPublished" type="checkbox"
-                   class="w-4 h-4" style="accent-color: var(--color-plasma);" />
+                   class="w-4 h-4" style="accent-color: var(--color-accent);" />
             <span class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
                 PUBLISHED
             </span>

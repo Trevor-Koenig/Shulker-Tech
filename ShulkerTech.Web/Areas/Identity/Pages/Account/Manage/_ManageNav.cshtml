@@ -5,7 +5,7 @@
 
     string NavStyle(string navClass) =>
         navClass == "active"
-            ? "font-family: var(--font-display); letter-spacing: 0.06em; color: var(--color-plasma); background: color-mix(in oklab, var(--color-plasma) 10%, transparent); text-decoration: none; display: block;"
+            ? "font-family: var(--font-display); letter-spacing: 0.06em; color: var(--color-accent); background: color-mix(in oklab, var(--color-accent) 10%, transparent); text-decoration: none; display: block;"
             : "font-family: var(--font-display); letter-spacing: 0.06em; color: var(--color-muted); background: transparent; text-decoration: none; display: block;";
 }
 
@@ -15,7 +15,7 @@
        class="text-xs px-3 py-2 rounded"
        style="@NavStyle(ManageNavPages.IndexNavClass(ViewContext))"
        onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
-       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-accent)':'var(--color-muted)';">
         PROFILE
     </a>
 
@@ -23,7 +23,7 @@
        class="text-xs px-3 py-2 rounded"
        style="@NavStyle(ManageNavPages.EmailNavClass(ViewContext))"
        onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
-       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-accent)':'var(--color-muted)';">
         EMAIL
     </a>
 
@@ -31,7 +31,7 @@
        class="text-xs px-3 py-2 rounded"
        style="@NavStyle(ManageNavPages.ChangePasswordNavClass(ViewContext))"
        onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
-       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-accent)':'var(--color-muted)';">
         PASSWORD
     </a>
 
@@ -41,7 +41,7 @@
            class="text-xs px-3 py-2 rounded"
            style="@NavStyle(ManageNavPages.ExternalLoginsNavClass(ViewContext))"
            onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
-           onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+           onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-accent)':'var(--color-muted)';">
             LINKED ACCOUNTS
         </a>
     }
@@ -50,7 +50,7 @@
        class="text-xs px-3 py-2 rounded"
        style="@NavStyle(ManageNavPages.PersonalDataNavClass(ViewContext))"
        onmouseover="if(!this.style.background.includes('plasma'))this.style.color='var(--color-crystal)';"
-       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-plasma)':'var(--color-muted)';">
+       onmouseout="this.style.color=this.style.background.includes('plasma')?'var(--color-accent)':'var(--color-muted)';">
         PERSONAL DATA
     </a>
 

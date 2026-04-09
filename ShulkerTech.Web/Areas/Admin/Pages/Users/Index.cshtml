@@ -23,7 +23,7 @@
                         </span>
                         @if (row.User.IsAdmin)
                         {
-                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-plasma); border: 1px solid var(--color-plasma);">OWNER</span>
+                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-accent); border: 1px solid var(--color-accent);">OWNER</span>
                         }
                         @foreach (var role in row.Roles)
                         {
@@ -42,7 +42,7 @@
                 </div>
                 <a asp-page="Edit" asp-route-id="@row.User.Id"
                    class="px-3 py-1 rounded text-xs flex-none"
-                   style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-plasma); border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent);">
+                   style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-accent); border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent);">
                     MANAGE
                 </a>
             </div>

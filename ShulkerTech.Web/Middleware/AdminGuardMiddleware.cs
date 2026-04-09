@@ -20,10 +20,15 @@ public class AdminGuardMiddleware(RequestDelegate next)
 
         if (context.User.Identity?.IsAuthenticated != true)
         {
-            // Not logged in — redirect to login with the current path as ReturnUrl so
-            // Identity brings them back after a successful login.
-            // SubdomainRoutingMiddleware will redirect /Identity/... to the root domain.
-            var returnUrl = Uri.EscapeDataString(context.Request.Path + context.Request.QueryString);
+            // Strip the /Admin prefix to recover the subdomain-relative path.
+            // e.g. /Admin/users → /users, /Admin → /
+            var adminPath = context.Request.Path.Value!["/Admin".Length..];
+            if (string.IsNullOrEmpty(adminPath)) adminPath = "/";
+
+            // ReturnUrl points to the bounce page which does the cross-domain redirect
+            // back to admin.domain.com after a successful login.
+            // Identity only accepts local ReturnUrls, so we can't pass the subdomain URL directly.
+            var returnUrl = Uri.EscapeDataString($"/admin-redirect?p={Uri.EscapeDataString(adminPath)}");
             context.Response.Redirect($"/Identity/Account/Login?ReturnUrl={returnUrl}");
             return;
         }

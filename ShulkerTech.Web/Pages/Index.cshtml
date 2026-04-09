@@ -7,13 +7,13 @@
 
 @section Head {
     <style>
-        /* Pull hero flush to the top, behind the fixed nav */
-        body { padding-top: 0; }
+        /* Pull hero section up behind the fixed nav */
+        #hero { margin-top: -4rem; }
     </style>
 }
 
 @* ── Hero ────────────────────────────────────────────────────────────────── *@
-<section class="relative w-full scanlines" style="height: 90svh; min-height: 500px;">
+<section id="hero" class="relative w-full scanlines" style="height: 100svh; min-height: 500px;">
 
     @* Map iframe *@
     @if (Model.MapUrl is not null)
@@ -32,11 +32,15 @@
         <div class="absolute inset-0" style="background: radial-gradient(ellipse at 60% 40%, var(--color-nebula), var(--color-void));"></div>
     }
 
+    @* Top mask — matches the fixed nav height, hides map server UI beneath it *@
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 4rem; pointer-events: none; background: rgb(from var(--color-void) r g b / 0.2); backdrop-filter: blur(16px);"></div>
+
     @* Dark gradient overlay — pointer-events: none lets the iframe stay interactive *@
     <div class="absolute inset-0 pointer-events-none"
          style="background:
             linear-gradient(to bottom,
-                color-mix(in oklab, var(--color-void) 70%, transparent) 0%,
+                transparent 0%,
+                transparent 20%,
                 color-mix(in oklab, var(--color-void) 20%, transparent) 35%,
                 color-mix(in oklab, var(--color-void) 20%, transparent) 65%,
                 color-mix(in oklab, var(--color-void) 85%, transparent) 100%
@@ -58,11 +62,11 @@
                    font-weight: 700;
                    line-height: 1;
                    color: var(--color-crystal);
-                   text-shadow: 0 0 40px color-mix(in oklab, var(--color-plasma) 60%, transparent),
+                   text-shadow: 0 0 40px color-mix(in oklab, var(--color-accent) 60%, transparent),
                                 0 0 80px color-mix(in oklab, var(--color-arcane) 30%, transparent),
                                 0 0 120px color-mix(in oklab, var(--color-redstone) 15%, transparent);">
             <span style="font-family: var(--font-fantasy); letter-spacing: 0.06em;">SHULKER</span><br>
-            <span style="font-family: var(--font-display); letter-spacing: 0.12em; font-weight: 900; color: var(--color-plasma);">TECH</span>
+            <span style="font-family: var(--font-display); letter-spacing: 0.12em; font-weight: 900; color: var(--color-accent);">TECH</span>
         </h1>
 
         @* Tagline *@
@@ -119,7 +123,7 @@
     </div>
 
     <div class="panel p-8 flex flex-col gap-4">
-        <span class="magic-glow" style="font-size: 2rem; color: var(--color-plasma);">◈</span>
+        <span class="magic-glow" style="font-size: 2rem; color: var(--color-accent);">◈</span>
         <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1.2rem; letter-spacing: 0.06em;">EXPLORE</h3>
         <p style="font-size: 1rem; color: var(--color-muted); line-height: 1.7;">
             Venture into uncharted territories. Every biome hides secrets waiting to be uncovered.

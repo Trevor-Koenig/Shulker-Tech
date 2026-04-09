@@ -31,18 +31,21 @@
     color: var(--color-crystal);
     font-family: var(--font-body);
     scroll-behavior: smooth;
+    /* Semantic accent tokens — default to plasma cyan */
+    --color-accent: var(--color-plasma);
+    --color-accent-dim: var(--color-plasma-dim);
   }
 
-  /* Arcane theme — swap plasma cyan for arcane purple across the entire UI */
+  /* Arcane theme — swap accent tokens to arcane purple; plasma stays fixed */
   html[data-theme="arcane"] {
-    --color-plasma: #7b2fff;
-    --color-plasma-dim: #5a1fcc;
+    --color-accent: var(--color-arcane);
+    --color-accent-dim: var(--color-arcane-dim);
   }
 
   /* Scrollbar — dark themed */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--color-deep-space); }
-  ::-webkit-scrollbar-thumb { background: var(--color-plasma-dim); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb { background: var(--color-accent-dim); border-radius: 3px; }
 }
 
 @keyframes magic-pulse {
@@ -59,9 +62,9 @@
   /* Glowing border panels — core sci-fi/fantasy UI element */
   .panel {
     background: color-mix(in oklab, var(--color-nebula) 80%, transparent);
-    border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent);
     border-radius: 0.5rem;
-    box-shadow: 0 0 20px color-mix(in oklab, var(--color-plasma) 10%, transparent),
+    box-shadow: 0 0 20px color-mix(in oklab, var(--color-accent) 10%, transparent),
                 0 0 40px color-mix(in oklab, var(--color-redstone) 4%, transparent),
                 inset 0 0 20px color-mix(in oklab, var(--color-void) 50%, transparent);
   }
@@ -89,8 +92,8 @@
   }
 
   .nav-link:hover, .nav-link[aria-current="page"] {
-    color: var(--color-plasma);
-    text-shadow: 0 0 8px var(--color-plasma);
+    color: var(--color-accent);
+    text-shadow: 0 0 8px var(--color-accent);
   }
 
   /* Primary CTA button */
@@ -144,7 +147,7 @@
   .nav-separator {
     width: 1px;
     height: 1rem;
-    background: color-mix(in oklab, var(--color-plasma) 25%, transparent);
+    background: color-mix(in oklab, var(--color-accent) 25%, transparent);
   }
 
   /* Settings dropdown panel */
@@ -179,14 +182,14 @@
   }
 
   .nav-dropdown-item:hover {
-    color: var(--color-plasma);
-    background: color-mix(in oklab, var(--color-plasma) 8%, transparent);
+    color: var(--color-accent);
+    background: color-mix(in oklab, var(--color-accent) 8%, transparent);
   }
 
   .nav-dropdown-divider {
     height: 1px;
     margin: 0.25rem 0.5rem;
-    background: color-mix(in oklab, var(--color-plasma) 15%, transparent);
+    background: color-mix(in oklab, var(--color-accent) 15%, transparent);
   }
 
   /* Compact nav button — CTA variant for use in the navbar */
@@ -203,13 +206,13 @@
     text-decoration: none;
   }
   .btn-nav:hover {
-    box-shadow: 0 0 14px var(--color-arcane), 0 0 6px var(--color-plasma-dim);
+    box-shadow: 0 0 14px var(--color-arcane), 0 0 6px var(--color-accent-dim);
     opacity: 0.9;
   }
 
   /* Signed-in username chip */
   .nav-user {
-    color: var(--color-plasma);
+    color: var(--color-accent);
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.08em;
@@ -219,7 +222,7 @@
   .nav-user::before { content: '['; opacity: 0.5; }
   .nav-user::after  { content: ']'; opacity: 0.5; }
   .nav-user:hover {
-    text-shadow: 0 0 8px var(--color-plasma);
+    text-shadow: 0 0 8px var(--color-accent);
   }
 
   /* Magical pulse for decorative icons */
@@ -240,7 +243,7 @@
     line-height: 1.3;
   }
   .wiki-content h1 { font-size: 1.6rem; font-weight: 900; }
-  .wiki-content h2 { font-size: 1.25rem; font-weight: 700; color: var(--color-plasma); }
+  .wiki-content h2 { font-size: 1.25rem; font-weight: 700; color: var(--color-accent); }
   .wiki-content h3 { font-size: 1rem;    font-weight: 600; }
   .wiki-content h4 { font-size: 0.9rem;  font-weight: 600; color: var(--color-muted); }
 
@@ -251,12 +254,12 @@
   }
 
   .wiki-content a {
-    color: var(--color-plasma);
+    color: var(--color-accent);
     text-decoration: underline;
-    text-decoration-color: color-mix(in oklab, var(--color-plasma) 35%, transparent);
+    text-decoration-color: color-mix(in oklab, var(--color-accent) 35%, transparent);
     transition: text-shadow 150ms ease;
   }
-  .wiki-content a:hover { text-shadow: 0 0 6px var(--color-plasma); }
+  .wiki-content a:hover { text-shadow: 0 0 6px var(--color-accent); }
 
   .wiki-content ul,
   .wiki-content ol {
@@ -280,7 +283,7 @@
 
   .wiki-content pre {
     background: var(--color-nebula);
-    border: 1px solid color-mix(in oklab, var(--color-plasma) 15%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-accent) 15%, transparent);
     padding: 1rem 1.25rem;
     border-radius: 0.35rem;
     overflow-x: auto;
@@ -312,8 +315,8 @@
     font-size: 0.72rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--color-plasma);
-    border-bottom: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent);
+    color: var(--color-accent);
+    border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent);
     padding: 0.5rem 0.75rem;
     text-align: left;
   }
@@ -326,7 +329,7 @@
   .wiki-content hr {
     border: none;
     height: 1px;
-    background: color-mix(in oklab, var(--color-plasma) 20%, transparent);
+    background: color-mix(in oklab, var(--color-accent) 20%, transparent);
     margin: 1.5rem 0;
   }
 

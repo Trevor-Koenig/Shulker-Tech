@@ -1,3 +1,7 @@
+@using Microsoft.AspNetCore.Identity
+@using ShulkerTech.Core.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 @{
     // Build subdomain URLs from the current request so this works in any environment
     // (dev: shulker.dev:8080, prod: shulkertech.com) without hardcoding domains.
@@ -12,6 +16,8 @@
     var _scheme = Context.Request.Scheme;
     var _base = $"{_scheme}://{_rootHost}{_portSuffix}";
     var _wikiBase = $"{_scheme}://wiki.{_rootHost}{_portSuffix}";
+    var _adminBase = $"{_scheme}://admin.{_rootHost}{_portSuffix}";
+    var _layoutCurrentUser = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
 }
 <!DOCTYPE html>
 <html lang="en" class="h-full">
@@ -35,11 +41,11 @@
 <body class="min-h-full flex flex-col" style="background-color: var(--color-void); color: var(--color-crystal);">
 
     <!-- Top navigation -->
-    <header style="background: color-mix(in oklab, var(--color-deep-space) 95%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--color-plasma) 20%, transparent);">
+    <header style="position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: color-mix(in oklab, var(--color-deep-space) 95%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 20%, transparent); backdrop-filter: blur(2px);">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 sm:h-16">
 
             <!-- Brand -->
-            <a href="@_base/" class="flex items-center gap-2" style="font-family: var(--font-display); color: var(--color-plasma); text-shadow: 0 0 12px var(--color-plasma); font-size: 1rem; letter-spacing: 0.15em; font-weight: 900; text-decoration: none;">
+            <a href="@_base/" class="flex items-center gap-2" style="font-family: var(--font-display); color: var(--color-accent); text-shadow: 0 0 12px var(--color-accent); font-size: 1rem; letter-spacing: 0.15em; font-weight: 900; text-decoration: none;">
                 <img src="~/images/redstone_dust.webp" alt="redstone dust"
                      width="16" height="16"
                      style="display:inline-block; vertical-align:middle; image-rendering: pixelated; animation: magic-pulse 3s ease-in-out infinite; filter: drop-shadow(0 0 5px #cc1a1a);" />
@@ -58,6 +64,10 @@
             <ul class="hidden sm:flex items-center gap-6">
                 <li><a class="nav-link" href="@_base/">Home</a></li>
                 <li><a class="nav-link" href="@_wikiBase/">Wiki</a></li>
+                @if (_layoutCurrentUser?.IsAdmin == true)
+                {
+                    <li><a class="nav-link" href="@_adminBase/">ADMIN</a></li>
+                }
                 <partial name="_LoginPartial" />
             </ul>
         </nav>
@@ -66,17 +76,21 @@
         <div id="nav-menu" class="hidden sm:hidden px-4 pb-4 flex flex-col gap-3">
             <a class="nav-link" href="@_base/">Home</a>
             <a class="nav-link" href="@_wikiBase/">Wiki</a>
+            @if (_layoutCurrentUser?.IsAdmin == true)
+            {
+                <a class="nav-link" href="@_adminBase/">ADMIN</a>
+            }
             <partial name="_LoginPartial" />
         </div>
     </header>
 
-    <!-- Page content -->
-    <main class="flex-1">
+    <!-- Page content — pt offsets the fixed header (h-14 mobile / h-16 sm+) -->
+    <main class="flex-1 pt-14 sm:pt-16">
         @RenderBody()
     </main>
 
     <!-- Footer -->
-    <footer class="mt-auto py-6 px-4" style="border-top: 1px solid color-mix(in oklab, var(--color-plasma) 10%, transparent);">
+    <footer class="mt-auto py-6 px-4" style="border-top: 1px solid color-mix(in oklab, var(--color-accent) 10%, transparent);">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
             <span>&copy; @DateTime.UtcNow.Year SHULKER TECH — ALL SYSTEMS NOMINAL</span>
             <a asp-page="/Privacy" style="color: var(--color-muted);">Privacy</a>
@@ -111,16 +125,16 @@
 
         // Theme toggle (plasma ↔ arcane accent)
         function updateThemeBtn() {
-            var btn = document.getElementById('theme-toggle-btn');
-            if (!btn) return;
             var current = document.documentElement.dataset.theme || 'plasma';
-            if (current === 'plasma') {
-                btn.textContent = '◈ Arcane Mode';
-                btn.style.color = 'var(--color-arcane)';
-            } else {
-                btn.textContent = '◈ Plasma Mode';
-                btn.style.color = 'var(--color-plasma-dim)';
-            }
+            document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+                if (current === 'plasma') {
+                    btn.textContent = '◈ Arcane Mode';
+                    btn.style.color = 'var(--color-arcane)';
+                } else {
+                    btn.textContent = '◈ Plasma Mode';
+                    btn.style.color = 'var(--color-plasma)';
+                }
+            });
         }
 
         function toggleTheme() {
@@ -131,7 +145,9 @@
             updateThemeBtn();
         }
 
-        document.getElementById('theme-toggle-btn')?.addEventListener('click', toggleTheme);
+        document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+            btn.addEventListener('click', toggleTheme);
+        });
         updateThemeBtn();
     </script>
 
