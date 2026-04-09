@@ -3,9 +3,9 @@ services:
     image: postgres:16
     restart: unless-stopped
     environment:
-      POSTGRES_DB: shulkertech
-      POSTGRES_USER: shulker
-      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -20,7 +20,7 @@ services:
       - "80:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=shulkertech;Username=shulker;Password=changeme
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
       - SETUP_CODE=${SETUP_CODE:?SETUP_CODE env var is required}
     volumes:
       - dataprotection:/root/.aspnet/DataProtection-Keys

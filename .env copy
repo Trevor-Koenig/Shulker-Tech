@@ -1,0 +1,15 @@
+SETUP_CODE =changeme
+
+DB_NAME=database
+DB_USER=dbuser
+DB_PASSWORD=changeme
+
+
+# ── Optional ──────────────────────────────────────────────────────────────────
+# DISCORD_SERVER_ID=
+
+# Database TLS (only needed when DB is on a separate server — not for Docker)
+# DB_SSL_CA=/etc/ssl/certs/ca.pem
+# DB_SSL_CERT=/etc/ssl/certs/client-cert.pem
+# DB_SSL_KEY=/etc/ssl/certs/client-key.pem
+# DB_SSL_VERIFY=true
