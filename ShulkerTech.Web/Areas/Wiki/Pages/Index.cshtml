@@ -4,11 +4,64 @@
     ViewData["Title"] = "Wiki";
 }
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 style="font-family: var(--font-display); color: var(--color-plasma); font-size: 2rem; letter-spacing: 0.1em;">
-        WIKI
-    </h1>
-    <p style="color: var(--color-muted); margin-top: 0.5rem;">
-        Articles, guides, and lore for the Shulker Tech server.
-    </p>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    <!-- Header -->
+    <div class="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+            <p class="text-xs tracking-widest mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; KNOWLEDGE BASE</p>
+            <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+                WIKI
+            </h1>
+            <p class="mt-1 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Articles, guides, and lore for the Shulker Tech server.
+            </p>
+        </div>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a href="/articles/create" class="btn-nav self-start sm:self-auto">+ NEW ARTICLE</a>
+        }
+    </div>
+
+    <!-- Article list -->
+    @if (Model.Articles.Count == 0)
+    {
+        <div class="panel p-10 text-center">
+            <p style="font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em; color: var(--color-muted);">
+                NO ARTICLES YET
+            </p>
+            <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Be the first to contribute to the knowledge base.
+            </p>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a href="/articles/create" class="btn-nav inline-block mt-4">+ NEW ARTICLE</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            @foreach (var article in Model.Articles)
+            {
+                <a href="/articles/@article.Slug" class="panel p-6 flex flex-col gap-3" style="text-decoration: none;">
+                    <span style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; color: var(--color-crystal);">
+                        @article.Title
+                    </span>
+                    <p class="text-sm flex-1" style="color: var(--color-muted); font-family: var(--font-body); line-height: 1.6;">
+                        @IndexModel.Excerpt(article.Content)
+                    </p>
+                    <div class="flex items-center justify-between mt-1">
+                        <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                            @(article.Author?.UserName?.ToUpperInvariant() ?? "UNKNOWN")
+                            &nbsp;·&nbsp;
+                            @article.UpdatedAt.ToString("MMM d, yyyy")
+                        </span>
+                        <span class="text-xs" style="font-family: var(--font-display); color: var(--color-plasma); letter-spacing: 0.08em;">READ →</span>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+
 </div>

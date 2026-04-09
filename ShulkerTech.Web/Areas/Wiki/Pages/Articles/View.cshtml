@@ -1,0 +1,46 @@
+@page "/Wiki/articles/{slug}"
+@model ViewModel
+@{
+    ViewData["Title"] = Model.Article.Title;
+}
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Breadcrumb -->
+    <a href="/" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-muted); letter-spacing: 0.08em; text-decoration: none;">
+        ← WIKI
+    </a>
+
+    <!-- Article header -->
+    <div class="mt-6 mb-8">
+        @if (!Model.Article.IsPublished)
+        {
+            <span class="inline-block mb-3 text-xs px-2 py-0.5 rounded"
+                  style="font-family: var(--font-mono); background: color-mix(in oklab, var(--color-redstone) 15%, transparent); color: var(--color-redstone); letter-spacing: 0.08em;">
+                DRAFT — NOT PUBLISHED
+            </span>
+        }
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.06em; color: var(--color-crystal); line-height: 1.2;">
+            @Model.Article.Title
+        </h1>
+        <div class="mt-3 flex flex-wrap items-center gap-4">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                BY @(Model.Article.Author?.UserName?.ToUpperInvariant() ?? "UNKNOWN")
+            </span>
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                UPDATED @Model.Article.UpdatedAt.ToString("MMM d, yyyy").ToUpper()
+            </span>
+            @if (Model.CanEdit)
+            {
+                <a href="/articles/edit/@Model.Article.Id" class="btn-nav"
+                   style="font-size: 0.65rem; padding: 0.2rem 0.6rem;">EDIT</a>
+            }
+        </div>
+    </div>
+
+    <!-- Article content -->
+    <div class="panel p-6 sm:p-10 wiki-content">
+        @Html.Raw(Model.ContentHtml)
+    </div>
+
+</div>

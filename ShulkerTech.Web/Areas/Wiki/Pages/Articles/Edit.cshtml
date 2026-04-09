@@ -1,0 +1,88 @@
+@page "/Wiki/articles/edit/{id:int}"
+@model EditModel
+@{
+    ViewData["Title"] = $"Edit — {Model.Article.Title}";
+}
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="/articles/@Model.Article.Slug"
+           style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-muted); letter-spacing: 0.08em; text-decoration: none;">
+            ← @Model.Article.Title.ToUpperInvariant()
+        </a>
+        <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; EDIT ARTICLE</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.08em; color: var(--color-crystal);">
+            EDITING
+        </h1>
+        <p class="mt-1 text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+            SLUG: <span style="color: var(--color-plasma);">@Model.Article.Slug</span>
+            &nbsp;·&nbsp; Slugs are permanent — renaming the title will not change the URL.
+        </p>
+    </div>
+
+    <form method="post" class="flex flex-col gap-6">
+        <input type="hidden" asp-for="Input.Id" />
+        <div asp-validation-summary="ModelOnly" class="text-sm panel p-4"
+             style="color: var(--color-redstone); font-family: var(--font-mono);"></div>
+
+        <!-- Title -->
+        <div class="flex flex-col gap-2">
+            <label asp-for="Input.Title" class="text-xs"
+                   style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
+            <input asp-for="Input.Title" autocomplete="off"
+                   class="panel px-4 py-3 w-full bg-transparent outline-none"
+                   style="font-family: var(--font-display); color: var(--color-crystal); font-size: 1.1rem; letter-spacing: 0.04em;" />
+            <span asp-validation-for="Input.Title" class="text-xs"
+                  style="color: var(--color-redstone); font-family: var(--font-mono);"></span>
+        </div>
+
+        <!-- Content -->
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+                <label asp-for="Input.Content" class="text-xs"
+                       style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">CONTENT</label>
+                <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); opacity: 0.7;">
+                    Markdown — **bold**, # Heading, [link](url), `code`
+                </span>
+            </div>
+            <textarea asp-for="Input.Content" rows="28"
+                      class="panel px-4 py-3 w-full bg-transparent outline-none resize-y"
+                      style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem; line-height: 1.7;"></textarea>
+        </div>
+
+        <!-- Publish toggle -->
+        <label class="flex items-center gap-3 cursor-pointer select-none">
+            <input asp-for="Input.IsPublished" type="checkbox"
+                   class="w-4 h-4" style="accent-color: var(--color-plasma);" />
+            <span class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                PUBLISHED
+            </span>
+        </label>
+
+        <!-- Save / Cancel -->
+        <div class="flex items-center gap-4 pt-2">
+            <button type="submit" class="btn-primary">SAVE CHANGES</button>
+            <a href="/articles/@Model.Article.Slug" class="nav-link">CANCEL</a>
+        </div>
+    </form>
+
+    <!-- Delete — admin only -->
+    @if (Model.IsAdmin)
+    {
+        <div class="mt-12 pt-6" style="border-top: 1px solid color-mix(in oklab, var(--color-redstone) 20%, transparent);">
+            <p class="text-xs mb-3" style="font-family: var(--font-mono); color: var(--color-muted);">DANGER ZONE</p>
+            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Article.Id"
+                  onsubmit="return confirm('Delete this article permanently?')">
+                <button type="submit" class="text-xs px-4 py-2 rounded"
+                        style="font-family: var(--font-display); letter-spacing: 0.1em; border: 1px solid color-mix(in oklab, var(--color-redstone) 40%, transparent); color: var(--color-redstone); background: color-mix(in oklab, var(--color-redstone) 8%, transparent); cursor: pointer; transition: background 150ms ease;"
+                        onmouseover="this.style.background='color-mix(in oklab, var(--color-redstone) 18%, transparent)'"
+                        onmouseout="this.style.background='color-mix(in oklab, var(--color-redstone) 8%, transparent)'">
+                    DELETE ARTICLE
+                </button>
+            </form>
+        </div>
+    }
+
+</div>

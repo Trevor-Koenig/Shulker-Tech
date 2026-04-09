@@ -1,3 +1,4 @@
+using Markdig;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
@@ -24,6 +25,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
 builder.Services.AddHttpClient<MojangService>();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
+
+// Markdown pipeline — advanced extensions enabled, raw HTML stripped for safety
+builder.Services.AddSingleton(new MarkdownPipelineBuilder()
+    .UseAdvancedExtensions()
+    .DisableHtml()
+    .Build());
 
 // Scope auth cookies (and antiforgery) to the root domain so they are shared
 // across all subdomains (wiki., admin., etc.) without hardcoding any domain name.
@@ -74,7 +81,10 @@ else
 app.UseHttpsRedirection();
 app.UseCookiePolicy();
 app.UseMiddleware<FirstRunMiddleware>();
+app.UseStatusCodePagesWithReExecute("/404");
 app.UseMiddleware<SubdomainRoutingMiddleware>();
+app.UseAuthentication();
+app.UseMiddleware<AdminGuardMiddleware>();
 app.UseRouting();
 app.UseAuthorization();
 

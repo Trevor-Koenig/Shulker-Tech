@@ -29,6 +29,10 @@ public class SubdomainRoutingMiddleware(RequestDelegate next)
         "/favicon.ico",
     ];
 
+    // Paths that skip area-prefixing but are served locally (no cross-domain redirect).
+    // Used so the root-level 404 page is reachable from any subdomain during re-execution.
+    private static readonly string[] LocalPassthroughPaths = ["/404"];
+
     public async Task InvokeAsync(HttpContext context)
     {
         var host = context.Request.Host.Host;
@@ -49,6 +53,13 @@ public class SubdomainRoutingMiddleware(RequestDelegate next)
                 return;
             }
 
+            await next(context);
+            return;
+        }
+
+        // Passthrough paths skip area-prefixing but stay on the current host.
+        if (LocalPassthroughPaths.Any(p => path.Equals(p, StringComparison.OrdinalIgnoreCase)))
+        {
             await next(context);
             return;
         }

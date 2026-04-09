@@ -227,6 +227,115 @@
     animation: magic-pulse 3s ease-in-out infinite;
   }
 
+  /* Wiki article content — typography for rendered Markdown */
+  .wiki-content h1,
+  .wiki-content h2,
+  .wiki-content h3,
+  .wiki-content h4 {
+    font-family: var(--font-display);
+    color: var(--color-crystal);
+    letter-spacing: 0.05em;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+  }
+  .wiki-content h1 { font-size: 1.6rem; font-weight: 900; }
+  .wiki-content h2 { font-size: 1.25rem; font-weight: 700; color: var(--color-plasma); }
+  .wiki-content h3 { font-size: 1rem;    font-weight: 600; }
+  .wiki-content h4 { font-size: 0.9rem;  font-weight: 600; color: var(--color-muted); }
+
+  .wiki-content p {
+    color: color-mix(in oklab, var(--color-crystal) 85%, var(--color-muted));
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+
+  .wiki-content a {
+    color: var(--color-plasma);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--color-plasma) 35%, transparent);
+    transition: text-shadow 150ms ease;
+  }
+  .wiki-content a:hover { text-shadow: 0 0 6px var(--color-plasma); }
+
+  .wiki-content ul,
+  .wiki-content ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+    color: color-mix(in oklab, var(--color-crystal) 85%, var(--color-muted));
+    line-height: 1.8;
+  }
+  .wiki-content ul { list-style-type: disc; }
+  .wiki-content ol { list-style-type: decimal; }
+  .wiki-content li { margin-bottom: 0.25rem; }
+
+  .wiki-content code {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    background: color-mix(in oklab, var(--color-nebula) 80%, transparent);
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.2rem;
+    color: var(--color-rune);
+  }
+
+  .wiki-content pre {
+    background: var(--color-nebula);
+    border: 1px solid color-mix(in oklab, var(--color-plasma) 15%, transparent);
+    padding: 1rem 1.25rem;
+    border-radius: 0.35rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+  .wiki-content pre code {
+    background: none;
+    padding: 0;
+    color: var(--color-crystal);
+    font-size: 0.875rem;
+  }
+
+  .wiki-content blockquote {
+    border-left: 3px solid color-mix(in oklab, var(--color-arcane) 60%, transparent);
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    color: var(--color-muted);
+    font-style: italic;
+  }
+
+  .wiki-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+  }
+  .wiki-content th {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-plasma);
+    border-bottom: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .wiki-content td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--color-muted) 15%, transparent);
+    color: color-mix(in oklab, var(--color-crystal) 80%, var(--color-muted));
+  }
+
+  .wiki-content hr {
+    border: none;
+    height: 1px;
+    background: color-mix(in oklab, var(--color-plasma) 20%, transparent);
+    margin: 1.5rem 0;
+  }
+
+  .wiki-content img {
+    max-width: 100%;
+    border-radius: 0.25rem;
+    image-rendering: pixelated;
+  }
+
   /* Scanline overlay — applied to full-bleed hero sections */
   .scanlines::after {
     content: '';
