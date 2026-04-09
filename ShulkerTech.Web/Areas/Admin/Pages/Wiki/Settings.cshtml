@@ -1,0 +1,92 @@
+@page "/Admin/Wiki/Settings"
+@model SettingsModel
+@{
+    ViewData["Title"] = "Wiki Settings";
+}
+
+@{
+    string SelectStyle = "panel px-3 py-2 bg-transparent outline-none text-sm w-full";
+    string SelectInlineStyle = "color: var(--color-crystal); font-family: var(--font-mono);";
+}
+
+<div class="max-w-4xl px-8 py-12">
+
+    <div class="mb-8">
+        <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; WIKI</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            WIKI SETTINGS
+        </h1>
+        <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+            Global defaults — individual articles can override view and edit permissions.
+        </p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-accent); font-family: var(--font-mono);">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <form method="post" class="panel p-8 flex flex-col gap-8">
+
+        <!-- Default view role -->
+        <div class="flex flex-col gap-2">
+            <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                DEFAULT VIEW PERMISSION
+            </label>
+            <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Who can read wiki articles that have no per-article override set.
+            </p>
+            <select asp-for="Input.DefaultViewRole" class="@SelectStyle" style="@SelectInlineStyle">
+                <option value="">Public (anyone)</option>
+                @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
+                {
+                    <option value="@role" selected="@(Model.Input.DefaultViewRole == role)">@role and above</option>
+                }
+            </select>
+        </div>
+
+        <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+
+        <!-- Create role -->
+        <div class="flex flex-col gap-2">
+            <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                WHO CAN CREATE ARTICLES
+            </label>
+            <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Minimum role required to write a new wiki article.
+            </p>
+            <select asp-for="Input.CreateRole" class="@SelectStyle" style="@SelectInlineStyle">
+                @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
+                {
+                    <option value="@role" selected="@(Model.Input.CreateRole == role)">@role and above</option>
+                }
+            </select>
+        </div>
+
+        <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+
+        <!-- Edit any role -->
+        <div class="flex flex-col gap-2">
+            <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                WHO CAN EDIT OTHERS' ARTICLES
+            </label>
+            <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Minimum role to edit articles not written by the user. Authors can always edit their own work.
+                Individual articles can override this.
+            </p>
+            <select asp-for="Input.EditAnyRole" class="@SelectStyle" style="@SelectInlineStyle">
+                @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
+                {
+                    <option value="@role" selected="@(Model.Input.EditAnyRole == role)">@role and above</option>
+                }
+            </select>
+        </div>
+
+        <div class="pt-2">
+            <button type="submit" class="btn-primary">SAVE SETTINGS</button>
+        </div>
+
+    </form>
+</div>

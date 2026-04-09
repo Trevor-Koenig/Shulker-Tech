@@ -52,6 +52,38 @@
                       style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem; line-height: 1.7;"></textarea>
         </div>
 
+        <!-- Permissions -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
+                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                    WHO CAN VIEW
+                </label>
+                <select asp-for="Input.ViewRole"
+                        class="panel px-3 py-2 bg-transparent outline-none text-sm"
+                        style="color: var(--color-crystal); font-family: var(--font-mono);">
+                    <option value="">Default (@(Model.Settings.DefaultViewRole ?? "Public"))</option>
+                    @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
+                    {
+                        <option value="@role" selected="@(Model.Input.ViewRole == role)">@role only</option>
+                    }
+                </select>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                    WHO CAN EDIT
+                </label>
+                <select asp-for="Input.EditRole"
+                        class="panel px-3 py-2 bg-transparent outline-none text-sm"
+                        style="color: var(--color-crystal); font-family: var(--font-mono);">
+                    <option value="">Default (@Model.Settings.EditAnyRole)</option>
+                    @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
+                    {
+                        <option value="@role" selected="@(Model.Input.EditRole == role)">@role only</option>
+                    }
+                </select>
+            </div>
+        </div>
+
         <!-- Publish toggle -->
         <label class="flex items-center gap-3 cursor-pointer select-none">
             <input asp-for="Input.IsPublished" type="checkbox"

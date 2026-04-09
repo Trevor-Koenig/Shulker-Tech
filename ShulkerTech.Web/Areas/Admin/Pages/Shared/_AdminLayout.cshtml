@@ -1,0 +1,67 @@
+@{
+    Layout = "/Pages/Shared/_Layout.cshtml";
+    var page = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+
+    bool IsActive(string section) =>
+        section == "/Index" ? page == "/Index" : page.StartsWith(section);
+
+    string NavLinkStyle(string section)
+    {
+        const string Base = "display:flex;align-items:center;gap:0.6rem;padding:0.4rem 0.75rem;border-radius:0.2rem;font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:color 150ms ease,background 150ms ease;white-space:nowrap;";
+        return IsActive(section)
+            ? Base + "color:var(--color-accent);background:color-mix(in oklab,var(--color-accent) 10%,transparent);"
+            : Base + "color:var(--color-muted);";
+    }
+
+    string MobileNavLinkStyle(string section)
+    {
+        const string Base = "padding:0.35rem 0.75rem;font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:0.2rem;white-space:nowrap;";
+        return IsActive(section)
+            ? Base + "color:var(--color-accent);background:color-mix(in oklab,var(--color-accent) 10%,transparent);"
+            : Base + "color:var(--color-muted);";
+    }
+}
+
+@* Mobile: horizontal scrollable nav bar *@
+<div class="sm:hidden" style="border-bottom:1px solid color-mix(in oklab,var(--color-accent) 12%,transparent);background:color-mix(in oklab,var(--color-deep-space) 95%,transparent);overflow-x:auto;">
+    <div style="display:flex;gap:0.25rem;padding:0.5rem 1rem;min-width:max-content;">
+        <a asp-area="Admin" asp-page="/Index"         style="@MobileNavLinkStyle("/Index")">Dashboard</a>
+        <a asp-area="Admin" asp-page="/Users/Index"   style="@MobileNavLinkStyle("/Users")">Users</a>
+        <a asp-area="Admin" asp-page="/Invites/Index" style="@MobileNavLinkStyle("/Invites")">Invites</a>
+        <a asp-area="Admin" asp-page="/Maps/Index"    style="@MobileNavLinkStyle("/Maps")">Maps</a>
+        <a asp-area="Admin" asp-page="/Wiki/Settings" style="@MobileNavLinkStyle("/Wiki")">Wiki</a>
+    </div>
+</div>
+
+@* Desktop: sidebar + content *@
+<div style="display:flex;min-height:calc(100svh - 4rem);">
+
+    @* Sidebar *@
+    <aside class="hidden sm:flex" style="width:13rem;flex-shrink:0;flex-direction:column;border-right:1px solid color-mix(in oklab,var(--color-accent) 12%,transparent);background:color-mix(in oklab,var(--color-deep-space) 60%,transparent);">
+
+        <div style="padding:1.5rem 1.25rem 1rem;border-bottom:1px solid color-mix(in oklab,var(--color-accent) 8%,transparent);">
+            <p style="font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.15em;color:var(--color-rune);">&#9670; CONTROL CENTER</p>
+        </div>
+
+        <nav style="padding:0.6rem 0.5rem;display:flex;flex-direction:column;gap:0.15rem;flex:1;">
+            <a asp-area="Admin" asp-page="/Index"         style="@NavLinkStyle("/Index")">⬡&nbsp; Dashboard</a>
+            <a asp-area="Admin" asp-page="/Users/Index"   style="@NavLinkStyle("/Users")">◈&nbsp; Users</a>
+            <a asp-area="Admin" asp-page="/Invites/Index" style="@NavLinkStyle("/Invites")">◈&nbsp; Invites</a>
+            <a asp-area="Admin" asp-page="/Maps/Index"    style="@NavLinkStyle("/Maps")">◈&nbsp; Map Servers</a>
+            <a asp-area="Admin" asp-page="/Wiki/Settings" style="@NavLinkStyle("/Wiki")">◈&nbsp; Wiki</a>
+        </nav>
+
+        <div style="padding:1rem 1.25rem;border-top:1px solid color-mix(in oklab,var(--color-accent) 8%,transparent);">
+            <p style="font-family:var(--font-mono);font-size:0.65rem;color:var(--color-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@User.Identity?.Name</p>
+        </div>
+    </aside>
+
+    @* Content *@
+    <div style="flex:1;min-width:0;overflow-y:auto;">
+        @RenderBody()
+    </div>
+
+</div>
+
+@section Scripts { @RenderSection("Scripts", required: false) }
+@section Head    { @RenderSection("Head",    required: false) }

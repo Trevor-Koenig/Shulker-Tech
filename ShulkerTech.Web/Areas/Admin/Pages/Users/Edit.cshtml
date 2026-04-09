@@ -4,11 +4,12 @@
     ViewData["Title"] = $"User — {Model.Member?.UserName}";
 }
 
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="max-w-3xl px-8 py-12">
 
-    <div class="flex items-center gap-4 mb-8">
-        <a asp-page="Index" class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">← USERS</a>
-        <h1 style="font-family: var(--font-display); color: var(--color-rune); font-size: 1.5rem; letter-spacing: 0.1em;">
+    <div class="mb-8">
+        <a asp-page="Index" class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em; text-decoration: none;">← USERS</a>
+        <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; USERS</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
             @Model.Member!.UserName?.ToUpper()
         </h1>
     </div>

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
 
@@ -16,6 +17,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
 
     public Article Article { get; set; } = null!;
     public bool IsAdmin { get; set; }
+    public WikiSettings Settings { get; set; } = new();
 
     public class InputModel
     {
@@ -28,6 +30,8 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         public string Content { get; set; } = "";
 
         public bool IsPublished { get; set; }
+        public string? ViewRole { get; set; }
+        public string? EditRole { get; set; }
     }
 
     public async Task<IActionResult> OnGetAsync(int id)
@@ -37,18 +41,24 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
 
         Article = article;
         IsAdmin = isAdmin;
+        Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
+
         Input = new InputModel
         {
             Id = article.Id,
             Title = article.Title,
             Content = article.Content,
             IsPublished = article.IsPublished,
+            ViewRole = article.ViewRole,
+            EditRole = article.EditRole,
         };
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
+        Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
+
         if (!ModelState.IsValid) return Page();
 
         var (article, canEdit, _) = await ResolveAsync(Input.Id);
@@ -57,6 +67,8 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         article.Title = Input.Title;
         article.Content = Input.Content;
         article.IsPublished = Input.IsPublished;
+        article.ViewRole = string.IsNullOrEmpty(Input.ViewRole) ? null : Input.ViewRole;
+        article.EditRole = string.IsNullOrEmpty(Input.EditRole) ? null : Input.EditRole;
         article.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
@@ -85,7 +97,13 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         var user = await userManager.GetUserAsync(User);
         if (user == null) return (article, false, false);
 
-        var isAdmin = user.IsAdmin;
-        return (article, user.Id == article.AuthorId || isAdmin, isAdmin);
+        var settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
+        var userRoles = await userManager.GetRolesAsync(user);
+        var editRole = article.EditRole ?? settings.EditAnyRole;
+
+        var canEdit = user.Id == article.AuthorId ||
+                      WikiSettings.UserSatisfies(editRole, userRoles, user.IsAdmin);
+
+        return (article, canEdit, user.IsAdmin);
     }
 }

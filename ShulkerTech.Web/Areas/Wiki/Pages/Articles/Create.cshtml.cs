@@ -16,6 +16,8 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
+    public WikiSettings Settings { get; set; } = new();
+
     public class InputModel
     {
         [Required, MaxLength(200)]
@@ -25,16 +27,36 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
         public string Content { get; set; } = "";
 
         public bool IsPublished { get; set; }
+        public string? ViewRole { get; set; }
+        public string? EditRole { get; set; }
     }
 
-    public IActionResult OnGet() => Page();
+    public async Task<IActionResult> OnGetAsync()
+    {
+        Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
+
+        var user = await userManager.GetUserAsync(User);
+        if (user == null) return Forbid();
+
+        var userRoles = await userManager.GetRolesAsync(user);
+        if (!WikiSettings.UserSatisfies(Settings.CreateRole, userRoles, user.IsAdmin))
+            return Forbid();
+
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (!ModelState.IsValid) return Page();
+        Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
 
         var user = await userManager.GetUserAsync(User)
             ?? throw new InvalidOperationException("Authenticated user not found.");
+
+        var userRoles = await userManager.GetRolesAsync(user);
+        if (!WikiSettings.UserSatisfies(Settings.CreateRole, userRoles, user.IsAdmin))
+            return Forbid();
+
+        if (!ModelState.IsValid) return Page();
 
         var slug = await GenerateUniqueSlugAsync(Input.Title);
 
@@ -44,6 +66,8 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
             Slug = slug,
             Content = Input.Content,
             IsPublished = Input.IsPublished,
+            ViewRole = string.IsNullOrEmpty(Input.ViewRole) ? null : Input.ViewRole,
+            EditRole = string.IsNullOrEmpty(Input.EditRole) ? null : Input.EditRole,
             AuthorId = user.Id,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,

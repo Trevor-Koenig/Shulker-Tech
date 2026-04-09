@@ -11,6 +11,6 @@ public class LogoutModel(SignInManager<ApplicationUser> signInManager, ILogger<L
     {
         await signInManager.SignOutAsync();
         logger.LogInformation("User logged out.");
-        return returnUrl != null ? LocalRedirect(returnUrl) : RedirectToPage();
+        return Redirect("/");
     }
 }

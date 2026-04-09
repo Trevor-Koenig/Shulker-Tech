@@ -37,8 +37,10 @@
             <div class="nav-dropdown-divider"></div>
             <button data-theme-toggle class="nav-dropdown-item">◈ Arcane Mode</button>
             <div class="nav-dropdown-divider"></div>
-            <a asp-area="Identity" asp-page="/Account/Logout" class="nav-dropdown-item"
-               style="color: color-mix(in oklab, var(--color-redstone) 70%, var(--color-muted));">Sign Out</a>
+            <form asp-area="Identity" asp-page="/Account/Logout" method="post" style="display:contents;">
+                <button type="submit" class="nav-dropdown-item"
+                        style="color: color-mix(in oklab, var(--color-redstone) 70%, var(--color-muted));">Sign Out</button>
+            </form>
         </div>
     </li>
 
@@ -47,7 +49,10 @@
     <a asp-area="Identity" asp-page="/Account/Manage/Index" class="nav-user sm:hidden">@User.Identity?.Name</a>
     <a asp-area="Identity" asp-page="/Account/Manage/Index" class="nav-link sm:hidden">ACCOUNT</a>
     <button data-theme-toggle class="nav-link sm:hidden" style="background: none; border: none; cursor: pointer; padding: 0; text-align: left;">◈ Arcane Mode</button>
-    <a asp-area="Identity" asp-page="/Account/Logout" class="nav-link sm:hidden" style="color: color-mix(in oklab, var(--color-redstone) 70%, var(--color-muted));">SIGN OUT</a>
+    <form asp-area="Identity" asp-page="/Account/Logout" method="post" style="display:contents;">
+        <button type="submit" class="nav-link sm:hidden"
+                style="background: none; border: none; cursor: pointer; padding: 0; text-align: left; color: color-mix(in oklab, var(--color-redstone) 70%, var(--color-muted));">SIGN OUT</button>
+    </form>
 }
 else
 {

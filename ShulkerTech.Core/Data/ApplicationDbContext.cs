@@ -10,6 +10,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<MapServer> MapServers => Set<MapServer>();
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<Article> Articles => Set<Article>();
+    public DbSet<WikiSettings> WikiSettings => Set<WikiSettings>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -18,5 +19,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Article>()
             .HasIndex(a => a.Slug)
             .IsUnique();
+
+        // Seed a single WikiSettings row with sensible defaults
+        builder.Entity<WikiSettings>().HasData(new WikiSettings { Id = 1 });
     }
 }
