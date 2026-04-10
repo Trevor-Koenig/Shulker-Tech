@@ -36,10 +36,16 @@ public class ViewModel(
                 userRoles = await userManager.GetRolesAsync(viewer);
         }
 
-        // Unpublished: author or admin only
+        var editRole = article.EditRole ?? settings.EditAnyRole;
+
+        // Unpublished: author, admin, or anyone who satisfies the edit role
         if (!article.IsPublished)
         {
-            if (viewer == null || (viewer.Id != article.AuthorId && !viewer.IsAdmin))
+            var canSeeUnpublished = viewer != null &&
+                (viewer.Id == article.AuthorId ||
+                 viewer.IsAdmin ||
+                 WikiSettings.UserSatisfies(editRole, userRoles, viewer.IsAdmin));
+            if (!canSeeUnpublished)
                 return NotFound();
         }
 
@@ -52,7 +58,6 @@ public class ViewModel(
         ContentHtml = Markdown.ToHtml(article.Content, pipeline);
 
         // CanEdit: author, or satisfies article EditRole / global EditAnyRole
-        var editRole = article.EditRole ?? settings.EditAnyRole;
         CanEdit = viewer != null &&
                   (viewer.Id == article.AuthorId ||
                    WikiSettings.UserSatisfies(editRole, userRoles, viewer.IsAdmin));

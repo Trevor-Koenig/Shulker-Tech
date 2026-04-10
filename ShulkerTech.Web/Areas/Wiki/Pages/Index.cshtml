@@ -4,64 +4,287 @@
     ViewData["Title"] = "Wiki";
 }
 
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="wiki-outer">
 
-    <!-- Header -->
-    <div class="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-            <p class="text-xs tracking-widest mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; KNOWLEDGE BASE</p>
-            <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
-                WIKI
-            </h1>
-            <p class="mt-1 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Articles, guides, and lore for the Shulker Tech server.
-            </p>
+    <!-- ═══ HERO BANNER ═══ -->
+    <section class="wiki-hero panel scanlines mb-8" aria-label="Wiki overview">
+        <div class="wiki-hero-accent"></div>
+        <div class="wiki-hero-body">
+            <div class="wiki-hero-text">
+                <p class="wiki-hero-eyebrow">&#9670; KNOWLEDGE BASE</p>
+                <h1 class="wiki-hero-title">SHULKER TECH WIKI</h1>
+                <p class="wiki-hero-tagline">Articles, guides, and lore for the Shulker Tech server.</p>
+                <div class="wiki-hero-stats">
+                    <span class="wiki-stat-chip">
+                        <span class="wiki-stat-value">@Model.PublishedCount</span>
+                        <span class="wiki-stat-label">ARTICLES</span>
+                    </span>
+                    @if (Model.ContributorCount > 0)
+                    {
+                        <span class="wiki-stat-sep">·</span>
+                        <span class="wiki-stat-chip">
+                            <span class="wiki-stat-value">@Model.ContributorCount</span>
+                            <span class="wiki-stat-label">CONTRIBUTOR@(Model.ContributorCount != 1 ? "S" : "")</span>
+                        </span>
+                    }
+                    @if (Model.LastUpdated.HasValue)
+                    {
+                        <span class="wiki-stat-sep">·</span>
+                        <span class="wiki-stat-chip">
+                            <span class="wiki-stat-label">UPDATED</span>
+                            <span class="wiki-stat-value">@Model.LastUpdated.Value.ToString("MMM d, yyyy").ToUpper()</span>
+                        </span>
+                    }
+                    @if (Model.DraftCount > 0)
+                    {
+                        <span class="wiki-stat-sep">·</span>
+                        <span class="wiki-stat-chip">
+                            <span class="wiki-stat-value" style="color: var(--color-redstone);">@Model.DraftCount</span>
+                            <span class="wiki-stat-label">DRAFT@(Model.DraftCount != 1 ? "S" : "")</span>
+                        </span>
+                    }
+                </div>
+            </div>
+            <div class="wiki-hero-search-wrap">
+                <div class="wiki-index-search">
+                    <input id="wiki-search"
+                           type="text"
+                           placeholder="SEARCH ARTICLES..."
+                           autocomplete="off"
+                           class="wiki-search-input" />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         style="position: absolute; right: 0.75rem; color: var(--color-muted); pointer-events: none; flex-shrink: 0;">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </div>
+            </div>
         </div>
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <a href="/articles/create" class="btn-nav self-start sm:self-auto">+ NEW ARTICLE</a>
-        }
-    </div>
+    </section>
 
-    <!-- Article list -->
-    @if (Model.Articles.Count == 0)
-    {
-        <div class="panel p-10 text-center">
-            <p style="font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em; color: var(--color-muted);">
-                NO ARTICLES YET
-            </p>
-            <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Be the first to contribute to the knowledge base.
-            </p>
+    <!-- ═══ MAIN GRID ═══ -->
+    <div class="wiki-index-grid">
+
+        <!-- LEFT: categories + article list -->
+        <div>
+
+            @if (Model.Categories.Count > 0)
+            {
+                <!-- ── Browse by Category ── -->
+                <div class="mb-8">
+                    <div class="rune-divider mb-5">
+                        <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">BROWSE BY CATEGORY</span>
+                    </div>
+                    <div class="wiki-category-grid">
+                        @foreach (var cat in Model.Categories)
+                        {
+                            <button class="wiki-category-card"
+                                    data-category="@cat.Name.ToLower()"
+                                    style="--cat-color: @cat.AccentColor;"
+                                    type="button"
+                                    title="Show @cat.ArticleCount article@(cat.ArticleCount != 1 ? "s" : "") in @cat.Name">
+                                <span class="wiki-category-icon">@cat.Icon</span>
+                                <span class="wiki-category-name">@cat.Name.ToUpperInvariant()</span>
+                                <span class="wiki-category-count">@cat.ArticleCount</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- ── Article list ── -->
+            <div>
+                <div class="rune-divider mb-4">
+                    <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">ARTICLES</span>
+                </div>
+
+                @if (Model.Articles.Count == 0)
+                {
+                    <div class="panel p-10 text-center">
+                        <p style="font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em; color: var(--color-muted);">NO ARTICLES YET</p>
+                        <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                            Be the first to contribute to the knowledge base.
+                        </p>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a href="/articles/create" class="btn-nav inline-block mt-4">+ NEW ARTICLE</a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div id="article-list" class="panel overflow-hidden">
+                        @foreach (var article in Model.Articles)
+                        {
+                            var categorySlug = article.Category?.ToLower() ?? "";
+                            <a href="/articles/@article.Slug"
+                               class="wiki-article-row"
+                               style="text-decoration: none;"
+                               data-title="@article.Title.ToLower()"
+                               data-content="@IndexModel.StripMarkdown(article.Content).ToLower()"
+                               data-category="@categorySlug">
+                                <div class="wiki-article-row-accent"></div>
+                                <div class="wiki-article-row-body">
+                                    <div class="wiki-article-row-main">
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex-wrap: wrap;">
+                                            <span class="wiki-article-title-text">
+                                                @article.Title
+                                            </span>
+                                            @if (!string.IsNullOrWhiteSpace(article.Category))
+                                            {
+                                                <span class="wiki-article-category-badge">@article.Category.ToUpperInvariant()</span>
+                                            }
+                                            @if (!article.IsPublished)
+                                            {
+                                                <span class="wiki-article-draft-badge">DRAFT</span>
+                                            }
+                                        </div>
+                                        <div class="wiki-article-row-meta-inline">
+                                            <span>@(article.Author?.UserName?.ToUpperInvariant() ?? "UNKNOWN")</span>
+                                            <span style="opacity: 0.5;">·</span>
+                                            <span>@article.UpdatedAt.ToString("MMM d, yyyy").ToUpper()</span>
+                                        </div>
+                                    </div>
+                                    <div class="wiki-article-row-meta wiki-article-meta">
+                                        <span class="wiki-article-row-meta-author">@(article.Author?.UserName?.ToUpperInvariant() ?? "UNKNOWN")</span>
+                                        <span class="wiki-article-row-meta-date">@article.UpdatedAt.ToString("MMM d, yyyy").ToUpper()</span>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+
+                    <div id="no-results" class="hidden panel p-8 text-center mt-3">
+                        <p style="font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.1em; color: var(--color-muted);">NO MATCHING ARTICLES</p>
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <!-- RIGHT SIDEBAR -->
+        <aside class="wiki-index-sidebar">
+
+            <!-- Wiki Info -->
+            <div class="panel p-5">
+                <p style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--color-accent); margin-bottom: 0.85rem;">WIKI INFO</p>
+                <dl style="display: flex; flex-direction: column; gap: 0.6rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Published</dt>
+                        <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-crystal);">@Model.PublishedCount</dd>
+                    </div>
+                    @if (Model.DraftCount > 0)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Drafts</dt>
+                            <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-redstone);">@Model.DraftCount</dd>
+                        </div>
+                    }
+                    @if (Model.ContributorCount > 0)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Contributors</dt>
+                            <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-crystal);">@Model.ContributorCount</dd>
+                        </div>
+                    }
+                    @if (Model.Categories.Count > 0)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Categories</dt>
+                            <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-crystal);">@Model.Categories.Count</dd>
+                        </div>
+                    }
+                    @if (Model.LastUpdated.HasValue)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Last edit</dt>
+                            <dd style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-muted);">@Model.LastUpdated.Value.ToString("MMM d, yyyy")</dd>
+                        </div>
+                    }
+                </dl>
+            </div>
+
+            <!-- Recent Changes -->
+            @if (Model.Articles.Count > 0)
+            {
+                <div class="panel p-5">
+                    <p style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--color-accent); margin-bottom: 0.75rem;">RECENT CHANGES</p>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        @foreach (var art in Model.Articles.Where(a => a.IsPublished).Take(5))
+                        {
+                            <a href="/articles/@art.Slug"
+                               class="wiki-recent-item"
+                               style="text-decoration: none;">
+                                <span class="wiki-recent-title">@art.Title</span>
+                                <span class="wiki-recent-date">@art.UpdatedAt.ToString("MMM d").ToUpper()</span>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Contribute -->
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <a href="/articles/create" class="btn-nav inline-block mt-4">+ NEW ARTICLE</a>
-            }
-        </div>
-    }
-    else
-    {
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            @foreach (var article in Model.Articles)
-            {
-                <a href="/articles/@article.Slug" class="panel p-6 flex flex-col gap-3" style="text-decoration: none;">
-                    <span style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; color: var(--color-crystal);">
-                        @article.Title
-                    </span>
-                    <p class="text-sm flex-1" style="color: var(--color-muted); font-family: var(--font-body); line-height: 1.6;">
-                        @IndexModel.Excerpt(article.Content)
+                <div class="panel p-5">
+                    <p style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--color-accent); margin-bottom: 0.6rem;">CONTRIBUTE</p>
+                    <p style="font-family: var(--font-body); font-size: 0.78rem; color: var(--color-muted); line-height: 1.5; margin-bottom: 0.85rem;">
+                        Help grow the knowledge base by writing a new article.
                     </p>
-                    <div class="flex items-center justify-between mt-1">
-                        <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
-                            @(article.Author?.UserName?.ToUpperInvariant() ?? "UNKNOWN")
-                            &nbsp;·&nbsp;
-                            @article.UpdatedAt.ToString("MMM d, yyyy")
-                        </span>
-                        <span class="text-xs" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">READ →</span>
-                    </div>
-                </a>
+                    <a href="/articles/create" class="btn-nav" style="display: block; text-align: center;">+ NEW ARTICLE</a>
+                </div>
             }
-        </div>
-    }
+
+        </aside>
+
+    </div>
 
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    var searchInput  = document.getElementById('wiki-search');
+    var rows         = Array.from(document.querySelectorAll('.wiki-article-row'));
+    var noResults    = document.getElementById('no-results');
+    var catButtons   = Array.from(document.querySelectorAll('.wiki-category-card'));
+    var activeFilter = null; // category slug or null
+
+    function applyFilters() {
+        var q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        var visible = 0;
+
+        rows.forEach(function (row) {
+            var matchSearch   = !q || row.dataset.title.includes(q) || row.dataset.content.includes(q);
+            var matchCategory = !activeFilter || row.dataset.category === activeFilter;
+            var show = matchSearch && matchCategory;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        if (noResults) noResults.classList.toggle('hidden', visible > 0 || (!q && !activeFilter));
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
+
+    catButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var cat = btn.dataset.category;
+            if (activeFilter === cat) {
+                // deselect
+                activeFilter = null;
+                btn.classList.remove('active');
+            } else {
+                catButtons.forEach(function (b) { b.classList.remove('active'); });
+                activeFilter = cat;
+                btn.classList.add('active');
+            }
+            applyFilters();
+        });
+    });
+})();
+</script>
+}

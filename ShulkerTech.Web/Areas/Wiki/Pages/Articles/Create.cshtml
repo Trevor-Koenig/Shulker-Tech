@@ -50,6 +50,30 @@
                   style="color: var(--color-redstone); font-family: var(--font-mono);"></span>
         </div>
 
+        <!-- Category -->
+        <div class="flex flex-col gap-2">
+            <label asp-for="Input.Category" class="text-xs"
+                   style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">CATEGORY <span style="opacity: 0.5; font-size: 0.65rem;">(OPTIONAL)</span></label>
+            <input asp-for="Input.Category" autocomplete="off" list="category-suggestions"
+                   class="panel px-4 py-2.5 w-full bg-transparent outline-none"
+                   style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem; letter-spacing: 0.04em;"
+                   placeholder="e.g. Survival, Redstone, Server Info…" />
+            <datalist id="category-suggestions">
+                <option value="Getting Started" />
+                <option value="Server Info" />
+                <option value="Survival" />
+                <option value="Redstone" />
+                <option value="Farms" />
+                <option value="Building" />
+                <option value="Events" />
+                <option value="Community" />
+                <option value="Rules" />
+                <option value="Lore" />
+                <option value="Economy" />
+                <option value="PvP" />
+            </datalist>
+        </div>
+
         <!-- Permissions -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="flex flex-col gap-2">

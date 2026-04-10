@@ -30,6 +30,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         public string Content { get; set; } = "";
 
         public bool IsPublished { get; set; }
+        public string? Category { get; set; }
         public string? ViewRole { get; set; }
         public string? EditRole { get; set; }
     }
@@ -49,6 +50,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
             Title = article.Title,
             Content = article.Content,
             IsPublished = article.IsPublished,
+            Category = article.Category,
             ViewRole = article.ViewRole,
             EditRole = article.EditRole,
         };
@@ -67,6 +69,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         article.Title = Input.Title;
         article.Content = Input.Content;
         article.IsPublished = Input.IsPublished;
+        article.Category = string.IsNullOrWhiteSpace(Input.Category) ? null : Input.Category.Trim();
         article.ViewRole = string.IsNullOrEmpty(Input.ViewRole) ? null : Input.ViewRole;
         article.EditRole = string.IsNullOrEmpty(Input.EditRole) ? null : Input.EditRole;
         article.UpdatedAt = DateTime.UtcNow;

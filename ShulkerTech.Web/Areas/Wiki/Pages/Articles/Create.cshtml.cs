@@ -27,6 +27,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
         public string Content { get; set; } = "";
 
         public bool IsPublished { get; set; }
+        public string? Category { get; set; }
         public string? ViewRole { get; set; }
         public string? EditRole { get; set; }
     }
@@ -66,6 +67,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
             Slug = slug,
             Content = Input.Content,
             IsPublished = Input.IsPublished,
+            Category = string.IsNullOrWhiteSpace(Input.Category) ? null : Input.Category.Trim(),
             ViewRole = string.IsNullOrEmpty(Input.ViewRole) ? null : Input.ViewRole,
             EditRole = string.IsNullOrEmpty(Input.EditRole) ? null : Input.EditRole,
             AuthorId = user.Id,

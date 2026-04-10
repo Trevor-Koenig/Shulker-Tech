@@ -12,6 +12,48 @@ public class IndexModel(
     UserManager<ApplicationUser> userManager) : PageModel
 {
     public List<Article> Articles { get; set; } = [];
+    public List<CategoryGroup> Categories { get; set; } = [];
+    public int PublishedCount { get; set; }
+    public int DraftCount { get; set; }
+    public int ContributorCount { get; set; }
+    public DateTime? LastUpdated { get; set; }
+
+    public record CategoryGroup(string Name, int ArticleCount, string Icon, string AccentColor);
+
+    // Maps well-known category names to icon glyphs and accent CSS colors.
+    private static readonly Dictionary<string, (string Icon, string Color)> KnownCategories =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Getting Started"]  = ("◈", "var(--color-plasma)"),
+            ["Server Info"]      = ("⬡", "var(--color-plasma)"),
+            ["Survival"]         = ("◉", "var(--color-rune)"),
+            ["Redstone"]         = ("◆", "var(--color-redstone)"),
+            ["Farms"]            = ("◆", "var(--color-redstone)"),
+            ["Building"]         = ("⎔", "var(--color-arcane)"),
+            ["Architecture"]     = ("⎔", "var(--color-arcane)"),
+            ["Events"]           = ("◍", "var(--color-rune)"),
+            ["Community"]        = ("⊕", "var(--color-plasma)"),
+            ["Rules"]            = ("▣", "var(--color-muted)"),
+            ["Lore"]             = ("◈", "var(--color-arcane)"),
+            ["Economy"]          = ("◉", "var(--color-plasma)"),
+            ["Shops"]            = ("◉", "var(--color-plasma)"),
+            ["PvP"]              = ("◆", "var(--color-redstone)"),
+            ["Combat"]           = ("◆", "var(--color-redstone)"),
+            ["Resources"]        = ("⎔", "var(--color-plasma)"),
+        };
+
+    /// <summary>Strips Markdown syntax and collapses whitespace for use in search data attributes.</summary>
+    public static string StripMarkdown(string markdown)
+    {
+        var text = Regex.Replace(markdown ?? "", @"!\[.*?\]\(.*?\)", "");  // images
+        text = Regex.Replace(text, @"\[([^\]]*)\]\([^)]*\)", "$1");        // links → label
+        text = Regex.Replace(text, @"```[\s\S]*?```", "");                 // fenced code
+        text = Regex.Replace(text, @"`[^`]*`", "");                        // inline code
+        text = Regex.Replace(text, @"#{1,6}\s*", "");                      // headings
+        text = Regex.Replace(text, @"[*_~>|\\]", "");                      // emphasis / misc
+        text = Regex.Replace(text, @"\s+", " ");
+        return text.Trim();
+    }
 
     public async Task OnGetAsync()
     {
@@ -29,21 +71,47 @@ public class IndexModel(
 
         var all = await db.Articles
             .Include(a => a.Author)
-            .Where(a => a.IsPublished)
             .OrderByDescending(a => a.UpdatedAt)
             .ToListAsync();
 
+        var isAdmin = currentUser?.IsAdmin == true;
+
         Articles = all.Where(a =>
         {
-            var viewRole = a.ViewRole ?? settings.DefaultViewRole;
-            return WikiSettings.UserSatisfies(viewRole, userRoles, currentUser?.IsAdmin == true);
-        }).ToList();
-    }
+            if (!a.IsPublished)
+            {
+                if (isAdmin || (currentUser != null && currentUser.Id == a.AuthorId))
+                    return true;
+                var editRole = a.EditRole ?? settings.EditAnyRole;
+                return currentUser != null && WikiSettings.UserSatisfies(editRole, userRoles, isAdmin);
+            }
 
-    public static string Excerpt(string markdown, int maxLength = 160)
-    {
-        var text = Regex.Replace(markdown ?? "", @"[#*_`\[\]()>~]|!\[.*?\]|\[.*?\]", "").Trim();
-        text = Regex.Replace(text, @"\s+", " ");
-        return text.Length <= maxLength ? text : text[..maxLength].TrimEnd() + "…";
+            var viewRole = a.ViewRole ?? settings.DefaultViewRole;
+            return WikiSettings.UserSatisfies(viewRole, userRoles, isAdmin);
+        }).ToList();
+
+        var published = Articles.Where(a => a.IsPublished).ToList();
+
+        PublishedCount   = published.Count;
+        DraftCount       = Articles.Count(a => !a.IsPublished);
+        ContributorCount = published.Select(a => a.AuthorId).Distinct().Count();
+        LastUpdated      = published.Count > 0 ? published.Max(a => a.UpdatedAt) : null;
+
+        Categories = Articles
+            .Where(a => a.IsPublished && !string.IsNullOrWhiteSpace(a.Category))
+            .GroupBy(a => a.Category!, StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
+            {
+                var name = g.Key;
+                KnownCategories.TryGetValue(name, out var meta);
+                return new CategoryGroup(
+                    name,
+                    g.Count(),
+                    meta.Icon ?? "◈",
+                    meta.Color ?? "var(--color-accent)"
+                );
+            })
+            .OrderBy(c => c.Name)
+            .ToList();
     }
 }
