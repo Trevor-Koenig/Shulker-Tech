@@ -24,6 +24,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
 
 builder.Services.AddHttpClient<MojangService>();
 builder.Services.AddRazorPages();
+builder.Services.AddControllers();
 builder.Services.AddSignalR();
 
 // Markdown pipeline — advanced extensions enabled, raw HTML stripped for safety
@@ -90,6 +91,7 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
+app.MapControllers();
 app.MapHub<ServerStatusHub>("/hubs/server-status");
 
 app.Run();

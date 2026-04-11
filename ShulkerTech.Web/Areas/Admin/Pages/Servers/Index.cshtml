@@ -1,0 +1,132 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Game Servers";
+
+    string FormatPlaytime(long seconds)
+    {
+        if (seconds < 60) return $"{seconds}s";
+        if (seconds < 3600) return $"{seconds / 60}m";
+        var h = seconds / 3600;
+        var m = (seconds % 3600) / 60;
+        return m > 0 ? $"{h}h {m}m" : $"{h}h";
+    }
+}
+
+<div class="max-w-5xl px-8 py-12">
+
+    <div class="mb-8">
+        <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; SERVERS</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            GAME SERVERS
+        </h1>
+        <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+            @Model.Servers.Count configured &nbsp;·&nbsp; @Model.Servers.Count(s => s.IsActive) active
+        </p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-accent); font-family: var(--font-mono);">
+            @Model.StatusMessage
+        </div>
+    }
+
+    @* Add form *@
+    <div class="panel p-6 mb-8">
+        <h2 class="text-sm mb-4" style="font-family: var(--font-display); color: var(--color-crystal); letter-spacing: 0.08em;">
+            ADD SERVER
+        </h2>
+        <form method="post" asp-page-handler="Add" class="flex flex-col sm:flex-row gap-3">
+            <input asp-for="Input.Name" placeholder="Name (e.g. Survival SMP)"
+                   class="flex-none sm:w-48 px-3 py-2 rounded text-sm"
+                   style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-crystal);" />
+            <input asp-for="Input.Description" placeholder="Description (optional)"
+                   class="flex-1 px-3 py-2 rounded text-sm"
+                   style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-crystal);" />
+            <button type="submit" class="btn-primary px-4 py-2 text-sm">ADD</button>
+        </form>
+        <span asp-validation-for="Input.Name" class="text-xs mt-1 block" style="color: var(--color-rune);"></span>
+    </div>
+
+    @* Server list *@
+    <div class="flex flex-col gap-4">
+        @foreach (var server in Model.Servers)
+        {
+            <div class="panel p-5 flex flex-col gap-4">
+                @* Header row *@
+                <div class="flex flex-col sm:flex-row sm:items-start gap-3">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <p class="text-sm font-semibold" style="color: var(--color-crystal); font-family: var(--font-display); letter-spacing: 0.05em;">
+                                @server.Name
+                            </p>
+                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono);
+                                color: @(server.IsActive ? "var(--color-accent)" : "var(--color-muted)");
+                                border: 1px solid @(server.IsActive ? "color-mix(in oklab, var(--color-accent) 40%, transparent)" : "color-mix(in oklab, var(--color-muted) 20%, transparent)");">
+                                @(server.IsActive ? "ACTIVE" : "INACTIVE")
+                            </span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(server.Description))
+                        {
+                            <p class="text-xs mt-1" style="color: var(--color-muted); font-family: var(--font-mono);">@server.Description</p>
+                        }
+                        <div class="flex gap-4 mt-2 text-xs flex-wrap" style="color: var(--color-muted); font-family: var(--font-mono);">
+                            <span>@server.TotalSessions sessions</span>
+                            <span>@FormatPlaytime(server.TotalPlaytimeSeconds) total playtime</span>
+                            <span>added @server.CreatedAt.ToString("yyyy-MM-dd")</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-none flex-wrap">
+                        <form method="post" asp-page-handler="Toggle">
+                            <input type="hidden" name="id" value="@server.Id" />
+                            <button type="submit" class="px-3 py-1 rounded text-xs" style="font-family: var(--font-display); letter-spacing: 0.05em;
+                                background: color-mix(in oklab, var(--color-muted) 10%, transparent);
+                                color: var(--color-muted);
+                                border: 1px solid color-mix(in oklab, var(--color-muted) 20%, transparent);">
+                                @(server.IsActive ? "DISABLE" : "ENABLE")
+                            </button>
+                        </form>
+                        <form method="post" asp-page-handler="RegenerateKey">
+                            <input type="hidden" name="id" value="@server.Id" />
+                            <button type="submit" class="px-3 py-1 rounded text-xs"
+                                    style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-arcane); border: 1px solid color-mix(in oklab, var(--color-arcane) 30%, transparent);"
+                                    onclick="return confirm('Regenerate API key? The plugin must be updated with the new key.');">
+                                REGEN KEY
+                            </button>
+                        </form>
+                        <form method="post" asp-page-handler="Delete">
+                            <input type="hidden" name="id" value="@server.Id" />
+                            <button type="submit" class="px-3 py-1 rounded text-xs"
+                                    style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-rune); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent);"
+                                    onclick="return confirm('Delete this server and all session history?');">
+                                REMOVE
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                @* API key row *@
+                <div class="rounded px-4 py-3" style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-accent) 12%, transparent);">
+                    <p class="text-xs mb-1" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">PLUGIN API KEY</p>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <code class="text-xs break-all" style="font-family: var(--font-mono); color: var(--color-crystal);">@server.ApiKey</code>
+                    </div>
+                    <p class="text-xs mt-2" style="font-family: var(--font-mono); color: var(--color-muted);">
+                        Send as <code style="color: var(--color-arcane);">X-Api-Key</code> header to
+                        <code style="color: var(--color-arcane);">POST /api/player/join</code> and
+                        <code style="color: var(--color-arcane);">POST /api/player/leave</code>
+                        with body <code style="color: var(--color-arcane);">{"{"}"minecraftUuid":"..."{"}"}</code>
+                    </p>
+                </div>
+            </div>
+        }
+
+        @if (!Model.Servers.Any())
+        {
+            <p class="text-center py-8 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                No game servers configured. Add one above.
+            </p>
+        }
+    </div>
+</div>

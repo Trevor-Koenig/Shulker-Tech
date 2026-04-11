@@ -17,7 +17,7 @@
     </div>
 
     @* Stats row *@
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
 
         <div class="panel p-5 flex flex-col gap-1">
             <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">USERS</span>
@@ -27,6 +27,16 @@
         <div class="panel p-5 flex flex-col gap-1">
             <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">ACTIVE INVITES</span>
             <span style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-accent);">@Model.ActiveInviteCodes</span>
+        </div>
+
+        <div class="panel p-5 flex flex-col gap-1">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">GAME SERVERS</span>
+            <span style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-accent);">@Model.GameServers</span>
+        </div>
+
+        <div class="panel p-5 flex flex-col gap-1">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">ONLINE NOW</span>
+            <span style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-accent);">@Model.ActiveSessions</span>
         </div>
 
         <div class="panel p-5 flex flex-col gap-1">
@@ -56,6 +66,14 @@
             <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; INVITES</span>
             <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
                 Generate and revoke invite codes to control who can register.
+            </p>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
+        </a>
+
+        <a asp-page="/Servers/Index" class="panel panel-arcane p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; GAME SERVERS</span>
+            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Manage game servers and API keys for playtime tracking.
             </p>
             <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
         </a>

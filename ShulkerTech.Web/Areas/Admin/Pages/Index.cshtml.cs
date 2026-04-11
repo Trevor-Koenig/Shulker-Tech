@@ -14,6 +14,8 @@ public class IndexModel(
     public int ActiveInviteCodes { get; set; }
     public int TotalMapServers { get; set; }
     public int ActiveMapServers { get; set; }
+    public int GameServers { get; set; }
+    public int ActiveSessions { get; set; }
 
     public async Task OnGetAsync()
     {
@@ -27,5 +29,8 @@ public class IndexModel(
 
         TotalMapServers  = await db.MapServers.CountAsync();
         ActiveMapServers = await db.MapServers.CountAsync(m => m.IsActive);
+
+        GameServers    = await db.MinecraftServers.CountAsync(s => s.IsActive);
+        ActiveSessions = await db.PlayerSessions.CountAsync(s => s.LeftAt == null);
     }
 }

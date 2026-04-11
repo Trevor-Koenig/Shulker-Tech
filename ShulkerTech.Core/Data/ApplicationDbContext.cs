@@ -11,6 +11,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<WikiSettings> WikiSettings => Set<WikiSettings>();
+    public DbSet<MinecraftServer> MinecraftServers => Set<MinecraftServer>();
+    public DbSet<PlayerSession> PlayerSessions => Set<PlayerSession>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -19,6 +21,22 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Article>()
             .HasIndex(a => a.Slug)
             .IsUnique();
+
+        builder.Entity<MinecraftServer>()
+            .HasIndex(s => s.ApiKey)
+            .IsUnique();
+
+        builder.Entity<PlayerSession>()
+            .HasOne(ps => ps.User)
+            .WithMany()
+            .HasForeignKey(ps => ps.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<PlayerSession>()
+            .HasOne(ps => ps.Server)
+            .WithMany(s => s.PlayerSessions)
+            .HasForeignKey(ps => ps.ServerId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Seed a single WikiSettings row with sensible defaults
         builder.Entity<WikiSettings>().HasData(new WikiSettings { Id = 1 });

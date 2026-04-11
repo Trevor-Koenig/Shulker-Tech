@@ -25,11 +25,12 @@
 @* Mobile: horizontal scrollable nav bar *@
 <div class="sm:hidden" style="border-bottom:1px solid color-mix(in oklab,var(--color-accent) 12%,transparent);background:color-mix(in oklab,var(--color-deep-space) 95%,transparent);overflow-x:auto;">
     <div style="display:flex;gap:0.25rem;padding:0.5rem 1rem;min-width:max-content;">
-        <a asp-area="Admin" asp-page="/Index"         style="@MobileNavLinkStyle("/Index")">Dashboard</a>
-        <a asp-area="Admin" asp-page="/Users/Index"   style="@MobileNavLinkStyle("/Users")">Users</a>
-        <a asp-area="Admin" asp-page="/Invites/Index" style="@MobileNavLinkStyle("/Invites")">Invites</a>
-        <a asp-area="Admin" asp-page="/Maps/Index"    style="@MobileNavLinkStyle("/Maps")">Maps</a>
-        <a asp-area="Admin" asp-page="/Wiki/Settings" style="@MobileNavLinkStyle("/Wiki")">Wiki</a>
+        <a asp-area="Admin" asp-page="/Index"           style="@MobileNavLinkStyle("/Index")">Dashboard</a>
+        <a asp-area="Admin" asp-page="/Users/Index"     style="@MobileNavLinkStyle("/Users")">Users</a>
+        <a asp-area="Admin" asp-page="/Invites/Index"   style="@MobileNavLinkStyle("/Invites")">Invites</a>
+        <a asp-area="Admin" asp-page="/Servers/Index"   style="@MobileNavLinkStyle("/Servers")">Servers</a>
+        <a asp-area="Admin" asp-page="/Maps/Index"      style="@MobileNavLinkStyle("/Maps")">Maps</a>
+        <a asp-area="Admin" asp-page="/Wiki/Settings"   style="@MobileNavLinkStyle("/Wiki")">Wiki</a>
     </div>
 </div>
 
@@ -44,11 +45,12 @@
         </div>
 
         <nav style="padding:0.6rem 0.5rem;display:flex;flex-direction:column;gap:0.15rem;flex:1;">
-            <a asp-area="Admin" asp-page="/Index"         style="@NavLinkStyle("/Index")">⬡&nbsp; Dashboard</a>
-            <a asp-area="Admin" asp-page="/Users/Index"   style="@NavLinkStyle("/Users")">◈&nbsp; Users</a>
-            <a asp-area="Admin" asp-page="/Invites/Index" style="@NavLinkStyle("/Invites")">◈&nbsp; Invites</a>
-            <a asp-area="Admin" asp-page="/Maps/Index"    style="@NavLinkStyle("/Maps")">◈&nbsp; Map Servers</a>
-            <a asp-area="Admin" asp-page="/Wiki/Settings" style="@NavLinkStyle("/Wiki")">◈&nbsp; Wiki</a>
+            <a asp-area="Admin" asp-page="/Index"           style="@NavLinkStyle("/Index")">⬡&nbsp; Dashboard</a>
+            <a asp-area="Admin" asp-page="/Users/Index"     style="@NavLinkStyle("/Users")">◈&nbsp; Users</a>
+            <a asp-area="Admin" asp-page="/Invites/Index"   style="@NavLinkStyle("/Invites")">◈&nbsp; Invites</a>
+            <a asp-area="Admin" asp-page="/Servers/Index"   style="@NavLinkStyle("/Servers")">◈&nbsp; Game Servers</a>
+            <a asp-area="Admin" asp-page="/Maps/Index"      style="@NavLinkStyle("/Maps")">◈&nbsp; Map Servers</a>
+            <a asp-area="Admin" asp-page="/Wiki/Settings"   style="@NavLinkStyle("/Wiki")">◈&nbsp; Wiki</a>
         </nav>
 
         <div style="padding:1rem 1.25rem;border-top:1px solid color-mix(in oklab,var(--color-accent) 8%,transparent);">
