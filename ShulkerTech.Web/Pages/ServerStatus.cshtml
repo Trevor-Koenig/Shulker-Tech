@@ -1,0 +1,95 @@
+@page
+@model ServerStatusModel
+@{
+    Layout = null; // Partial — returned to HTMX, no chrome needed
+}
+
+@foreach (var server in Model.Servers)
+{
+    <div class="panel p-5 flex flex-col sm:flex-row gap-5 items-start sm:items-center">
+
+        @* Server icon *@
+        <div class="flex-none w-16 h-16 rounded overflow-hidden flex items-center justify-center"
+             style="background: color-mix(in oklab, var(--color-accent) 6%, transparent); border: 1px solid color-mix(in oklab, var(--color-accent) 15%, transparent); image-rendering: pixelated;">
+            @if (server.FaviconDataUrl is not null)
+            {
+                <img src="@server.FaviconDataUrl" alt="@server.Name icon" width="64" height="64"
+                     style="image-rendering: pixelated; width: 100%; height: 100%; object-fit: contain;" />
+            }
+            else
+            {
+                <span style="font-size: 1.75rem;">⬡</span>
+            }
+        </div>
+
+        @* Info *@
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-3 flex-wrap mb-1">
+                <p style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.08em; color: var(--color-crystal);">
+                    @server.Name
+                </p>
+                @if (server.IsOnline)
+                {
+                    <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono);
+                        color: var(--color-accent);
+                        border: 1px solid color-mix(in oklab, var(--color-accent) 40%, transparent);
+                        background: color-mix(in oklab, var(--color-accent) 8%, transparent);">
+                        ONLINE
+                    </span>
+                }
+                else
+                {
+                    <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono);
+                        color: var(--color-rune);
+                        border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent);
+                        background: color-mix(in oklab, var(--color-rune) 6%, transparent);">
+                        OFFLINE
+                    </span>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(server.Motd))
+            {
+                <p class="text-sm mb-2" style="color: var(--color-muted); font-family: var(--font-mono);">@server.Motd</p>
+            }
+
+            @if (server.IsOnline)
+            {
+                <div class="flex items-center gap-2">
+                    <div class="flex gap-0.5">
+                        @{
+                            int filled = server.PlayersMax > 0 ? (int)Math.Round(server.PlayersOnline * 5.0 / Math.Max(server.PlayersMax, 1)) : 0;
+                        }
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <div class="w-2 h-3 rounded-sm" style="background: @(i < filled ? "var(--color-accent)" : "color-mix(in oklab, var(--color-accent) 15%, transparent)");"></div>
+                        }
+                    </div>
+                    <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                        @server.PlayersOnline / @server.PlayersMax players
+                    </span>
+                </div>
+            }
+        </div>
+
+        @* Address *@
+        @if (server.Host is not null)
+        {
+            <div class="flex-none text-right">
+                <p class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.05em;">
+                    @(server.Port == 25565 ? server.Host : $"{server.Host}:{server.Port}")
+                </p>
+                <p class="text-xs mt-1" style="font-family: var(--font-mono); color: color-mix(in oklab, var(--color-muted) 50%, transparent);">
+                    checked @((DateTime.UtcNow - server.LastChecked).TotalSeconds < 60 ? "just now" : $"{(int)(DateTime.UtcNow - server.LastChecked).TotalMinutes}m ago")
+                </p>
+            </div>
+        }
+    </div>
+}
+
+@if (!Model.Servers.Any())
+{
+    <p class="text-center py-6 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+        No servers configured yet.
+    </p>
+}

@@ -111,6 +111,37 @@
     <div class="rune-divider" style="font-family: var(--font-fantasy); font-size: 1.4rem; letter-spacing: 0.3em;">◆ ◆ ◆</div>
 </div>
 
+@* ── Server status ──────────────────────────────────────────────────────── *@
+<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+    <div class="mb-8">
+        <p class="text-xs tracking-widest mb-2" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.15em;">&#9670; LIVE STATUS</p>
+        <h2 style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            THE NETWORK
+        </h2>
+    </div>
+
+    <div id="server-status-cards"
+         hx-get="/ServerStatus"
+         hx-trigger="load, every 30s"
+         hx-swap="innerHTML"
+         class="flex flex-col gap-4">
+        @* Populated by HTMX *@
+        <div class="panel p-5 flex items-center gap-4">
+            <div class="w-16 h-16 rounded flex-none" style="background: color-mix(in oklab, var(--color-accent) 6%, transparent); border: 1px solid color-mix(in oklab, var(--color-accent) 15%, transparent); animation: pulse 2s ease-in-out infinite;"></div>
+            <div class="flex flex-col gap-2 flex-1">
+                <div class="h-4 rounded w-32" style="background: color-mix(in oklab, var(--color-accent) 10%, transparent); animation: pulse 2s ease-in-out infinite;"></div>
+                <div class="h-3 rounded w-48" style="background: color-mix(in oklab, var(--color-muted) 15%, transparent); animation: pulse 2s ease-in-out infinite;"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ── Rune divider ───────────────────────────────────────────────────────── *@
+<div class="max-w-6xl mx-auto px-4 sm:px-8">
+    <div class="rune-divider" style="font-family: var(--font-fantasy); font-size: 1.4rem; letter-spacing: 0.3em;">◆ ◆ ◆</div>
+</div>
+
 @* ── About section ─────────────────────────────────────────────────────── *@
 <section id="about" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 grid sm:grid-cols-3 gap-10 sm:gap-14">
 

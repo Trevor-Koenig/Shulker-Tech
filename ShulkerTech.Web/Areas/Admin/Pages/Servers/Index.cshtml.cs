@@ -22,12 +22,17 @@ public class IndexModel(ApplicationDbContext db) : PageModel
         [Required]
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public string? Host { get; set; }
+        [Range(1, 65535)]
+        public int Port { get; set; } = 25565;
     }
 
     public record ServerViewModel(
         int Id,
         string Name,
         string? Description,
+        string? Host,
+        int Port,
         bool IsActive,
         string ApiKey,
         int TotalSessions,
@@ -55,7 +60,7 @@ public class IndexModel(ApplicationDbContext db) : PageModel
         {
             var stats = sessionStats.FirstOrDefault(x => x.ServerId == s.Id);
             return new ServerViewModel(
-                s.Id, s.Name, s.Description, s.IsActive, s.ApiKey,
+                s.Id, s.Name, s.Description, s.Host, s.Port, s.IsActive, s.ApiKey,
                 stats?.TotalSessions ?? 0,
                 stats?.TotalSeconds ?? 0,
                 s.CreatedAt);
@@ -74,6 +79,8 @@ public class IndexModel(ApplicationDbContext db) : PageModel
         {
             Name = Input.Name,
             Description = Input.Description,
+            Host = string.IsNullOrWhiteSpace(Input.Host) ? null : Input.Host.Trim(),
+            Port = Input.Port,
             ApiKey = GenerateApiKey(),
         });
         await db.SaveChangesAsync();

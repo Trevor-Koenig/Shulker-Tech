@@ -6,6 +6,7 @@ using ShulkerTech.Core.Models;
 using ShulkerTech.Core.Services;
 using ShulkerTech.Web.Hubs;
 using ShulkerTech.Web.Middleware;
+using ShulkerTech.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
     .AddDefaultUI();
 
 builder.Services.AddHttpClient<MojangService>();
+builder.Services.AddSingleton<MinecraftPingService>();
+builder.Services.AddSingleton<ServerStatusCache>();
+builder.Services.AddHostedService<ServerStatusRefresher>();
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
