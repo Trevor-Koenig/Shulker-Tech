@@ -30,7 +30,7 @@
                 @* Email *@
                 <div class="flex flex-col gap-1">
                     <label asp-for="Input.Email" class="text-xs tracking-wider"
-                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">EMAIL</label>
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">EMAIL <span style="color: var(--color-rune);">*</span></label>
                     <input asp-for="Input.Email" type="email" autocomplete="username" aria-required="true"
                            placeholder="commander@example.com"
                            class="w-full px-3 py-2 rounded text-sm"
@@ -43,7 +43,7 @@
                 @* Password *@
                 <div class="flex flex-col gap-1">
                     <label asp-for="Input.Password" class="text-xs tracking-wider"
-                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">PASSWORD</label>
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">PASSWORD <span style="color: var(--color-rune);">*</span></label>
                     <input asp-for="Input.Password" type="password" autocomplete="new-password" aria-required="true"
                            placeholder="••••••••"
                            class="w-full px-3 py-2 rounded text-sm"
@@ -56,7 +56,7 @@
                 @* Confirm password *@
                 <div class="flex flex-col gap-1">
                     <label asp-for="Input.ConfirmPassword" class="text-xs tracking-wider"
-                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">CONFIRM PASSWORD</label>
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">CONFIRM PASSWORD <span style="color: var(--color-rune);">*</span></label>
                     <input asp-for="Input.ConfirmPassword" type="password" autocomplete="new-password" aria-required="true"
                            placeholder="••••••••"
                            class="w-full px-3 py-2 rounded text-sm"
@@ -64,6 +64,19 @@
                            onfocus="this.style.borderColor='var(--color-accent)'; this.style.boxShadow='0 0 8px color-mix(in oklab, var(--color-accent) 30%, transparent)';"
                            onblur="this.style.borderColor='color-mix(in oklab, var(--color-accent) 30%, transparent)'; this.style.boxShadow='none';" />
                     <span asp-validation-for="Input.ConfirmPassword" class="text-xs" style="color: var(--color-rune); font-family: var(--font-mono);"></span>
+                </div>
+
+                @* Invite code *@
+                <div class="flex flex-col gap-1">
+                    <label asp-for="Input.InviteCode" class="text-xs tracking-wider"
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">INVITE CODE <span style="color: var(--color-rune);">*</span></label>
+                    <input asp-for="Input.InviteCode" type="text" autocomplete="off" aria-required="true"
+                           placeholder="XXXX-XXXX-XXXX"
+                           class="w-full px-3 py-2 rounded text-sm tracking-widest"
+                           style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-crystal); outline: none; font-family: var(--font-mono);"
+                           onfocus="this.style.borderColor='var(--color-accent)'; this.style.boxShadow='0 0 8px color-mix(in oklab, var(--color-accent) 30%, transparent)';"
+                           onblur="this.style.borderColor='color-mix(in oklab, var(--color-accent) 30%, transparent)'; this.style.boxShadow='none';" />
+                    <span asp-validation-for="Input.InviteCode" class="text-xs" style="color: var(--color-rune); font-family: var(--font-mono);"></span>
                 </div>
 
                 @* Divider *@
@@ -76,7 +89,7 @@
                 @* Minecraft username *@
                 <div class="flex flex-col gap-1">
                     <label asp-for="Input.MinecraftUsername" class="text-xs tracking-wider"
-                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">MINECRAFT USERNAME</label>
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">MINECRAFT USERNAME <span style="color: var(--color-rune);">*</span></label>
                     <input asp-for="Input.MinecraftUsername" type="text" autocomplete="off" aria-required="true"
                            placeholder="Steve"
                            class="w-full px-3 py-2 rounded text-sm"
@@ -84,19 +97,6 @@
                            onfocus="this.style.borderColor='var(--color-arcane)'; this.style.boxShadow='0 0 8px color-mix(in oklab, var(--color-arcane) 30%, transparent)';"
                            onblur="this.style.borderColor='color-mix(in oklab, var(--color-arcane) 30%, transparent)'; this.style.boxShadow='none';" />
                     <span asp-validation-for="Input.MinecraftUsername" class="text-xs" style="color: var(--color-rune); font-family: var(--font-mono);"></span>
-                </div>
-
-                @* Invite code *@
-                <div class="flex flex-col gap-1">
-                    <label asp-for="Input.InviteCode" class="text-xs tracking-wider"
-                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">INVITE CODE</label>
-                    <input asp-for="Input.InviteCode" type="text" autocomplete="off" aria-required="true"
-                           placeholder="XXXX-XXXX-XXXX"
-                           class="w-full px-3 py-2 rounded text-sm tracking-widest"
-                           style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-arcane) 30%, transparent); color: var(--color-crystal); outline: none; font-family: var(--font-mono);"
-                           onfocus="this.style.borderColor='var(--color-arcane)'; this.style.boxShadow='0 0 8px color-mix(in oklab, var(--color-arcane) 30%, transparent)';"
-                           onblur="this.style.borderColor='color-mix(in oklab, var(--color-arcane) 30%, transparent)'; this.style.boxShadow='none';" />
-                    <span asp-validation-for="Input.InviteCode" class="text-xs" style="color: var(--color-rune); font-family: var(--font-mono);"></span>
                 </div>
 
                 <button type="submit" class="btn-primary w-full py-3 mt-1">

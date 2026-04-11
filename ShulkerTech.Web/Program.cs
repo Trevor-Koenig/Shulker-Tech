@@ -26,6 +26,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
 builder.Services.AddHttpClient<MojangService>();
 builder.Services.AddSingleton<MinecraftPingService>();
 builder.Services.AddSingleton<ServerStatusCache>();
+builder.Services.AddSingleton<ServerStatsCache>();
 builder.Services.AddHostedService<ServerStatusRefresher>();
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
@@ -81,9 +82,8 @@ else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
-
-app.UseHttpsRedirection();
 app.UseCookiePolicy();
 app.UseMiddleware<FirstRunMiddleware>();
 app.UseStatusCodePagesWithReExecute("/404");

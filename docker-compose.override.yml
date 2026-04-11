@@ -12,12 +12,15 @@ services:
       dockerfile: ShulkerTech.Web/Dockerfile.dev
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_URLS=http://+:8080;https://+:443
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/cert.pem
+      - ASPNETCORE_Kestrel__Certificates__Default__KeyPath=/certs/key.pem
       - SETUP_CODE=${SETUP_CODE:-dev-setup}
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=shulkertech;Username=shulker;Password=changeme
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
       - DOTNET_WATCH_RESTART_ON_RUDE_EDIT=true
     ports:
       - "8080:8080"
+      - "443:443"
     volumes:
       # Mount the full repo so hot reload sees all source changes
       - .:/workspace
@@ -30,6 +33,8 @@ services:
       - dev-nuget:/root/.nuget/packages
       # Persist DataProtection keys so sessions survive container restarts
       - dev-dataprotection:/root/.aspnet/DataProtection-Keys
+      # TLS certificate for shulker.dev (generated via mkcert)
+      - ./certs:/certs:ro
 
 volumes:
   dev-web-obj:

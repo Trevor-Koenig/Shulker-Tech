@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using ShulkerTech.Core.Services;
 
 namespace ShulkerTech.Web.Services;
 
@@ -10,9 +11,10 @@ public record CachedServerStatus(
     bool IsOnline,
     int PlayersOnline,
     int PlayersMax,
-    string? Motd,
+    string? MotdHtml,
     string? FaviconDataUrl,
-    DateTime LastChecked);
+    DateTime LastChecked,
+    IReadOnlyList<OnlinePlayer> OnlinePlayers);
 
 public class ServerStatusCache
 {

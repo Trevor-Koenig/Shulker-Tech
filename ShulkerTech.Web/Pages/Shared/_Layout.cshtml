@@ -149,6 +149,18 @@
             btn.addEventListener('click', toggleTheme);
         });
         updateThemeBtn();
+
+        // Live "checked X ago" timestamps on server cards
+        function updateCheckedTimes() {
+            var now = Date.now();
+            document.querySelectorAll('[data-checked-at]').forEach(function (el) {
+                var diffSec = Math.floor((now - parseInt(el.dataset.checkedAt, 10)) / 1000);
+                el.textContent = diffSec < 60 ? 'checked just now' : 'checked ' + Math.floor(diffSec / 60) + 'm ago';
+            });
+        }
+        updateCheckedTimes();
+        setInterval(updateCheckedTimes, 10000);
+        document.addEventListener('htmx:afterSwap', updateCheckedTimes);
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

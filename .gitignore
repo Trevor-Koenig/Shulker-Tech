@@ -485,6 +485,14 @@ ShulkerTech.Web/wwwroot/css/app.out.css
 
 ##### Docker
 .env
+certs/
+backups/
+
+##### SSL / TLS — private keys and certs must never be committed
+*.pem
+*.pfx
+*.p12
+*.key
 
 ##### SQLite (leftover from scaffold — not used)
 *.db

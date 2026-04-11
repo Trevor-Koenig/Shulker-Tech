@@ -141,13 +141,13 @@
                                             }
                                         </div>
                                         <div class="wiki-article-row-meta-inline">
-                                            <span>@(article.Author?.UserName?.ToUpperInvariant() ?? "UNKNOWN")</span>
+                                            <span>@((article.Author?.MinecraftUsername ?? article.Author?.UserName)?.ToUpperInvariant() ?? "UNKNOWN")</span>
                                             <span style="opacity: 0.5;">·</span>
                                             <span>@article.UpdatedAt.ToString("MMM d, yyyy").ToUpper()</span>
                                         </div>
                                     </div>
                                     <div class="wiki-article-row-meta wiki-article-meta">
-                                        <span class="wiki-article-row-meta-author">@(article.Author?.UserName?.ToUpperInvariant() ?? "UNKNOWN")</span>
+                                        <span class="wiki-article-row-meta-author">@((article.Author?.MinecraftUsername ?? article.Author?.UserName)?.ToUpperInvariant() ?? "UNKNOWN")</span>
                                         <span class="wiki-article-row-meta-date">@article.UpdatedAt.ToString("MMM d, yyyy").ToUpper()</span>
                                     </div>
                                 </div>

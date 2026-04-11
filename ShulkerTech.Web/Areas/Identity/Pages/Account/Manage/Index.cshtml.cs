@@ -18,14 +18,14 @@ public class IndexModel(
     [TempData]
     public string? StatusMessage { get; set; }
 
-    public string? Username { get; set; }
+    public string? Email { get; set; }
     public string? MinecraftUsername { get; set; }
     public string? MinecraftUuid { get; set; }
 
     [BindProperty]
-    public InputModel Input { get; set; } = new();
+    public MinecraftInput MinecraftForm { get; set; } = new();
 
-    public class InputModel
+    public class MinecraftInput
     {
         [Required(ErrorMessage = "Minecraft username is required.")]
         [StringLength(16, MinimumLength = 3)]
@@ -34,7 +34,7 @@ public class IndexModel(
 
     private async Task LoadAsync(ApplicationUser user)
     {
-        Username = await userManager.GetUserNameAsync(user);
+        Email = await userManager.GetEmailAsync(user);
         MinecraftUsername = user.MinecraftUsername;
         MinecraftUuid = user.MinecraftUuid;
     }
@@ -48,7 +48,7 @@ public class IndexModel(
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync()
+    public async Task<IActionResult> OnPostMinecraftAsync()
     {
         var user = await userManager.GetUserAsync(User);
         if (user is null) return NotFound();
@@ -59,30 +59,29 @@ public class IndexModel(
             return Page();
         }
 
-        var newUsername = Input.MinecraftUsername.Trim();
+        var newUsername = MinecraftForm.MinecraftUsername.Trim();
 
-        // No change — skip verification
         if (string.Equals(user.MinecraftUsername, newUsername, StringComparison.OrdinalIgnoreCase))
         {
             StatusMessage = "No changes made.";
             return RedirectToPage();
         }
 
-        // Verify with Mojang
         var profile = await mojang.GetProfileAsync(newUsername);
         if (profile is null)
         {
-            ModelState.AddModelError(nameof(Input.MinecraftUsername), "Minecraft account not found. Check your username.");
+            ModelState.AddModelError(nameof(MinecraftForm.MinecraftUsername),
+                "Minecraft account not found. Check your username.");
             await LoadAsync(user);
             return Page();
         }
 
-        // Ensure the UUID isn't already linked to a different account
         var uuidTaken = await db.Users.AnyAsync(u =>
             u.MinecraftUuid == profile.Id && u.Id != user.Id);
         if (uuidTaken)
         {
-            ModelState.AddModelError(nameof(Input.MinecraftUsername), "That Minecraft account is already linked to another Shulker Tech account.");
+            ModelState.AddModelError(nameof(MinecraftForm.MinecraftUsername),
+                "That Minecraft account is already linked to another Shulker Tech account.");
             await LoadAsync(user);
             return Page();
         }

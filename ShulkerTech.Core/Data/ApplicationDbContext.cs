@@ -13,6 +13,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<WikiSettings> WikiSettings => Set<WikiSettings>();
     public DbSet<MinecraftServer> MinecraftServers => Set<MinecraftServer>();
     public DbSet<PlayerSession> PlayerSessions => Set<PlayerSession>();
+    public DbSet<ServerPingLog> ServerPingLogs => Set<ServerPingLog>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -37,6 +38,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany(s => s.PlayerSessions)
             .HasForeignKey(ps => ps.ServerId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ServerPingLog>()
+            .HasOne(l => l.Server)
+            .WithMany()
+            .HasForeignKey(l => l.ServerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ServerPingLog>()
+            .HasIndex(l => new { l.ServerId, l.Timestamp });
 
         // Seed a single WikiSettings row with sensible defaults
         builder.Entity<WikiSettings>().HasData(new WikiSettings { Id = 1 });

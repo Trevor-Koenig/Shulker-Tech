@@ -6,84 +6,170 @@
 
 @foreach (var server in Model.Servers)
 {
-    <div class="panel p-5 flex flex-col sm:flex-row gap-5 items-start sm:items-center">
+    var stats = Model.Stats.GetValueOrDefault(server.ServerId);
+    <div class="panel p-5">
+        <div class="flex gap-4 items-start">
 
-        @* Server icon *@
-        <div class="flex-none w-16 h-16 rounded overflow-hidden flex items-center justify-center"
-             style="background: color-mix(in oklab, var(--color-accent) 6%, transparent); border: 1px solid color-mix(in oklab, var(--color-accent) 15%, transparent); image-rendering: pixelated;">
-            @if (server.FaviconDataUrl is not null)
-            {
-                <img src="@server.FaviconDataUrl" alt="@server.Name icon" width="64" height="64"
-                     style="image-rendering: pixelated; width: 100%; height: 100%; object-fit: contain;" />
-            }
-            else
-            {
-                <span style="font-size: 1.75rem;">⬡</span>
-            }
-        </div>
-
-        @* Info *@
-        <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-3 flex-wrap mb-1">
-                <p style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.08em; color: var(--color-crystal);">
-                    @server.Name
-                </p>
-                @if (server.IsOnline)
+            @* Server icon *@
+            <div class="flex-none w-14 h-14 rounded overflow-hidden flex items-center justify-center"
+                 style="background: color-mix(in oklab, var(--color-accent) 6%, transparent); border: 1px solid color-mix(in oklab, var(--color-accent) 15%, transparent);">
+                @if (server.FaviconDataUrl is not null)
                 {
-                    <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono);
-                        color: var(--color-accent);
-                        border: 1px solid color-mix(in oklab, var(--color-accent) 40%, transparent);
-                        background: color-mix(in oklab, var(--color-accent) 8%, transparent);">
-                        ONLINE
-                    </span>
+                    <img src="@server.FaviconDataUrl" alt="@server.Name icon" width="56" height="56"
+                         style="image-rendering: pixelated; width: 100%; height: 100%; object-fit: contain;" />
                 }
                 else
                 {
-                    <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono);
-                        color: var(--color-rune);
-                        border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent);
-                        background: color-mix(in oklab, var(--color-rune) 6%, transparent);">
-                        OFFLINE
-                    </span>
+                    <span style="font-size: 1.5rem;">⬡</span>
                 }
             </div>
 
-            @if (!string.IsNullOrWhiteSpace(server.Motd))
-            {
-                <p class="text-sm mb-2" style="color: var(--color-muted); font-family: var(--font-mono);">@server.Motd</p>
-            }
+            @* Main content *@
+            <div class="flex-1 min-w-0">
 
-            @if (server.IsOnline)
-            {
-                <div class="flex items-center gap-2">
-                    <div class="flex gap-0.5">
-                        @{
-                            int filled = server.PlayersMax > 0 ? (int)Math.Round(server.PlayersOnline * 5.0 / Math.Max(server.PlayersMax, 1)) : 0;
-                        }
-                        @for (int i = 0; i < 5; i++)
+                @* Name row — badge left, address right *@
+                <div class="flex items-start justify-between gap-4 mb-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.08em; color: var(--color-crystal);">
+                            @server.Name
+                        </span>
+                        @if (server.IsOnline)
                         {
-                            <div class="w-2 h-3 rounded-sm" style="background: @(i < filled ? "var(--color-accent)" : "color-mix(in oklab, var(--color-accent) 15%, transparent)");"></div>
+                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono);
+                                color: var(--color-accent);
+                                border: 1px solid color-mix(in oklab, var(--color-accent) 40%, transparent);
+                                background: color-mix(in oklab, var(--color-accent) 8%, transparent);">
+                                ONLINE
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono);
+                                color: var(--color-rune);
+                                border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent);
+                                background: color-mix(in oklab, var(--color-rune) 6%, transparent);">
+                                OFFLINE
+                            </span>
                         }
                     </div>
+
+                    @if (server.Host is not null)
+                    {
+                        <div class="flex-none text-right shrink-0">
+                            <p class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.05em;">
+                                @(server.Port == 25565 ? server.Host : $"{server.Host}:{server.Port}")
+                            </p>
+                            <p class="text-xs mt-0.5" style="font-family: var(--font-mono); color: color-mix(in oklab, var(--color-muted) 50%, transparent);"
+                               data-checked-at="@(new DateTimeOffset(server.LastChecked, TimeSpan.Zero).ToUnixTimeMilliseconds())">
+                                checked just now
+                            </p>
+                        </div>
+                    }
+                </div>
+
+                @* MOTD *@
+                @if (!string.IsNullOrWhiteSpace(server.MotdHtml))
+                {
+                    <p class="mb-2" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-muted); line-height: 1.5;">@Html.Raw(server.MotdHtml)</p>
+                }
+
+                @* Player count bar *@
+                @if (server.IsOnline)
+                {
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="flex gap-0.5">
+                            @{
+                                int filled = server.PlayersMax > 0 ? (int)Math.Round(server.PlayersOnline * 5.0 / Math.Max(server.PlayersMax, 1)) : 0;
+                            }
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                <div class="w-2 h-3 rounded-sm" style="background: @(i < filled ? "var(--color-accent)" : "color-mix(in oklab, var(--color-accent) 15%, transparent)");"></div>
+                            }
+                        </div>
+                        <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                            @server.PlayersOnline / @server.PlayersMax players
+                        </span>
+                    </div>
+
+                    @* Player pills *@
+                    @if (server.OnlinePlayers.Count > 0)
+                    {
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach (var player in server.OnlinePlayers.Take(20))
+                            {
+                                <div class="flex items-center gap-1.5 rounded px-2 py-1"
+                                     style="background: color-mix(in oklab, var(--color-accent) 6%, transparent); border: 1px solid color-mix(in oklab, var(--color-accent) 12%, transparent);">
+                                    <img src="@player.AvatarUrl" alt="@player.Name" width="20" height="20"
+                                         style="image-rendering: pixelated; width: 20px; height: 20px; flex-shrink: 0;"
+                                         loading="lazy" />
+                                    <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-muted); white-space: nowrap;">
+                                        @player.Name
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            @* Stats bar — shown once we have logged data *@
+            @{
+                const int barW = 4, barGap = 1, chartH = 20, minH = 2;
+                int svgW = 24 * (barW + barGap) - barGap;
+                int peakInWindow = stats is not null && stats.History24h.Count > 0
+                    ? Math.Max(1, stats.History24h.Max(h => h.Players)) : 1;
+
+                string FormatStreak(TimeSpan t) => t.TotalDays >= 1
+                    ? $"{(int)t.TotalDays}d {t.Hours}h"
+                    : t.TotalHours >= 1
+                        ? $"{(int)t.TotalHours}h {t.Minutes}m"
+                        : $"{(int)t.TotalMinutes}m";
+            }
+            @if (stats is not null)
+            {
+                <div class="mt-3 pt-3 flex flex-wrap items-center gap-x-4 gap-y-1"
+                     style="border-top: 1px solid color-mix(in oklab, var(--color-accent) 10%, transparent);">
+
+                    @* 24h sparkline *@
+                    <svg width="@svgW" height="@chartH" style="flex-shrink:0; overflow:visible;" aria-hidden="true">
+                        @for (int i = 0; i < stats.History24h.Count; i++)
+                        {
+                            var sample = stats.History24h[i];
+                            int bh = !sample.HasData ? minH
+                                : sample.IsOnline ? Math.Max(minH, (int)Math.Round((double)sample.Players / peakInWindow * chartH))
+                                : minH;
+                            int x = i * (barW + barGap);
+                            int y = chartH - bh;
+                            string fill = !sample.HasData
+                                ? "color-mix(in oklab, var(--color-accent) 8%, transparent)"
+                                : sample.IsOnline
+                                    ? "var(--color-accent)"
+                                    : "color-mix(in oklab, var(--color-rune) 50%, transparent)";
+                            <rect x="@x" y="@y" width="@barW" height="@bh" fill="@fill" rx="1" />
+                        }
+                    </svg>
+
+                    @* Text stats *@
                     <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
-                        @server.PlayersOnline / @server.PlayersMax players
+                        <span style="color: var(--color-accent);">@stats.UptimePercent24h.ToString("F0")%</span> up today
                     </span>
+                    <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                        <span style="color: var(--color-accent);">@stats.UptimePercent7d.ToString("F0")%</span> up this week
+                    </span>
+                    @if (stats.PeakPlayersAllTime > 0)
+                    {
+                        <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                            peak <span style="color: var(--color-accent);">@stats.PeakPlayersAllTime</span>
+                        </span>
+                    }
+                    @if (stats.CurrentStreak.HasValue && stats.CurrentStreak.Value.TotalMinutes >= 1)
+                    {
+                        <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                            up <span style="color: var(--color-accent);">@FormatStreak(stats.CurrentStreak.Value)</span>
+                        </span>
+                    }
                 </div>
             }
-        </div>
-
-        @* Address *@
-        @if (server.Host is not null)
-        {
-            <div class="flex-none text-right">
-                <p class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.05em;">
-                    @(server.Port == 25565 ? server.Host : $"{server.Host}:{server.Port}")
-                </p>
-                <p class="text-xs mt-1" style="font-family: var(--font-mono); color: color-mix(in oklab, var(--color-muted) 50%, transparent);">
-                    checked @((DateTime.UtcNow - server.LastChecked).TotalSeconds < 60 ? "just now" : $"{(int)(DateTime.UtcNow - server.LastChecked).TotalMinutes}m ago")
-                </p>
             </div>
-        }
+        </div>
     </div>
 }
 
