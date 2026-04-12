@@ -19,9 +19,9 @@ services:
     ports:
       - "80:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
       - SETUP_CODE=${SETUP_CODE:?SETUP_CODE env var is required}
+      - Email__ApiKey=${RESEND_API_KEY:?RESEND_API_KEY env var is required}
     volumes:
       - dataprotection:/root/.aspnet/DataProtection-Keys
       - ./backups:/backups

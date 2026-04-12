@@ -1,4 +1,4 @@
-.PHONY: dev deploy setup migration clean test test-unit test-integration test-coverage
+.PHONY: dev deploy setup migration clean tailwind test test-unit test-integration test-coverage
 
 # ── First-time setup ──────────────────────────────────────────────────────────
 
@@ -11,6 +11,10 @@ setup:
 # Create a new EF Core migration (usage: make migration NAME=AddArticleTable)
 migration:
 	cd ShulkerTech.Web && dotnet ef migrations add $(NAME)
+
+# Compile Tailwind CSS (input → output, minified)
+tailwind:
+	./tailwindcss -i ShulkerTech.Web/wwwroot/css/app.css -o ShulkerTech.Web/wwwroot/css/app.out.css --minify
 
 # ── Development ───────────────────────────────────────────────────────────────
 

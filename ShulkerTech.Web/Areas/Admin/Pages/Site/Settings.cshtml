@@ -1,0 +1,104 @@
+@page "/Admin/Site/Settings"
+@model SettingsModel
+@{
+    ViewData["Title"] = "Site Settings";
+}
+
+@{
+    string InputStyle = "panel px-3 py-2 bg-transparent outline-none text-sm w-full";
+    string InputInlineStyle = "color: var(--color-crystal); font-family: var(--font-mono);";
+    string TextareaStyle = "panel px-3 py-2 bg-transparent outline-none text-sm w-full resize-y";
+}
+
+<div class="max-w-4xl px-8 py-12">
+
+    <div class="mb-8">
+        <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; SITE</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            SITE SETTINGS
+        </h1>
+        <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+            Homepage hero and about section content. Changes take effect immediately.
+        </p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-accent); font-family: var(--font-mono);">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <form method="post" class="flex flex-col gap-10">
+
+        @* ── Hero ───────────────────────────────────────────────────────────── *@
+        <div class="panel p-8 flex flex-col gap-6">
+            <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">HERO</h2>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                    TAGLINE
+                </label>
+                <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
+                    The subtitle shown beneath the SHULKER TECH title on the homepage.
+                </p>
+                <input asp-for="Input.HeroTagline" class="@InputStyle" style="@InputInlineStyle" />
+            </div>
+        </div>
+
+        @* ── About cards ─────────────────────────────────────────────────────── *@
+        <div class="panel p-8 flex flex-col gap-8">
+            <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">ABOUT CARDS</h2>
+
+            <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+
+            @* Build *@
+            <div class="flex flex-col gap-4">
+                <p class="text-xs" style="font-family: var(--font-display); color: var(--color-redstone); letter-spacing: 0.1em;">⛏ CARD 1</p>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
+                    <input asp-for="Input.BuildCardTitle" class="@InputStyle" style="@InputInlineStyle" />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">BODY</label>
+                    <textarea asp-for="Input.BuildCardBody" class="@TextareaStyle" style="@InputInlineStyle" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+
+            @* Explore *@
+            <div class="flex flex-col gap-4">
+                <p class="text-xs" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.1em;">◈ CARD 2</p>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
+                    <input asp-for="Input.ExploreCardTitle" class="@InputStyle" style="@InputInlineStyle" />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">BODY</label>
+                    <textarea asp-for="Input.ExploreCardBody" class="@TextareaStyle" style="@InputInlineStyle" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+
+            @* Connect *@
+            <div class="flex flex-col gap-4">
+                <p class="text-xs" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.1em;">⚡ CARD 3</p>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
+                    <input asp-for="Input.ConnectCardTitle" class="@InputStyle" style="@InputInlineStyle" />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">BODY</label>
+                    <textarea asp-for="Input.ConnectCardBody" class="@TextareaStyle" style="@InputInlineStyle" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <button type="submit" class="btn-primary">SAVE SETTINGS</button>
+        </div>
+
+    </form>
+</div>

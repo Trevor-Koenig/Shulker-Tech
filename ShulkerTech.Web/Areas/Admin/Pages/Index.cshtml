@@ -54,44 +54,60 @@
     @* Nav cards *@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-        <a asp-page="/Users/Index" class="panel panel-arcane p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+        <a asp-page="/Users/Index" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
             <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; USERS</span>
             <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
                 Manage accounts, assign roles, and review members.
             </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
         </a>
 
-        <a asp-page="/Invites/Index" class="panel panel-arcane p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+        <a asp-page="/Invites/Index" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
             <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; INVITES</span>
             <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
                 Generate and revoke invite codes to control who can register.
             </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
         </a>
 
-        <a asp-page="/Servers/Index" class="panel panel-arcane p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+        <a asp-page="/Servers/Index" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
             <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; GAME SERVERS</span>
             <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
                 Manage game servers and API keys for playtime tracking.
             </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
         </a>
 
-        <a asp-page="/Maps/Index" class="panel panel-arcane p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+        <a asp-page="/Maps/Index" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
             <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; MAP SERVERS</span>
             <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
                 Configure and toggle the live map server integrations.
             </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
         </a>
 
-        <a asp-page="/Wiki/Settings" class="panel panel-arcane p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+        <a asp-page="/Wiki/Settings" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
             <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; WIKI</span>
             <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
                 Configure who can view, create, and edit wiki articles.
             </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.08em;">OPEN →</span>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
+        </a>
+
+        <a asp-page="/Site/Settings" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; SITE</span>
+            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Edit the homepage hero tagline and about section card text.
+            </p>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
+        </a>
+
+        <a asp-page="/Security/Settings" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
+            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; SECURITY</span>
+            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Configure which roles are required to use two-factor authentication.
+            </p>
+            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
         </a>
 
     </div>

@@ -11,6 +11,7 @@ RUN dotnet publish "ShulkerTech.Web/ShulkerTech.Web.csproj" -c Release -o /app/p
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
+ENV ASPNETCORE_ENVIRONMENT=Production
 
 # Install pg_dump for database backups
 RUN apt-get update \

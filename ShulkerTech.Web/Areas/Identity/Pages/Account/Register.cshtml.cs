@@ -1,8 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
@@ -15,7 +19,8 @@ public class RegisterModel(
     IUserStore<ApplicationUser> userStore,
     SignInManager<ApplicationUser> signInManager,
     ApplicationDbContext db,
-    MojangService mojang) : PageModel
+    MojangService mojang,
+    IEmailSender emailSender) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -108,7 +113,18 @@ public class RegisterModel(
         invite.UseCount++;
         await db.SaveChangesAsync();
 
-        await signInManager.SignInAsync(user, isPersistent: false);
-        return LocalRedirect(returnUrl);
+        // Send email confirmation
+        var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var callbackUrl = Url.Page(
+            "/Account/ConfirmEmail",
+            pageHandler: null,
+            values: new { area = "Identity", userId = user.Id, code, returnUrl },
+            protocol: Request.Scheme)!;
+
+        await emailSender.SendEmailAsync(Input.Email, "Confirm your Shulker Tech account",
+            $"Welcome to Shulker Tech! Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl });
     }
 }

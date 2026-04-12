@@ -11,6 +11,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<WikiSettings> WikiSettings => Set<WikiSettings>();
+    public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
+    public DbSet<SecuritySettings> SecuritySettings => Set<SecuritySettings>();
     public DbSet<MinecraftServer> MinecraftServers => Set<MinecraftServer>();
     public DbSet<PlayerSession> PlayerSessions => Set<PlayerSession>();
     public DbSet<ServerPingLog> ServerPingLogs => Set<ServerPingLog>();
@@ -50,5 +52,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         // Seed a single WikiSettings row with sensible defaults
         builder.Entity<WikiSettings>().HasData(new WikiSettings { Id = 1 });
+
+        // Seed a single SiteSettings row with sensible defaults
+        builder.Entity<SiteSettings>().HasData(new SiteSettings { Id = 1 });
+
+        // Seed a single SecuritySettings row
+        builder.Entity<SecuritySettings>().HasData(new SecuritySettings { Id = 1 });
     }
 }

@@ -27,7 +27,8 @@
     <title>@ViewData["Title"] — Shulker Tech</title>
 
     <!-- Restore theme before paint to avoid flash of wrong accent color -->
-    <script>(function(){var t=localStorage.getItem('theme')||'plasma';document.documentElement.dataset.theme=t;})()</script>
+    <!-- Reads cookie first so theme persists across subdomains (cookies are domain-scoped, localStorage is origin-scoped) -->
+    <script>(function(){function gc(n){var m=document.cookie.match('(?:^|;)\\s*'+n+'\\s*=\\s*([^;]*)');return m?m[1]:null;}var t=gc('theme')||localStorage.getItem('theme')||'plasma';document.documentElement.dataset.theme=t;})()</script>
 
     <!-- Google Fonts: sci-fi display + fantasy accent + body -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -141,6 +142,8 @@
             var html = document.documentElement;
             var next = html.dataset.theme === 'plasma' ? 'arcane' : 'plasma';
             html.dataset.theme = next;
+            // Write to a cookie scoped to the root domain so all subdomains share the same theme
+            document.cookie = 'theme=' + next + '; max-age=' + (365 * 24 * 60 * 60) + '; domain=.@_rootHost; path=/; SameSite=Lax';
             localStorage.setItem('theme', next);
             updateThemeBtn();
         }

@@ -60,32 +60,43 @@
     @* Hero content *@
     <div class="absolute inset-0 flex flex-col items-center justify-center px-4 text-center pointer-events-none">
 
-        @* Eyebrow *@
-        <p class="mb-5 tracking-widest pointer-events-none"
-           style="font-family: var(--font-fantasy); font-size: 1.25rem; color: var(--color-redstone); text-shadow: 0 0 12px var(--color-redstone); text-transform: uppercase; animation: rune-shimmer 4s ease-in-out infinite;">
-            ▶ &nbsp; Server Online &nbsp; ◀
-        </p>
+        @* Subtle backdrop panel so text stays legible over the map in all themes *@
+        <div class="mb-12 pointer-events-none"
+             style="background: color-mix(in oklab, var(--color-void) 20%, transparent);
+                    backdrop-filter: blur(2px);
+                    -webkit-backdrop-filter: blur(2px);
+                    border: 1px solid color-mix(in oklab, var(--color-accent) 10%, transparent);
+                    border-radius: 0.75rem;
+                    padding: 2rem 2.5rem;">
 
-        @* Title *@
-        <h1 class="mb-6 pointer-events-none"
-            style="font-size: clamp(2.5rem, 8vw, 6.5rem);
-                   font-weight: 700;
-                   line-height: 1;
-                   color: var(--color-crystal);
-                   text-shadow: 0 0 40px color-mix(in oklab, var(--color-accent) 60%, transparent),
-                                0 0 80px color-mix(in oklab, var(--color-arcane) 30%, transparent),
-                                0 0 120px color-mix(in oklab, var(--color-redstone) 15%, transparent);">
-            <span style="font-family: var(--font-fantasy); letter-spacing: 0.06em;">SHULKER</span><br>
-            <span style="font-family: var(--font-display); letter-spacing: 0.12em; font-weight: 900; color: var(--color-accent);">TECH</span>
-        </h1>
+            @* Eyebrow *@
+            <p class="mb-5 tracking-widest pointer-events-none"
+               style="font-family: var(--font-fantasy); font-size: 1.25rem; color: var(--color-redstone); text-shadow: 0 0 12px var(--color-redstone); text-transform: uppercase; animation: rune-shimmer 4s ease-in-out infinite;">
+                ▶ &nbsp; Server Online &nbsp; ◀
+            </p>
 
-        @* Tagline *@
-        <p class="mb-12 max-w-lg pointer-events-none"
-           style="font-family: var(--font-body); font-size: 1.15rem; font-weight: 300;
-                  color: color-mix(in oklab, var(--color-crystal) 80%, transparent);
-                  text-shadow: 0 2px 8px var(--color-void);">
-            Where builders forge worlds and adventurers become legends.
-        </p>
+            @* Title *@
+            <h1 class="mb-6 pointer-events-none"
+                style="font-size: clamp(2.5rem, 8vw, 6.5rem);
+                       font-weight: 700;
+                       line-height: 1;
+                       color: var(--color-crystal);
+                       text-shadow: 0 0 40px color-mix(in oklab, var(--color-accent) 60%, transparent),
+                                    0 0 80px color-mix(in oklab, var(--color-arcane) 30%, transparent),
+                                    0 0 120px color-mix(in oklab, var(--color-redstone) 15%, transparent);">
+                <span style="font-family: var(--font-fantasy); letter-spacing: 0.06em;">SHULKER</span><br>
+                <span style="font-family: var(--font-display); letter-spacing: 0.12em; font-weight: 900; color: var(--color-accent);">TECH</span>
+            </h1>
+
+            @* Tagline *@
+            <p class="mb-0 max-w-lg pointer-events-none"
+               style="font-family: var(--font-body); font-size: 1.15rem; font-weight: 300;
+                      color: color-mix(in oklab, var(--color-crystal) 80%, transparent);
+                      text-shadow: 0 2px 8px var(--color-void);">
+                @Model.Site.HeroTagline
+            </p>
+
+        </div>
 
         @* CTAs — pointer-events: auto so they're clickable through the overlay *@
         <div class="flex flex-col sm:flex-row gap-4 pointer-events-auto">
@@ -157,25 +168,25 @@
 
     <div class="panel panel-redstone p-8 flex flex-col gap-4">
         <span class="magic-glow" style="font-size: 2rem; color: var(--color-redstone);">⛏</span>
-        <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1.2rem; letter-spacing: 0.06em;">BUILD</h3>
+        <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1.2rem; letter-spacing: 0.06em;">@Model.Site.BuildCardTitle</h3>
         <p style="font-size: 1rem; color: var(--color-muted); line-height: 1.7;">
-            Craft, engineer, and construct across a persistent world shaped entirely by its players.
+            @Model.Site.BuildCardBody
         </p>
     </div>
 
     <div class="panel p-8 flex flex-col gap-4">
         <span class="magic-glow" style="font-size: 2rem; color: var(--color-accent);">◈</span>
-        <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1.2rem; letter-spacing: 0.06em;">EXPLORE</h3>
+        <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1.2rem; letter-spacing: 0.06em;">@Model.Site.ExploreCardTitle</h3>
         <p style="font-size: 1rem; color: var(--color-muted); line-height: 1.7;">
-            Venture into uncharted territories. Every biome hides secrets waiting to be uncovered.
+            @Model.Site.ExploreCardBody
         </p>
     </div>
 
     <div class="panel panel-arcane p-8 flex flex-col gap-4">
         <span class="magic-glow" style="font-size: 2rem; color: var(--color-arcane);">⚡</span>
-        <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1.2rem; letter-spacing: 0.06em;">CONNECT</h3>
+        <h3 style="font-family: var(--font-fantasy); color: var(--color-crystal); font-size: 1.2rem; letter-spacing: 0.06em;">@Model.Site.ConnectCardTitle</h3>
         <p style="font-size: 1rem; color: var(--color-muted); line-height: 1.7;">
-            Join a community of builders and thinkers. Your story becomes part of something larger.
+            @Model.Site.ConnectCardBody
         </p>
     </div>
 

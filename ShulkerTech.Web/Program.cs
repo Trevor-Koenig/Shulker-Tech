@@ -1,5 +1,6 @@
 using Markdig;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
@@ -18,10 +19,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         npgsql.MigrationsAssembly("ShulkerTech.Web")));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders()
     .AddDefaultUI();
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+builder.Services.AddHttpClient<IEmailSender, EmailSender>();
 
 builder.Services.AddHttpClient<MojangService>();
 builder.Services.AddSingleton<MinecraftPingService>();
@@ -93,6 +97,7 @@ app.UseStatusCodePagesWithReExecute("/404");
 app.UseMiddleware<SubdomainRoutingMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<AdminGuardMiddleware>();
+app.UseMiddleware<Require2FAMiddleware>();
 app.UseRouting();
 app.UseAuthorization();
 

@@ -56,8 +56,11 @@
 }
 else
 {
-    <!-- Desktop: separator, sign in, enlist button -->
+    <!-- Desktop: separator, theme toggle, sign in, enlist button -->
     <li aria-hidden="true" class="nav-separator hidden sm:flex"></li>
+    <li class="hidden sm:flex">
+        <button data-theme-toggle class="nav-link" style="background: none; border: none; cursor: pointer; padding: 0;">◈ Arcane Mode</button>
+    </li>
     <li class="hidden sm:flex"><a class="nav-link" asp-area="Identity" asp-page="/Account/Login">SIGN IN</a></li>
     <li class="hidden sm:flex"><a class="btn-nav" asp-area="Identity" asp-page="/Account/Register">ENLIST</a></li>
 
