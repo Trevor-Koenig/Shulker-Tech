@@ -1,4 +1,4 @@
-.PHONY: dev deploy setup migration clean
+.PHONY: dev deploy setup migration clean test test-unit test-integration test-coverage
 
 # ── First-time setup ──────────────────────────────────────────────────────────
 
@@ -26,6 +26,24 @@ dev-bg:
 # Stop all dev containers
 stop:
 	docker compose down
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+
+# Run all tests (requires Docker for Testcontainers integration tests)
+test:
+	dotnet test tests/ShulkerTech.Tests/ShulkerTech.Tests.csproj
+
+# Run only unit tests — no Docker required
+test-unit:
+	dotnet test tests/ShulkerTech.Tests/ShulkerTech.Tests.csproj --filter "Category=Unit"
+
+# Run only integration tests — requires Docker
+test-integration:
+	dotnet test tests/ShulkerTech.Tests/ShulkerTech.Tests.csproj --filter "Category=Integration"
+
+# Run tests with coverage output in ./coverage/
+test-coverage:
+	dotnet test tests/ShulkerTech.Tests/ShulkerTech.Tests.csproj --collect:"XPlat Code Coverage" --results-directory ./coverage
 
 # ── Production ────────────────────────────────────────────────────────────────
 

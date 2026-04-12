@@ -62,8 +62,10 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 var app = builder.Build();
 
 // Auto-apply pending migrations and seed roles on startup
-using (var scope = app.Services.CreateScope())
+// Skipped in Testing environment — WebApplicationFactory runs migrations directly
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.MigrateAsync();
 
@@ -100,3 +102,6 @@ app.MapControllers();
 app.MapHub<ServerStatusHub>("/hubs/server-status");
 
 app.Run();
+
+// Required for WebApplicationFactory<Program> in integration tests
+public partial class Program { }

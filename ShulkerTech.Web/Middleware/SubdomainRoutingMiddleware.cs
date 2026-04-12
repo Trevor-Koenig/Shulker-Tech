@@ -44,7 +44,8 @@ public class SubdomainRoutingMiddleware(RequestDelegate next)
         var path = context.Request.Path.Value ?? string.Empty;
         if (GlobalPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
         {
-            var rootHost = host[(subdomain.Length + 1)..];
+            // Guard against hosts with no dot (e.g. "localhost") where slicing would throw
+            var rootHost = subdomain.Length < host.Length ? host[(subdomain.Length + 1)..] : string.Empty;
             if (rootHost.Contains('.'))
             {
                 var port = context.Request.Host.Port;

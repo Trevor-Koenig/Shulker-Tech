@@ -9,7 +9,7 @@ public class MinecraftPingService
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
-    public async Task<ServerPingResult> PingAsync(string host, int port, CancellationToken ct = default)
+    public virtual async Task<ServerPingResult> PingAsync(string host, int port, CancellationToken ct = default)
     {
         try
         {
@@ -52,7 +52,7 @@ public class MinecraftPingService
         }
     }
 
-    private static ServerPingResult ParseResponse(string json)
+    internal static ServerPingResult ParseResponse(string json)
     {
         try
         {
