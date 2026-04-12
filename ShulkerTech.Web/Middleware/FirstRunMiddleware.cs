@@ -16,6 +16,7 @@ public class FirstRunMiddleware(RequestDelegate next)
         "/favicon.ico",
         "/css/",
         "/js/",
+        "/images/",
     ];
 
     public async Task InvokeAsync(HttpContext context)

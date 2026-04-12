@@ -11,21 +11,6 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/18/main
 
-  backup:
-    image: postgres:18
-    entrypoint: ["/bin/bash", "/backup.sh"]
-    restart: unless-stopped
-    stop_grace_period: 60s
-    depends_on:
-      - db
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_DB: ${DB_NAME}
-      PGPASSWORD: ${DB_PASSWORD}
-    volumes:
-      - ./backups:/backups
-      - ./scripts/backup.sh:/backup.sh:ro
-
   app:
     build:
       context: .
@@ -39,6 +24,7 @@ services:
       - SETUP_CODE=${SETUP_CODE:?SETUP_CODE env var is required}
     volumes:
       - dataprotection:/root/.aspnet/DataProtection-Keys
+      - ./backups:/backups
     depends_on:
       - db
 

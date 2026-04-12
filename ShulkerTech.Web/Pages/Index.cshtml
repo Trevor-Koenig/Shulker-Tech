@@ -3,6 +3,16 @@
 @{
     ViewData["Title"] = "Shulker Tech";
     Layout = "/Pages/Shared/_Layout.cshtml";
+
+    var _host = HttpContext.Request.Host.Host;
+    var _firstSegment = _host.Split('.')[0];
+    string[] _knownSubdomains = ["wiki", "admin"];
+    var _rootHost = _knownSubdomains.Contains(_firstSegment, StringComparer.OrdinalIgnoreCase)
+        ? _host[(_firstSegment.Length + 1)..]
+        : _host;
+    var _port = HttpContext.Request.Host.Port;
+    var _portSuffix = _port.HasValue ? $":{_port}" : string.Empty;
+    var _wikiBase = $"{HttpContext.Request.Scheme}://wiki.{_rootHost}{_portSuffix}";
 }
 
 @section Head {
@@ -79,7 +89,7 @@
 
         @* CTAs — pointer-events: auto so they're clickable through the overlay *@
         <div class="flex flex-col sm:flex-row gap-4 pointer-events-auto">
-            <a asp-page="/Wiki/Index" asp-area="Wiki"
+            <a href="@_wikiBase/"
                class="btn-primary px-10 py-3">
                 ⛏ EXPLORE THE WIKI
             </a>

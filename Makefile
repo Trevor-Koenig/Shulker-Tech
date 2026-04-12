@@ -1,4 +1,4 @@
-.PHONY: dev deploy setup migration backup clean
+.PHONY: dev deploy setup migration clean
 
 # ── First-time setup ──────────────────────────────────────────────────────────
 
@@ -11,10 +11,6 @@ setup:
 # Create a new EF Core migration (usage: make migration NAME=AddArticleTable)
 migration:
 	cd ShulkerTech.Web && dotnet ef migrations add $(NAME)
-
-# Trigger an immediate backup manually
-backup:
-	docker compose exec backup /bin/bash /backup.sh
 
 # ── Development ───────────────────────────────────────────────────────────────
 

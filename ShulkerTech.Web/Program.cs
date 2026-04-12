@@ -28,6 +28,7 @@ builder.Services.AddSingleton<MinecraftPingService>();
 builder.Services.AddSingleton<ServerStatusCache>();
 builder.Services.AddSingleton<ServerStatsCache>();
 builder.Services.AddHostedService<ServerStatusRefresher>();
+builder.Services.AddHostedService<DatabaseBackupService>();
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
