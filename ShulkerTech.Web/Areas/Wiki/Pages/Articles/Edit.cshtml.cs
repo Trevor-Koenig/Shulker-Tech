@@ -61,10 +61,13 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
     {
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
 
-        if (!ModelState.IsValid) return Page();
-
-        var (article, canEdit, _) = await ResolveAsync(Input.Id);
+        var (article, canEdit, isAdmin) = await ResolveAsync(Input.Id);
         if (article == null || !canEdit) return Forbid();
+
+        Article = article;
+        IsAdmin = isAdmin;
+
+        if (!ModelState.IsValid) return Page();
 
         article.Title = Input.Title;
         article.Content = Input.Content;

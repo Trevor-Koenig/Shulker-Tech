@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
@@ -45,6 +47,18 @@ public class ShulkerTechWebApplicationFactory : WebApplicationFactory<Program>, 
 
         builder.ConfigureServices(services =>
         {
+            // Replace the DbContextOptions captured by Program.cs (which read the appsettings
+            // connection string before ConfigureAppConfiguration could override it) with one
+            // that points at the Testcontainers PostgreSQL instance.
+            var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+            if (dbDescriptor != null) services.Remove(dbDescriptor);
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(_postgres.GetConnectionString(),
+                    npgsql => npgsql.MigrationsAssembly("ShulkerTech.Web")));
+
+            // Disable CSRF validation — tests POST without a form token
+            services.Replace(ServiceDescriptor.Singleton<IAntiforgery, NoOpAntiforgery>());
+
             // Remove background services that perform I/O
             RemoveHostedService<ServerStatusRefresher>(services);
             RemoveHostedService<DatabaseBackupService>(services);
@@ -68,6 +82,9 @@ public class ShulkerTechWebApplicationFactory : WebApplicationFactory<Program>, 
                 opts.DefaultAuthenticateScheme = "TestAuth";
                 // Keep Identity as the challenge scheme so [Authorize] redirects to login
                 opts.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+                // Use TestAuth for forbid so authenticated-but-unauthorized returns 403
+                // instead of Identity redirecting to /AccessDenied
+                opts.DefaultForbidScheme = "TestAuth";
             });
         });
     }
