@@ -37,7 +37,9 @@ public class IndexModel(ApplicationDbContext db) : PageModel
             Code = GenerateCode(),
             Note = Input.Note,
             MaxUses = Math.Max(1, Input.MaxUses),
-            ExpiresAt = Input.ExpiresAt?.ToUniversalTime(),
+            ExpiresAt = Input.ExpiresAt.HasValue
+                ? DateTime.SpecifyKind(Input.ExpiresAt.Value.ToUniversalTime(), DateTimeKind.Utc)
+                : null,
         };
 
         db.InviteCodes.Add(code);

@@ -49,10 +49,12 @@ public class RegisterModel(
         public string InviteCode { get; set; } = string.Empty;
     }
 
-    public async Task OnGetAsync(string? returnUrl = null)
+    public async Task OnGetAsync(string? returnUrl = null, string? code = null)
     {
         ReturnUrl = returnUrl;
         ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+        if (!string.IsNullOrEmpty(code))
+            Input.InviteCode = code.Trim().ToUpper();
     }
 
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)

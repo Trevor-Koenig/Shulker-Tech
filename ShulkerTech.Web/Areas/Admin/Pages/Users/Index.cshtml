@@ -16,12 +16,18 @@
     <div class="flex flex-col gap-3">
         @foreach (var row in Model.Users)
         {
-            <div class="panel p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            var isDeactivated = row.User.LockoutEnd.HasValue && row.User.LockoutEnd > DateTimeOffset.UtcNow;
+            <div class="panel p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+                 style="@(isDeactivated ? "opacity: 0.6;" : "")">
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-3 flex-wrap">
                         <span class="text-sm font-bold" style="font-family: var(--font-mono); color: var(--color-crystal);">
                             @row.User.UserName
                         </span>
+                        @if (isDeactivated)
+                        {
+                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-rune); border: 1px solid color-mix(in oklab, var(--color-rune) 40%, transparent);">DEACTIVATED</span>
+                        }
                         @if (row.User.IsAdmin)
                         {
                             <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-accent); border: 1px solid var(--color-accent);">OWNER</span>
