@@ -1,18 +1,22 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
 
 namespace ShulkerTech.Web.Areas.Identity.Pages.Account.Manage;
 
 public class TwoFactorAuthenticationModel(
     UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager) : PageModel
+    SignInManager<ApplicationUser> signInManager,
+    ApplicationDbContext db) : PageModel
 {
     public bool HasAuthenticator { get; set; }
     public int RecoveryCodesLeft { get; set; }
     public bool Is2faEnabled { get; set; }
     public bool IsMachineRemembered { get; set; }
+    public bool IsEnforced { get; set; }
 
     [TempData]
     public string? StatusMessage { get; set; }
@@ -27,6 +31,18 @@ public class TwoFactorAuthenticationModel(
         Is2faEnabled = await userManager.GetTwoFactorEnabledAsync(user);
         IsMachineRemembered = await signInManager.IsTwoFactorClientRememberedAsync(user);
         RecoveryCodesLeft = await userManager.CountRecoveryCodesAsync(user);
+
+        if (!Is2faEnabled)
+        {
+            var settings = await db.SecuritySettings.FirstOrDefaultAsync() ?? new SecuritySettings();
+            var requiredRoles = settings.GetRequiredRoles();
+            if (requiredRoles.Count > 0)
+            {
+                var userRoles = await userManager.GetRolesAsync(user);
+                IsEnforced = userRoles.Any(r => requiredRoles.Contains(r));
+            }
+        }
+
         return Page();
     }
 

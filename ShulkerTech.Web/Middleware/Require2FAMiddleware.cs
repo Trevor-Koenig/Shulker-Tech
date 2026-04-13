@@ -20,6 +20,12 @@ public class Require2FAMiddleware(RequestDelegate next)
         "/Identity/Account/LoginWith2fa",
         "/_framework",
         "/_blazor",
+        // Static assets — must be exempt so the 2FA setup page can load its own resources
+        "/css",
+        "/js",
+        "/lib",
+        "/images",
+        "/favicon.ico",
     };
 
     public async Task InvokeAsync(
