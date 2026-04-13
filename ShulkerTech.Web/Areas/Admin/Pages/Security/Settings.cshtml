@@ -4,7 +4,7 @@
     ViewData["Title"] = "Security Settings";
 }
 
-<div class="max-w-4xl px-8 py-12">
+<div class="px-6 lg:px-10 py-10">
 
     <div class="mb-8">
         <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; SECURITY</p>
@@ -23,55 +23,55 @@
         </div>
     }
 
-    <form method="post" class="panel p-8 flex flex-col gap-8">
+    <form method="post" class="flex flex-col gap-6">
 
-        <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
-            REQUIRE TWO-FACTOR AUTHENTICATION
-        </h2>
-        <p class="text-sm -mt-4" style="color: var(--color-muted); font-family: var(--font-mono);">
-            Members of the selected roles must enable an authenticator app before accessing the site.
-        </p>
+        <div class="panel p-6 flex flex-col gap-4">
+            <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+                REQUIRE TWO-FACTOR AUTHENTICATION
+            </h2>
+            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                Members of the selected roles must enable an authenticator app before accessing the site.
+            </p>
+        </div>
 
-        <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        @* Admin *@
-        <label class="flex items-center gap-4 cursor-pointer">
-            <input asp-for="Input.RequireAdminTwoFactor" type="checkbox"
-                   class="w-4 h-4 rounded"
-                   style="accent-color: var(--color-accent);" />
-            <div class="flex flex-col gap-1">
-                <span style="font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.08em; color: var(--color-crystal);">ADMIN</span>
-                <span class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">Require 2FA for all Admin accounts.</span>
-            </div>
-        </label>
+            @* Admin *@
+            <label class="panel p-6 flex items-start gap-4 cursor-pointer">
+                <input asp-for="Input.RequireAdminTwoFactor" type="checkbox"
+                       class="w-4 h-4 rounded mt-0.5 flex-shrink-0"
+                       style="accent-color: var(--color-accent);" />
+                <div class="flex flex-col gap-1">
+                    <span style="font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.08em; color: var(--color-crystal);">ADMIN</span>
+                    <span class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.5;">Require 2FA for all Admin accounts.</span>
+                </div>
+            </label>
 
-        <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+            @* Moderator *@
+            <label class="panel p-6 flex items-start gap-4 cursor-pointer">
+                <input asp-for="Input.RequireModeratorTwoFactor" type="checkbox"
+                       class="w-4 h-4 rounded mt-0.5 flex-shrink-0"
+                       style="accent-color: var(--color-accent);" />
+                <div class="flex flex-col gap-1">
+                    <span style="font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.08em; color: var(--color-crystal);">MODERATOR</span>
+                    <span class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.5;">Require 2FA for all Moderator accounts.</span>
+                </div>
+            </label>
 
-        @* Moderator *@
-        <label class="flex items-center gap-4 cursor-pointer">
-            <input asp-for="Input.RequireModeratorTwoFactor" type="checkbox"
-                   class="w-4 h-4 rounded"
-                   style="accent-color: var(--color-accent);" />
-            <div class="flex flex-col gap-1">
-                <span style="font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.08em; color: var(--color-crystal);">MODERATOR</span>
-                <span class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">Require 2FA for all Moderator accounts.</span>
-            </div>
-        </label>
+            @* Member *@
+            <label class="panel p-6 flex items-start gap-4 cursor-pointer">
+                <input asp-for="Input.RequireMemberTwoFactor" type="checkbox"
+                       class="w-4 h-4 rounded mt-0.5 flex-shrink-0"
+                       style="accent-color: var(--color-accent);" />
+                <div class="flex flex-col gap-1">
+                    <span style="font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.08em; color: var(--color-crystal);">MEMBER</span>
+                    <span class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.5;">Require 2FA for all Member accounts.</span>
+                </div>
+            </label>
 
-        <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+        </div>
 
-        @* Member *@
-        <label class="flex items-center gap-4 cursor-pointer">
-            <input asp-for="Input.RequireMemberTwoFactor" type="checkbox"
-                   class="w-4 h-4 rounded"
-                   style="accent-color: var(--color-accent);" />
-            <div class="flex flex-col gap-1">
-                <span style="font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.08em; color: var(--color-crystal);">MEMBER</span>
-                <span class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">Require 2FA for all Member accounts.</span>
-            </div>
-        </label>
-
-        <div class="pt-2">
+        <div>
             <button type="submit" class="btn-primary">SAVE SETTINGS</button>
         </div>
 

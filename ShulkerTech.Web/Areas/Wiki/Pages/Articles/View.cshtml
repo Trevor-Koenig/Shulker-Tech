@@ -89,7 +89,10 @@
 
     // Show sidebar and switch layout to two columns (only on large-enough viewports)
     function applyLayout() {
-        if (window.innerWidth >= 800) {
+        if (window.innerWidth >= 1400) {
+            sidebar.style.display = 'block';
+            layout.style.gridTemplateColumns = '1fr 320px';
+        } else if (window.innerWidth >= 800) {
             sidebar.style.display = 'block';
             layout.style.gridTemplateColumns = '1fr 280px';
         } else {

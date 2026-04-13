@@ -378,6 +378,13 @@
     align-items: start;
   }
 
+  @media (min-width: 1400px) {
+    .wiki-index-grid {
+      grid-template-columns: 1fr 320px;
+      gap: 2.5rem;
+    }
+  }
+
   .wiki-index-sidebar {
     position: sticky;
     top: 5.5rem;
@@ -388,7 +395,7 @@
 
   /* Wiki shared outer container */
   .wiki-outer {
-    max-width: 80rem;
+    max-width: 96rem;
     margin-left: auto;
     margin-right: auto;
     padding: 2.5rem 3rem;

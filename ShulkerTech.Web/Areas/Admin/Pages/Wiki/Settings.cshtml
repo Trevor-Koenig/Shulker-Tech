@@ -9,7 +9,7 @@
     string SelectInlineStyle = "color: var(--color-crystal); font-family: var(--font-mono);";
 }
 
-<div class="max-w-4xl px-8 py-12">
+<div class="px-6 lg:px-10 py-10">
 
     <div class="mb-8">
         <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; WIKI</p>
@@ -28,63 +28,62 @@
         </div>
     }
 
-    <form method="post" class="panel p-8 flex flex-col gap-8">
+    <form method="post" class="flex flex-col gap-6">
 
-        <!-- Default view role -->
-        <div class="flex flex-col gap-2">
-            <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
-                DEFAULT VIEW PERMISSION
-            </label>
-            <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Who can read wiki articles that have no per-article override set.
-            </p>
-            <select asp-for="Input.DefaultViewRole" class="@SelectStyle" style="@SelectInlineStyle">
-                <option value="">Public (anyone)</option>
-                @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
-                {
-                    <option value="@role" selected="@(Model.Input.DefaultViewRole == role)">@role and above</option>
-                }
-            </select>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Default view role -->
+            <div class="panel p-6 flex flex-col gap-3">
+                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                    DEFAULT VIEW PERMISSION
+                </label>
+                <p class="text-xs flex-1" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                    Who can read wiki articles that have no per-article override set.
+                </p>
+                <select asp-for="Input.DefaultViewRole" class="@SelectStyle" style="@SelectInlineStyle">
+                    <option value="">Public (anyone)</option>
+                    @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
+                    {
+                        <option value="@role" selected="@(Model.Input.DefaultViewRole == role)">@role and above</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Create role -->
+            <div class="panel p-6 flex flex-col gap-3">
+                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                    WHO CAN CREATE ARTICLES
+                </label>
+                <p class="text-xs flex-1" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                    Minimum role required to write a new wiki article.
+                </p>
+                <select asp-for="Input.CreateRole" class="@SelectStyle" style="@SelectInlineStyle">
+                    @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
+                    {
+                        <option value="@role" selected="@(Model.Input.CreateRole == role)">@role and above</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Edit any role -->
+            <div class="panel p-6 flex flex-col gap-3">
+                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                    WHO CAN EDIT OTHERS' ARTICLES
+                </label>
+                <p class="text-xs flex-1" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                    Minimum role to edit articles not written by the user. Authors can always edit their own work. Individual articles can override this.
+                </p>
+                <select asp-for="Input.EditAnyRole" class="@SelectStyle" style="@SelectInlineStyle">
+                    @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
+                    {
+                        <option value="@role" selected="@(Model.Input.EditAnyRole == role)">@role and above</option>
+                    }
+                </select>
+            </div>
+
         </div>
 
-        <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
-
-        <!-- Create role -->
-        <div class="flex flex-col gap-2">
-            <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
-                WHO CAN CREATE ARTICLES
-            </label>
-            <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Minimum role required to write a new wiki article.
-            </p>
-            <select asp-for="Input.CreateRole" class="@SelectStyle" style="@SelectInlineStyle">
-                @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
-                {
-                    <option value="@role" selected="@(Model.Input.CreateRole == role)">@role and above</option>
-                }
-            </select>
-        </div>
-
-        <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
-
-        <!-- Edit any role -->
-        <div class="flex flex-col gap-2">
-            <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
-                WHO CAN EDIT OTHERS' ARTICLES
-            </label>
-            <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Minimum role to edit articles not written by the user. Authors can always edit their own work.
-                Individual articles can override this.
-            </p>
-            <select asp-for="Input.EditAnyRole" class="@SelectStyle" style="@SelectInlineStyle">
-                @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
-                {
-                    <option value="@role" selected="@(Model.Input.EditAnyRole == role)">@role and above</option>
-                }
-            </select>
-        </div>
-
-        <div class="pt-2">
+        <div>
             <button type="submit" class="btn-primary">SAVE SETTINGS</button>
         </div>
 

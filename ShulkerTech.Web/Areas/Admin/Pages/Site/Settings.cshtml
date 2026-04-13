@@ -10,7 +10,7 @@
     string TextareaStyle = "panel px-3 py-2 bg-transparent outline-none text-sm w-full resize-y";
 }
 
-<div class="max-w-4xl px-8 py-12">
+<div class="px-6 lg:px-10 py-10">
 
     <div class="mb-8">
         <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; SITE</p>
@@ -29,16 +29,15 @@
         </div>
     }
 
-    <form method="post" class="flex flex-col gap-10">
+    <form method="post" class="flex flex-col gap-8">
 
         @* ── Hero ───────────────────────────────────────────────────────────── *@
-        <div class="panel p-8 flex flex-col gap-6">
-            <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">HERO</h2>
-
-            <div class="flex flex-col gap-2">
-                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
-                    TAGLINE
-                </label>
+        <div class="panel p-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
+            <div class="lg:w-52 lg:flex-shrink-0">
+                <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">HERO</h2>
+            </div>
+            <div class="flex flex-col gap-2 flex-1">
+                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TAGLINE</label>
                 <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
                     The subtitle shown beneath the SHULKER TECH title on the homepage.
                 </p>
@@ -47,52 +46,50 @@
         </div>
 
         @* ── About cards ─────────────────────────────────────────────────────── *@
-        <div class="panel p-8 flex flex-col gap-8">
+        <div class="panel p-8 flex flex-col gap-6">
             <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">ABOUT CARDS</h2>
 
-            <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            @* Build *@
-            <div class="flex flex-col gap-4">
-                <p class="text-xs" style="font-family: var(--font-display); color: var(--color-redstone); letter-spacing: 0.1em;">⛏ CARD 1</p>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
-                    <input asp-for="Input.BuildCardTitle" class="@InputStyle" style="@InputInlineStyle" />
+                @* Build *@
+                <div class="flex flex-col gap-4">
+                    <p class="text-xs" style="font-family: var(--font-display); color: var(--color-redstone); letter-spacing: 0.1em;">⛏ CARD 1</p>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
+                        <input asp-for="Input.BuildCardTitle" class="@InputStyle" style="@InputInlineStyle" />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">BODY</label>
+                        <textarea asp-for="Input.BuildCardBody" class="@TextareaStyle" style="@InputInlineStyle" rows="4"></textarea>
+                    </div>
                 </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">BODY</label>
-                    <textarea asp-for="Input.BuildCardBody" class="@TextareaStyle" style="@InputInlineStyle" rows="3"></textarea>
-                </div>
-            </div>
 
-            <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
+                @* Explore *@
+                <div class="flex flex-col gap-4">
+                    <p class="text-xs" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.1em;">◈ CARD 2</p>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
+                        <input asp-for="Input.ExploreCardTitle" class="@InputStyle" style="@InputInlineStyle" />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">BODY</label>
+                        <textarea asp-for="Input.ExploreCardBody" class="@TextareaStyle" style="@InputInlineStyle" rows="4"></textarea>
+                    </div>
+                </div>
 
-            @* Explore *@
-            <div class="flex flex-col gap-4">
-                <p class="text-xs" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.1em;">◈ CARD 2</p>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
-                    <input asp-for="Input.ExploreCardTitle" class="@InputStyle" style="@InputInlineStyle" />
+                @* Connect *@
+                <div class="flex flex-col gap-4">
+                    <p class="text-xs" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.1em;">⚡ CARD 3</p>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
+                        <input asp-for="Input.ConnectCardTitle" class="@InputStyle" style="@InputInlineStyle" />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">BODY</label>
+                        <textarea asp-for="Input.ConnectCardBody" class="@TextareaStyle" style="@InputInlineStyle" rows="4"></textarea>
+                    </div>
                 </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">BODY</label>
-                    <textarea asp-for="Input.ExploreCardBody" class="@TextareaStyle" style="@InputInlineStyle" rows="3"></textarea>
-                </div>
-            </div>
 
-            <div style="height: 1px; background: color-mix(in oklab, var(--color-accent) 15%, transparent);"></div>
-
-            @* Connect *@
-            <div class="flex flex-col gap-4">
-                <p class="text-xs" style="font-family: var(--font-display); color: var(--color-arcane); letter-spacing: 0.1em;">⚡ CARD 3</p>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TITLE</label>
-                    <input asp-for="Input.ConnectCardTitle" class="@InputStyle" style="@InputInlineStyle" />
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">BODY</label>
-                    <textarea asp-for="Input.ConnectCardBody" class="@TextareaStyle" style="@InputInlineStyle" rows="3"></textarea>
-                </div>
             </div>
         </div>
 
