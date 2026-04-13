@@ -1,0 +1,56 @@
+@page
+@model ConfirmEmailModel
+@{
+    ViewData["Title"] = "Confirm Email";
+}
+
+<div class="min-h-screen flex items-center justify-center px-4 py-16"
+     style="background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, @(Model.Succeeded ? "var(--color-nebula)" : "var(--color-rune)") 40%, transparent), var(--color-void) 70%);">
+
+    <div class="w-full max-w-sm text-center">
+
+        <div class="mb-8">
+            <p class="text-xs tracking-widest mb-3"
+               style="font-family: var(--font-mono); color: @(Model.Succeeded ? "var(--color-accent)" : "var(--color-rune)");">
+                &#9670; SHULKER TECH &#9670;
+            </p>
+            <h1 style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 900; letter-spacing: 0.1em;
+                       color: @(Model.Succeeded ? "var(--color-crystal)" : "var(--color-rune)");">
+                @(Model.Succeeded ? "EMAIL CONFIRMED" : "CONFIRMATION FAILED")
+            </h1>
+        </div>
+
+        <div class="panel p-8 flex flex-col gap-5">
+            @if (Model.Succeeded)
+            {
+                <div style="font-size: 2.5rem;">&#9989;</div>
+                <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                    Your email has been confirmed. Your account is now active.
+                </p>
+                <a asp-page="./Login" class="btn-primary w-full py-3 text-center" style="display: block;">
+                    SIGN IN
+                </a>
+            }
+            else
+            {
+                <div style="font-size: 2.5rem; color: var(--color-rune);">&#10060;</div>
+                <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                    The confirmation link is invalid or has expired.
+                </p>
+                <a asp-page="./ResendEmailConfirmation"
+                   class="btn-nav w-full py-2 text-center" style="display: block;">
+                    RESEND CONFIRMATION EMAIL
+                </a>
+            }
+
+            <div class="pt-2" style="border-top: 1px solid color-mix(in oklab, var(--color-accent) 10%, transparent);">
+                <a asp-page="./Login"
+                   class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono); text-decoration: none;"
+                   onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">
+                    &larr; Return to sign in
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>

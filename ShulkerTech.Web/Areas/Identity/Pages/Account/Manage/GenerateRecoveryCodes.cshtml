@@ -1,0 +1,45 @@
+@page
+@model GenerateRecoveryCodesModel
+@{
+    ViewData["Title"] = "Generate Recovery Codes";
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <div class="flex flex-col sm:flex-row gap-6">
+
+        <aside class="sm:w-44 flex-shrink-0 panel p-4">
+            <partial name="_ManageNav" />
+        </aside>
+
+        <div class="flex-1 panel p-8 flex flex-col gap-6">
+
+            <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; color: var(--color-crystal);">GENERATE RECOVERY CODES</h2>
+
+            <partial name="_StatusMessage" for="StatusMessage" />
+
+            <div class="text-xs p-3 rounded"
+                 style="color: var(--color-rune); background: color-mix(in oklab, var(--color-rune) 10%, transparent); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent); font-family: var(--font-mono); line-height: 1.6;">
+                ⚠ Generating new recovery codes will <strong>invalidate your existing codes</strong>. Save the new codes somewhere safe before closing this page.
+            </div>
+
+            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                Recovery codes let you sign in if you ever lose access to your authenticator app. Each code can only be used once.
+            </p>
+
+            <form method="post">
+                <button type="submit" class="btn-primary py-3 px-8">
+                    GENERATE NEW CODES
+                </button>
+            </form>
+
+            <div style="border-top: 1px solid color-mix(in oklab, var(--color-accent) 10%, transparent);"></div>
+            <a asp-page="./TwoFactorAuthentication"
+               class="text-xs self-start" style="color: var(--color-muted); font-family: var(--font-mono); text-decoration: none;"
+               onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">
+                &larr; Back to 2FA settings
+            </a>
+
+        </div>
+    </div>
+</div>

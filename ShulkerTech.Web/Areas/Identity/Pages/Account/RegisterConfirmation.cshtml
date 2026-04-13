@@ -1,0 +1,50 @@
+@page
+@model RegisterConfirmationModel
+@{
+    ViewData["Title"] = "Check Your Email";
+}
+
+<div class="min-h-screen flex items-center justify-center px-4 py-16"
+     style="background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--color-nebula) 60%, transparent), var(--color-void) 70%);">
+
+    <div class="w-full max-w-sm text-center">
+
+        <div class="mb-8">
+            <p class="text-xs tracking-widest mb-3" style="font-family: var(--font-mono); color: var(--color-accent);">
+                &#9670; SHULKER TECH &#9670;
+            </p>
+            <h1 style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+                CHECK YOUR EMAIL
+            </h1>
+        </div>
+
+        <div class="panel p-8 flex flex-col gap-5">
+
+            <div style="font-size: 2.5rem;">&#128231;</div>
+
+            <p class="text-sm" style="color: var(--color-crystal); font-family: var(--font-mono); line-height: 1.6;">
+                A confirmation link has been sent to:
+            </p>
+            <p class="text-sm" style="color: var(--color-accent); font-family: var(--font-display); letter-spacing: 0.06em; word-break: break-all;">
+                @Model.Email
+            </p>
+            <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                Click the link in the email to activate your account. Check your spam folder if it doesn't arrive within a few minutes.
+            </p>
+
+            <div class="flex flex-col gap-2 pt-2" style="border-top: 1px solid color-mix(in oklab, var(--color-accent) 10%, transparent);">
+                <a asp-page="./ResendEmailConfirmation"
+                   class="text-xs" style="color: var(--color-accent); font-family: var(--font-mono); text-decoration: none;"
+                   onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">
+                    Resend confirmation email
+                </a>
+                <a asp-page="./Login"
+                   class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono); text-decoration: none;"
+                   onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">
+                    &larr; Return to sign in
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>

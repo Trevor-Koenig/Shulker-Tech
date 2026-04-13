@@ -413,7 +413,7 @@
 
   .wiki-hero-body {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 2rem;
     padding: 2.25rem 2.5rem 2.25rem 3rem;
@@ -735,21 +735,10 @@
     .wiki-category-grid {
       grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     }
-  }
-
-  @media (max-width: 639px) {
-    .wiki-outer {
-      padding-left: 1.25rem;
-      padding-right: 1.25rem;
-      padding-top: 1.5rem;
-    }
     .wiki-hero-body {
       flex-direction: column;
       align-items: stretch;
-      padding: 1.5rem 1.25rem 1.5rem 1.75rem;
-    }
-    .wiki-hero-title {
-      font-size: 1.9rem;
+      padding: 1.75rem 2rem 1.75rem 2.5rem;
     }
     .wiki-hero-search-wrap {
       align-items: stretch;
@@ -759,6 +748,20 @@
     }
     .wiki-index-search {
       width: 100%;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .wiki-outer {
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+      padding-top: 1.5rem;
+    }
+    .wiki-hero-body {
+      padding: 1.5rem 1.25rem 1.5rem 1.75rem;
+    }
+    .wiki-hero-title {
+      font-size: 1.9rem;
     }
     .wiki-article-meta {
       display: none;

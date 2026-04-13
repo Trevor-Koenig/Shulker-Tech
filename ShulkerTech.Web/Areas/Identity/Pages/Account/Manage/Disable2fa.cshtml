@@ -1,0 +1,45 @@
+@page
+@model Disable2faModel
+@{
+    ViewData["Title"] = "Disable 2FA";
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <div class="flex flex-col sm:flex-row gap-6">
+
+        <aside class="sm:w-44 flex-shrink-0 panel p-4">
+            <partial name="_ManageNav" />
+        </aside>
+
+        <div class="flex-1 panel p-8 flex flex-col gap-6">
+
+            <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; color: var(--color-rune);">DISABLE TWO-FACTOR AUTHENTICATION</h2>
+
+            <partial name="_StatusMessage" for="StatusMessage" />
+
+            <div class="text-xs p-3 rounded"
+                 style="color: var(--color-rune); background: color-mix(in oklab, var(--color-rune) 10%, transparent); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent); font-family: var(--font-mono); line-height: 1.6;">
+                ⚠ Disabling 2FA reduces the security of your account. Only proceed if you intend to re-enable it shortly.
+            </div>
+
+            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                Are you sure you want to disable two-factor authentication on your account?
+            </p>
+
+            <div class="flex flex-wrap gap-3">
+                <form method="post">
+                    <button type="submit" class="btn-primary py-3 px-8"
+                            style="background: linear-gradient(135deg, var(--color-redstone-dim), var(--color-redstone));">
+                        DISABLE 2FA
+                    </button>
+                </form>
+                <a asp-page="./TwoFactorAuthentication"
+                   class="btn-nav py-3 px-6 text-center" style="align-self: center;">
+                    CANCEL
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>

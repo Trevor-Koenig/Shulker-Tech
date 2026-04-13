@@ -62,6 +62,11 @@ public class LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<Lo
             logger.LogWarning("User account locked out.");
             return RedirectToPage("./Lockout");
         }
+        if (result.IsNotAllowed)
+        {
+            ModelState.AddModelError(string.Empty, "You must confirm your email before logging in. Check your inbox for a confirmation link.");
+            return Page();
+        }
 
         ModelState.AddModelError(string.Empty, "Invalid credentials.");
         return Page();

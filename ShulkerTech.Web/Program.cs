@@ -25,7 +25,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.S
     .AddDefaultUI();
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
-builder.Services.AddHttpClient<IEmailSender, EmailSender>();
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddScoped<IEmailSender, DevEmailSender>();
+else
+    builder.Services.AddHttpClient<IEmailSender, EmailSender>();
 
 builder.Services.AddHttpClient<MojangService>();
 builder.Services.AddSingleton<MinecraftPingService>();

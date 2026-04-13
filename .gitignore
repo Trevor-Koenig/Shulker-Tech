@@ -483,10 +483,16 @@ appsettings.Development.json
 tailwindcss
 ShulkerTech.Web/wwwroot/css/app.out.css
 
+##### LibMan — restored via `libman restore`
+ShulkerTech.Web/wwwroot/lib/
+
 ##### Docker
 .env
 certs/
 backups/
+
+##### Dev email sink
+ShulkerTech.Web/dev-emails/
 
 ##### SSL / TLS — private keys and certs must never be committed
 *.pem

@@ -1,0 +1,49 @@
+@page
+@model ShowRecoveryCodesModel
+@{
+    ViewData["Title"] = "Recovery Codes";
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <div class="flex flex-col sm:flex-row gap-6">
+
+        <aside class="sm:w-44 flex-shrink-0 panel p-4">
+            <partial name="_ManageNav" />
+        </aside>
+
+        <div class="flex-1 panel p-8 flex flex-col gap-6">
+
+            <h2 style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; color: var(--color-crystal);">RECOVERY CODES</h2>
+
+            <partial name="_StatusMessage" for="StatusMessage" />
+
+            <div class="text-xs p-3 rounded"
+                 style="color: var(--color-rune); background: color-mix(in oklab, var(--color-rune) 10%, transparent); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent); font-family: var(--font-mono); line-height: 1.6;">
+                ⚠ Store these codes somewhere safe. Each code can only be used once. If you lose access to your authenticator app and have no recovery codes, you will be locked out of your account.
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 0.5rem;">
+                @foreach (var code in Model.RecoveryCodes!)
+                {
+                    <code class="px-3 py-2 rounded text-center text-sm"
+                          style="font-family: var(--font-mono); color: var(--color-arcane); letter-spacing: 0.12em;
+                                 background: color-mix(in oklab, var(--color-arcane) 8%, var(--color-void));
+                                 border: 1px solid color-mix(in oklab, var(--color-arcane) 25%, transparent);">@code</code>
+                }
+            </div>
+
+            <div class="flex flex-wrap gap-3 pt-2" style="border-top: 1px solid color-mix(in oklab, var(--color-accent) 10%, transparent);">
+                <a asp-page="./GenerateRecoveryCodes" class="btn-nav py-2 px-5 text-center">
+                    REGENERATE CODES
+                </a>
+                <a asp-page="./TwoFactorAuthentication" class="text-xs self-center"
+                   style="color: var(--color-muted); font-family: var(--font-mono); text-decoration: none;"
+                   onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">
+                    &larr; Back to 2FA settings
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
