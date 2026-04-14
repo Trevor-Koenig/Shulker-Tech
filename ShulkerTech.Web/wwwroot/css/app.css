@@ -336,7 +336,54 @@
   .wiki-content img {
     max-width: 100%;
     border-radius: 0.25rem;
-    image-rendering: pixelated;
+    image-rendering: auto;
+  }
+
+  /* Clearfix — contains floated figures within the article body */
+  .wiki-content::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+
+  /* Wiki figure — Minecraft wiki-style inline image with optional float + caption */
+  .wiki-figure {
+    display: table;
+    margin: 0.5rem 1rem 1rem 0;
+    font-size: 0;
+  }
+  .wiki-figure--right { float: right; margin: 0.5rem 0 1rem 1.5rem; }
+  .wiki-figure--left  { float: left;  margin: 0.5rem 1.5rem 1rem 0; }
+  .wiki-figure--center {
+    float: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .wiki-figure--thumb {
+    border: 1px solid color-mix(in oklab, var(--color-accent) 25%, transparent);
+    background: color-mix(in oklab, var(--color-nebula) 60%, transparent);
+    padding: 4px;
+    border-radius: 0.25rem;
+  }
+  .wiki-figure img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.2rem;
+    image-rendering: auto;
+  }
+  .wiki-figure figcaption {
+    display: table-caption;
+    caption-side: bottom;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--color-muted);
+    padding: 0.25rem 0.3rem 0.1rem;
+    line-height: 1.4;
+    text-align: center;
   }
 
   /* Wiki TOC sidebar */
@@ -806,4 +853,84 @@
     );
     pointer-events: none;
   }
+
+  /* Mobile: collapse figure floats to centred block */
+  @media (max-width: 639px) {
+    .wiki-figure--right,
+    .wiki-figure--left {
+      float: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+
+/* ── EasyMDE dark theme overrides ─────────────────────────────────────────── */
+/* Outside @layer so these take precedence over vendor CSS                     */
+
+.EasyMDEContainer .CodeMirror {
+  background: color-mix(in oklab, var(--color-nebula) 90%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent);
+  border-radius: 0 0 0.5rem 0.5rem;
+  color: var(--color-crystal);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.EasyMDEContainer .CodeMirror-cursor {
+  border-color: var(--color-accent);
+}
+
+.EasyMDEContainer .CodeMirror-selected {
+  background: color-mix(in oklab, var(--color-accent) 20%, transparent) !important;
+}
+
+.EasyMDEContainer .editor-toolbar {
+  background: var(--color-deep-space);
+  border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent);
+  border-bottom: none;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.EasyMDEContainer .editor-toolbar button {
+  color: var(--color-muted) !important;
+  border-radius: 0.2rem;
+}
+
+.EasyMDEContainer .editor-toolbar button:hover,
+.EasyMDEContainer .editor-toolbar button.active {
+  background: color-mix(in oklab, var(--color-accent) 15%, transparent);
+  color: var(--color-accent) !important;
+  border-color: transparent;
+}
+
+.EasyMDEContainer .editor-toolbar i.separator {
+  border-color: color-mix(in oklab, var(--color-accent) 20%, transparent);
+}
+
+.EasyMDEContainer .editor-toolbar.fullscreen {
+  background: var(--color-deep-space);
+  border: none;
+}
+
+.EasyMDEContainer .editor-preview,
+.EasyMDEContainer .editor-preview-side {
+  background: color-mix(in oklab, var(--color-void) 80%, var(--color-nebula));
+  border-color: color-mix(in oklab, var(--color-accent) 25%, transparent);
+  color: var(--color-crystal);
+}
+
+.EasyMDEContainer .editor-statusbar {
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  border-color: color-mix(in oklab, var(--color-accent) 20%, transparent);
+}
+
+.EasyMDEContainer .CodeMirror.CodeMirror-fullscreen {
+  background: var(--color-void);
 }

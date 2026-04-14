@@ -26,9 +26,11 @@ services:
     volumes:
       - dataprotection:/root/.aspnet/DataProtection-Keys
       - ./backups:/backups
+      - wiki-uploads:/app/wwwroot/uploads/wiki
     depends_on:
       - db
 
 volumes:
   pgdata:
   dataprotection:
+  wiki-uploads:

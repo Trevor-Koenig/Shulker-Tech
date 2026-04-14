@@ -39,10 +39,10 @@
                 <label asp-for="Input.Content" class="text-xs"
                        style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">CONTENT</label>
                 <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); opacity: 0.7;">
-                    Markdown supported — **bold**, # Heading, [link](url), `code`
+                    Markdown — **bold**, # Heading, `code`, ![Caption|right|thumb](url)
                 </span>
             </div>
-            <textarea asp-for="Input.Content" rows="28"
+            <textarea asp-for="Input.Content" id="content-editor" rows="28"
                       class="panel px-4 py-3 w-full bg-transparent outline-none resize-y"
                       style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem; line-height: 1.7;"
                       placeholder="## Introduction&#10;&#10;Write your article here using Markdown..."></textarea>
@@ -124,7 +124,12 @@
 
 </div>
 
+@section Head {
+    <link rel="stylesheet" href="~/css/easymde.min.css" />
+}
+
 @section Scripts {
+    <script src="~/js/easymde.min.js"></script>
     <script>
         document.getElementById('title-input').addEventListener('input', function () {
             var slug = this.value.toLowerCase()
@@ -132,6 +137,36 @@
                 .trim()
                 .replace(/\s+/g, '-');
             document.getElementById('slug-preview').textContent = slug || '—';
+        });
+
+        var _csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+        var easyMDE = new EasyMDE({
+            element: document.getElementById('content-editor'),
+            spellChecker: false,
+            autosave: { enabled: false },
+            toolbar: [
+                'bold', 'italic', 'heading', '|',
+                'unordered-list', 'ordered-list', '|',
+                'link', 'image', 'upload-image', '|',
+                'preview', 'side-by-side', 'fullscreen', '|',
+                'guide'
+            ],
+            imageUploadFunction: function (file, onSuccess, onError) {
+                var fd = new FormData();
+                fd.append('file', file);
+                fetch('/api/wiki/upload-image', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': _csrf },
+                    body: fd
+                })
+                .then(function (r) {
+                    return r.json().then(function (d) {
+                        r.ok ? onSuccess(d.data.filePath) : onError(d.error ?? 'Upload failed');
+                    });
+                })
+                .catch(function () { onError('Network error during upload'); });
+            },
+            imagePathAbsolute: true,
         });
     </script>
 }

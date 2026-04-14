@@ -1,17 +1,17 @@
-using Markdig;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
+using ShulkerTech.Web.Markdown;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 
 public class ViewModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
-    MarkdownPipeline pipeline) : PageModel
+    WikiMarkdownService wikiMarkdown) : PageModel
 {
     public Article Article { get; set; } = null!;
     public string ContentHtml { get; set; } = "";
@@ -55,7 +55,7 @@ public class ViewModel(
             return NotFound();
 
         Article = article;
-        ContentHtml = Markdown.ToHtml(article.Content, pipeline);
+        ContentHtml = wikiMarkdown.ToHtml(article.Content);
 
         // CanEdit: author, or satisfies article EditRole / global EditAnyRole
         CanEdit = viewer != null &&

@@ -2,6 +2,7 @@
 @using ShulkerTech.Core.Models
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery AntiforgeryService
 @{
     // Build subdomain URLs from the current request so this works in any environment
     // (dev: shulker.dev:8080, prod: shulkertech.com) without hardcoding domains.
@@ -36,6 +37,9 @@
     <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;600;900&family=Exo+2:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="~/css/app.out.css" asp-append-version="true" />
+
+    @{ var _csrfTokens = AntiforgeryService.GetAndStoreTokens(Context); }
+    <meta name="csrf-token" content="@_csrfTokens.RequestToken" />
 
     @await RenderSectionAsync("Head", required: false)
 </head>

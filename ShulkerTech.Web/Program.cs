@@ -1,5 +1,6 @@
 using Markdig;
 using Microsoft.AspNetCore.Identity;
+using ShulkerTech.Web.Markdown;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
@@ -45,6 +46,7 @@ builder.Services.AddSingleton(new MarkdownPipelineBuilder()
     .UseAdvancedExtensions()
     .DisableHtml()
     .Build());
+builder.Services.AddSingleton<WikiMarkdownService>();
 
 // Scope auth cookies (and antiforgery) to the root domain so they are shared
 // across all subdomains (wiki., admin., etc.) without hardcoding any domain name.
