@@ -1,4 +1,4 @@
-.PHONY: dev deploy setup migration clean tailwind test test-unit test-integration test-coverage
+.PHONY: dev deploy setup migration clean tailwind test test-unit test-integration test-coverage publish
 
 # ── First-time setup ──────────────────────────────────────────────────────────
 
@@ -50,6 +50,11 @@ test-coverage:
 	dotnet test tests/ShulkerTech.Tests/ShulkerTech.Tests.csproj --collect:"XPlat Code Coverage" --results-directory ./coverage
 
 # ── Production ────────────────────────────────────────────────────────────────
+
+# Push image to Docker Hub (usage: make publish DOCKER_USER=yourusername)
+publish:
+	docker build -t $(DOCKER_USER)/shulker-tech:latest -f ShulkerTech.Web/Dockerfile .
+	docker push $(DOCKER_USER)/shulker-tech:latest
 
 # Deploy production stack — explicitly excludes the dev override
 deploy:
