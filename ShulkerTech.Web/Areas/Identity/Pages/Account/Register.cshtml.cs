@@ -19,7 +19,7 @@ public class RegisterModel(
     IUserStore<ApplicationUser> userStore,
     SignInManager<ApplicationUser> signInManager,
     ApplicationDbContext db,
-    MojangService mojang,
+    IMojangService mojang,
     IEmailSender emailSender) : PageModel
 {
     [BindProperty]

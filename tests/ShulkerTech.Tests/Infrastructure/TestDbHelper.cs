@@ -55,6 +55,10 @@ public static class TestDbHelper
             throw new InvalidOperationException(
                 $"Failed to create test user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
 
+        // Confirm email so the user can sign in (RequireConfirmedAccount = true in production config)
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        await userManager.ConfirmEmailAsync(user, token);
+
         if (role != null)
             await userManager.AddToRoleAsync(user, role);
 
@@ -77,6 +81,15 @@ public static class TestDbHelper
         db.PlayerSessions.Add(session);
         await db.SaveChangesAsync();
         return session;
+    }
+
+    /// <summary>Creates a valid single-use invite code and returns the code string.</summary>
+    public static async Task<string> CreateInviteCodeAsync(ApplicationDbContext db, int maxUses = 10)
+    {
+        var code = Guid.NewGuid().ToString("N").ToUpper()[..8];
+        db.InviteCodes.Add(new InviteCode { Code = code, MaxUses = maxUses });
+        await db.SaveChangesAsync();
+        return code;
     }
 
     /// <summary>Creates a published Article with a unique slug.</summary>

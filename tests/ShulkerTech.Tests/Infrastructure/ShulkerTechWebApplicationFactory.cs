@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,6 +63,11 @@ public class ShulkerTechWebApplicationFactory : WebApplicationFactory<Program>, 
             // Remove background services that perform I/O
             RemoveHostedService<ServerStatusRefresher>(services);
             RemoveHostedService<DatabaseBackupService>(services);
+
+            // Replace email sender with a no-op mock — tests don't send real emails
+            var emailDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IEmailSender));
+            if (emailDescriptor != null) services.Remove(emailDescriptor);
+            services.AddSingleton<IEmailSender>(Mock.Of<IEmailSender>());
 
             // Replace MinecraftPingService with a mock that always returns Offline
             var pingDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MinecraftPingService));

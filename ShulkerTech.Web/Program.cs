@@ -30,7 +30,7 @@ if (builder.Environment.IsDevelopment())
 else
     builder.Services.AddHttpClient<IEmailSender, EmailSender>();
 
-builder.Services.AddHttpClient<MojangService>();
+builder.Services.AddHttpClient<IMojangService, MojangService>();
 builder.Services.AddSingleton<MinecraftPingService>();
 builder.Services.AddSingleton<ServerStatusCache>();
 builder.Services.AddSingleton<ServerStatsCache>();

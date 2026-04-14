@@ -13,7 +13,7 @@ public class IndexModel(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
     ApplicationDbContext db,
-    MojangService mojang) : PageModel
+    IMojangService mojang) : PageModel
 {
     [TempData]
     public string? StatusMessage { get; set; }

@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace ShulkerTech.Core.Services;
 
-public class MojangService(HttpClient http)
+public class MojangService(HttpClient http) : IMojangService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -10,7 +10,7 @@ public class MojangService(HttpClient http)
     /// Looks up a Minecraft username via the Mojang API.
     /// Returns (uuid, username) if found, null if the username doesn't exist.
     /// </summary>
-    public async Task<MojangProfile?> GetProfileAsync(string username)
+    public virtual async Task<MojangProfile?> GetProfileAsync(string username)
     {
         var response = await http.GetAsync(
             $"https://api.mojang.com/users/profiles/minecraft/{Uri.EscapeDataString(username)}");
