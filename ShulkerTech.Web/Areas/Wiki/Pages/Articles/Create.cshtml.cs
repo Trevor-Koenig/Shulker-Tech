@@ -30,6 +30,10 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
         public string? Category { get; set; }
         public string? ViewRole { get; set; }
         public string? EditRole { get; set; }
+
+        [Url(ErrorMessage = "Must be a valid URL.")]
+        [MaxLength(2000)]
+        public string? MapUrl { get; set; }
     }
 
     public async Task<IActionResult> OnGetAsync()
@@ -70,6 +74,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
             Category = string.IsNullOrWhiteSpace(Input.Category) ? null : Input.Category.Trim(),
             ViewRole = string.IsNullOrEmpty(Input.ViewRole) ? null : Input.ViewRole,
             EditRole = string.IsNullOrEmpty(Input.EditRole) ? null : Input.EditRole,
+            MapUrl = string.IsNullOrWhiteSpace(Input.MapUrl) ? null : Input.MapUrl.Trim(),
             AuthorId = user.Id,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,

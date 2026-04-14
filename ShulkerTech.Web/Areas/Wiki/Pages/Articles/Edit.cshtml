@@ -76,6 +76,23 @@
             </datalist>
         </div>
 
+        <!-- BlueMap URL -->
+        <div class="flex flex-col gap-2">
+            <label asp-for="Input.MapUrl" class="text-xs"
+                   style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                BLUEMAP URL <span style="opacity: 0.5; font-size: 0.65rem;">(OPTIONAL)</span>
+            </label>
+            <input asp-for="Input.MapUrl" type="url" autocomplete="off"
+                   class="panel px-4 py-2.5 w-full bg-transparent outline-none"
+                   style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem;"
+                   placeholder="https://map.shulkertech.com/#world:0:64:0:300:0:0:0:0:perspective" />
+            <span asp-validation-for="Input.MapUrl" class="text-xs"
+                  style="color: var(--color-redstone); font-family: var(--font-mono);"></span>
+            <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono); opacity: 0.7;">
+                Paste a BlueMap link to embed a live map panel on this article. Right-click the map → Copy Link.
+            </p>
+        </div>
+
         <!-- Permissions -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="flex flex-col gap-2">

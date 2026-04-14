@@ -1,0 +1,6 @@
+<Project>
+  <!-- Workaround for NETSDK1226 on hosts where ASP.NET Core 10 prune data is missing -->
+  <PropertyGroup>
+    <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+  </PropertyGroup>
+</Project>

@@ -33,6 +33,10 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         public string? Category { get; set; }
         public string? ViewRole { get; set; }
         public string? EditRole { get; set; }
+
+        [Url(ErrorMessage = "Must be a valid URL.")]
+        [MaxLength(2000)]
+        public string? MapUrl { get; set; }
     }
 
     public async Task<IActionResult> OnGetAsync(int id)
@@ -53,6 +57,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
             Category = article.Category,
             ViewRole = article.ViewRole,
             EditRole = article.EditRole,
+            MapUrl = article.MapUrl,
         };
         return Page();
     }
@@ -75,6 +80,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         article.Category = string.IsNullOrWhiteSpace(Input.Category) ? null : Input.Category.Trim();
         article.ViewRole = string.IsNullOrEmpty(Input.ViewRole) ? null : Input.ViewRole;
         article.EditRole = string.IsNullOrEmpty(Input.EditRole) ? null : Input.EditRole;
+        article.MapUrl = string.IsNullOrWhiteSpace(Input.MapUrl) ? null : Input.MapUrl.Trim();
         article.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
