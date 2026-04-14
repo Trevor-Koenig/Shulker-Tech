@@ -49,8 +49,8 @@
 }
 
 @keyframes magic-pulse {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50%       { opacity: 1;   transform: scale(1.15); }
+  0%, 100% { opacity: 0.75; transform: translateY(0);    filter: drop-shadow(0 0 4px currentColor); }
+  50%       { opacity: 1;   transform: translateY(-5px); filter: drop-shadow(0 0 14px currentColor); }
 }
 
 @keyframes rune-shimmer {
@@ -395,10 +395,15 @@
 
   /* Wiki shared outer container */
   .wiki-outer {
-    max-width: 96rem;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 2.5rem 3rem;
+    padding: 2.5rem 4rem;
+  }
+
+  @media (min-width: 1280px) {
+    .wiki-outer { padding-left: 6rem; padding-right: 6rem; }
+  }
+
+  @media (min-width: 1536px) {
+    .wiki-outer { padding-left: 8rem; padding-right: 8rem; }
   }
 
   /* ── Wiki Hero Banner ─────────────────────────────────── */
