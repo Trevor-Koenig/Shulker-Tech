@@ -15,9 +15,9 @@
     var _port = Context.Request.Host.Port;
     var _portSuffix = _port.HasValue ? $":{_port}" : string.Empty;
     var _scheme = Context.Request.Scheme;
-    var _base = $"{_scheme}://{_rootHost}{_portSuffix}";
-    var _wikiBase = $"{_scheme}://wiki.{_rootHost}{_portSuffix}";
-    var _adminBase = $"{_scheme}://admin.{_rootHost}{_portSuffix}";
+    var _base = $"{_rootHost}{_portSuffix}";
+    var _wikiBase = $"wiki.{_rootHost}{_portSuffix}";
+    var _adminBase = $"admin.{_rootHost}{_portSuffix}";
     var _layoutCurrentUser = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
 }
 <!DOCTYPE html>
