@@ -18,4 +18,6 @@ public class Article
     public ApplicationUser Author { get; set; } = null!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    /// <summary>Optional BlueMap deep-link URL to show a live map panel for this article's location.</summary>
+    public string? MapUrl { get; set; }
 }

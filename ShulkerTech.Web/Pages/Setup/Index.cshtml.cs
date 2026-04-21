@@ -68,6 +68,12 @@ public class IndexModel(
         }
 
         await userManager.AddToRoleAsync(user, "Admin");
+
+        // Confirm the email directly — the setup code already proves the admin owns
+        // this deployment, so no email round-trip is needed.
+        var confirmToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        await userManager.ConfirmEmailAsync(user, confirmToken);
+
         await signInManager.SignInAsync(user, isPersistent: false);
         return RedirectToPage("/Index");
     }
