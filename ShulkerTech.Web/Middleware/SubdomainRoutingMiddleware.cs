@@ -35,6 +35,8 @@ public class SubdomainRoutingMiddleware(RequestDelegate next)
         "/lib",
         "/images",
         "/favicon.ico",
+        "/api",
+        "/uploads",
     ];
 
     // Paths that skip area-prefixing but are served locally (no cross-domain redirect).
