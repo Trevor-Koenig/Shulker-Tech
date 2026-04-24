@@ -105,6 +105,12 @@ namespace ShulkerTech.Web.Areas.Identity.Pages.Account
             var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
+                if (user.MustChangePassword)
+                {
+                    user.MustChangePassword = false;
+                    await _userManager.SetLockoutEndDateAsync(user, null);
+                    await _userManager.UpdateAsync(user);
+                }
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 

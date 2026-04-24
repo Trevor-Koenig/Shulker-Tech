@@ -68,6 +68,9 @@ public class LoginModel(
         if (result.IsLockedOut)
         {
             logger.LogWarning("User account locked out.");
+            var lockedUser = await userManager.FindByEmailAsync(Input.Email);
+            if (lockedUser?.MustChangePassword == true)
+                return RedirectToPage("./Lockout", new { mustReset = true });
             return RedirectToPage("./Lockout");
         }
         if (result.IsNotAllowed)

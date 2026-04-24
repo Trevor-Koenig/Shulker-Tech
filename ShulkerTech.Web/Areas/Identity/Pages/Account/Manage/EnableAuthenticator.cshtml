@@ -58,7 +58,9 @@
                 @* QR code *@
                 <div class="flex flex-col gap-2 mt-1">
                     <p class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.06em;">QR CODE</p>
-                    <div id="qr-code" style="display: inline-block; align-self: flex-start; padding: 0.75rem; background: #fff; border-radius: 0.35rem; line-height: 0;"></div>
+                    <div style="display: inline-block; align-self: flex-start; padding: 0.75rem; background: #fff; border-radius: 0.35rem; line-height: 0;">
+                        <img src="@Model.QrCodeDataUri" width="160" height="160" alt="QR code for authenticator app" />
+                    </div>
                     <p class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
                         Scan this with your authenticator app, or enter the key above manually.
                     </p>
@@ -103,17 +105,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/lib/qrcode/qrcode.min.js"></script>
     <script>
-    new QRCode(document.getElementById('qr-code'), {
-        text: @Json.Serialize(Model.AuthenticatorUri),
-        width: 160,
-        height: 160,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-    });
-
     function copyKey() {
         var key = document.getElementById('shared-key').textContent.trim();
         navigator.clipboard.writeText(key).then(function () {
