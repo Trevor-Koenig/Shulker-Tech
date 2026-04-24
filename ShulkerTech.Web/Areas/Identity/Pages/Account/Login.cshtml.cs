@@ -57,7 +57,7 @@ public class LoginModel(
         if (!ModelState.IsValid)
             return Page();
 
-        var result = await signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        var result = await signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
         if (result.Succeeded)
         {
             logger.LogInformation("User logged in.");

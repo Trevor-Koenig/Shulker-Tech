@@ -106,7 +106,7 @@
     <script src="~/lib/qrcode/qrcode.min.js"></script>
     <script>
     new QRCode(document.getElementById('qr-code'), {
-        text: '@Html.Raw(Model.AuthenticatorUri)',
+        text: @Json.Serialize(Model.AuthenticatorUri),
         width: 160,
         height: 160,
         colorDark: '#000000',

@@ -1,5 +1,7 @@
+using System.Threading.RateLimiting;
 using Markdig;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using ShulkerTech.Web.Markdown;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +42,42 @@ builder.Services.AddHostedService<DatabaseBackupService>();
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+
+builder.Services.AddRateLimiter(opts =>
+{
+    opts.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    static RateLimitPartition<string> Fixed(string key, int permits, int windowSeconds) =>
+        RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = permits,
+            Window = TimeSpan.FromSeconds(windowSeconds),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0,
+        });
+
+    // Named policy for the upload API controller (applied via [EnableRateLimiting])
+    opts.AddPolicy("upload", ctx =>
+        Fixed(ctx.Connection.RemoteIpAddress?.ToString() ?? "anon", 20, 60));
+
+    // Global limiter covers auth pages (Razor Pages can't use [EnableRateLimiting] directly)
+    opts.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
+    {
+        var ip   = ctx.Connection.RemoteIpAddress?.ToString() ?? "anon";
+        var path = ctx.Request.Path.Value ?? "";
+
+        if (path.StartsWith("/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+            return Fixed($"login:{ip}", 10, 60);
+
+        if (path.StartsWith("/Identity/Account/Register", StringComparison.OrdinalIgnoreCase))
+            return Fixed($"register:{ip}", 5, 300);
+
+        if (path.StartsWith("/Identity/Account/ForgotPassword", StringComparison.OrdinalIgnoreCase))
+            return Fixed($"pwreset:{ip}", 5, 300);
+
+        return RateLimitPartition.GetNoLimiter("none");
+    });
+});
 
 // Markdown pipeline — advanced extensions enabled, raw HTML stripped for safety
 builder.Services.AddSingleton(new MarkdownPipelineBuilder()
@@ -96,6 +134,8 @@ else
     app.UseHsts();
     app.UseHttpsRedirection();
 }
+app.UseMiddleware<SecurityHeadersMiddleware>();
+app.UseRateLimiter();
 app.UseCookiePolicy();
 app.UseMiddleware<FirstRunMiddleware>();
 app.UseStatusCodePagesWithReExecute("/404");

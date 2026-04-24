@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ShulkerTech.Web.Controllers;
 
@@ -22,6 +23,7 @@ public class WikiImageController(
 
     [HttpPost("upload-image")]
     [RequestSizeLimit(20 * 1024 * 1024)]
+    [EnableRateLimiting("upload")]
     public async Task<IActionResult> UploadImage(IFormFile file)
     {
         // [ValidateAntiForgeryToken] doesn't fire on [ApiController] — validate manually.
