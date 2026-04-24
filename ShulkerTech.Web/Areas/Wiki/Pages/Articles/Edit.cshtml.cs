@@ -74,6 +74,19 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
 
         if (!ModelState.IsValid) return Page();
 
+        // Snapshot the current state before overwriting
+        var user = await userManager.GetUserAsync(User)!;
+        db.ArticleRevisions.Add(new ArticleRevision
+        {
+            ArticleId = article.Id,
+            Title     = article.Title,
+            Content   = article.Content,
+            Category  = article.Category,
+            MapUrl    = article.MapUrl,
+            EditorId  = user!.Id,
+            EditedAt  = DateTime.UtcNow,
+        });
+
         article.Title = Input.Title;
         article.Content = Input.Content;
         article.IsPublished = Input.IsPublished;

@@ -10,6 +10,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<MapServer> MapServers => Set<MapServer>();
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<Article> Articles => Set<Article>();
+    public DbSet<ArticleRevision> ArticleRevisions => Set<ArticleRevision>();
     public DbSet<WikiSettings> WikiSettings => Set<WikiSettings>();
     public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
     public DbSet<SecuritySettings> SecuritySettings => Set<SecuritySettings>();
@@ -24,6 +25,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Article>()
             .HasIndex(a => a.Slug)
             .IsUnique();
+
+        builder.Entity<ArticleRevision>()
+            .HasOne(r => r.Article)
+            .WithMany()
+            .HasForeignKey(r => r.ArticleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ArticleRevision>()
+            .HasOne(r => r.Editor)
+            .WithMany()
+            .HasForeignKey(r => r.EditorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ArticleRevision>()
+            .HasIndex(r => new { r.ArticleId, r.EditedAt });
 
         builder.Entity<MinecraftServer>()
             .HasIndex(s => s.ApiKey)
