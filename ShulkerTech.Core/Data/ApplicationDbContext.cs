@@ -14,6 +14,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<ArticleFavorite> ArticleFavorites => Set<ArticleFavorite>();
     public DbSet<ArticleRating> ArticleRatings => Set<ArticleRating>();
+    public DbSet<ArticleTemplate> ArticleTemplates => Set<ArticleTemplate>();
     public DbSet<WikiSettings> WikiSettings => Set<WikiSettings>();
     public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
     public DbSet<SecuritySettings> SecuritySettings => Set<SecuritySettings>();

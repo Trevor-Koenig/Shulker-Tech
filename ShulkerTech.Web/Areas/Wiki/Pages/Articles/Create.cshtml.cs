@@ -18,6 +18,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
 
     public WikiSettings Settings { get; set; } = new();
     public List<Tag> AllTags { get; set; } = [];
+    public List<ArticleTemplate> Templates { get; set; } = [];
 
     public class InputModel
     {
@@ -41,6 +42,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
     {
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
         AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
+        Templates = await db.ArticleTemplates.OrderByDescending(t => t.IsDefault).ThenBy(t => t.Name).ToListAsync();
 
         var user = await userManager.GetUserAsync(User);
         if (user == null) return Forbid();
@@ -56,6 +58,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
     {
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
         AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
+        Templates = await db.ArticleTemplates.OrderByDescending(t => t.IsDefault).ThenBy(t => t.Name).ToListAsync();
 
         var user = await userManager.GetUserAsync(User)
             ?? throw new InvalidOperationException("Authenticated user not found.");

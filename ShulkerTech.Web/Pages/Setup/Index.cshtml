@@ -20,6 +20,55 @@
             </p>
         </div>
 
+        @if (Model.AvailableBackups.Count > 0)
+        {
+            <div class="panel p-6 flex flex-col gap-4 mb-6"
+                 style="border-color: color-mix(in oklab, var(--color-accent) 35%, transparent);">
+                <div>
+                    <p class="text-xs tracking-widest mb-1" style="font-family: var(--font-mono); color: var(--color-accent);">&#9670; RESTORE FROM BACKUP</p>
+                    <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                        @Model.AvailableBackups.Count backup@(Model.AvailableBackups.Count == 1 ? "" : "s") found. Restore one to skip account creation and recover your previous data.
+                    </p>
+                </div>
+
+                <form method="post" asp-page-handler="Restore" class="flex flex-col gap-3">
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs tracking-wider" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">BACKUP FILE</label>
+                        <select name="backupFile"
+                                class="w-full px-3 py-2 rounded text-xs"
+                                style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-crystal); outline: none; font-family: var(--font-mono);">
+                            @foreach (var backup in Model.AvailableBackups)
+                            {
+                                <option value="@backup.FileName">@backup.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs tracking-wider" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">SETUP CODE</label>
+                        <input name="setupCode" type="password" autocomplete="off"
+                               placeholder="Enter the setup code"
+                               class="w-full px-3 py-2 rounded text-sm"
+                               style="background: var(--color-void); border: 1px solid color-mix(in oklab, var(--color-accent) 30%, transparent); color: var(--color-crystal); outline: none; font-family: var(--font-mono);" />
+                    </div>
+
+                    <button type="submit" class="btn-nav w-full py-2 text-xs"
+                            style="border-color: var(--color-accent); color: var(--color-accent);"
+                            onclick="return confirm('This will overwrite the current database. Continue?')">
+                        RESTORE DATABASE
+                    </button>
+
+                </form>
+            </div>
+
+            <div class="flex items-center gap-3 mb-6">
+                <div class="flex-1 h-px" style="background: color-mix(in oklab, var(--color-arcane) 20%, transparent);"></div>
+                <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">OR CREATE NEW</span>
+                <div class="flex-1 h-px" style="background: color-mix(in oklab, var(--color-arcane) 20%, transparent);"></div>
+            </div>
+        }
+
         <div class="panel panel-arcane p-8 flex flex-col gap-5">
 
             @if (!string.IsNullOrEmpty(Model.ErrorMessage))

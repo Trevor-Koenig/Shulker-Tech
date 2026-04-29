@@ -33,6 +33,28 @@
                   style="color: var(--color-redstone); font-family: var(--font-mono);"></span>
         </div>
 
+        <!-- Template picker -->
+        @if (Model.Templates.Count > 0)
+        {
+            <div class="flex flex-col gap-2">
+                <div style="display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;">
+                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TEMPLATE</label>
+                    <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); opacity: 0.6;">Click to load · ★ = default</span>
+                </div>
+                <div class="flex flex-wrap gap-2" id="template-btns">
+                    @foreach (var tmpl in Model.Templates)
+                    {
+                        <button type="button"
+                                class="btn-nav template-load-btn"
+                                data-template-id="@tmpl.Id"
+                                style="font-size: 0.78rem; @(tmpl.IsDefault ? "color: var(--color-plasma); border-color: var(--color-plasma);" : "")">
+                            @(tmpl.IsDefault ? "★ " : "")@tmpl.Name
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+
         <!-- Content -->
         <div class="flex flex-col gap-2">
             <div class="flex items-center justify-between">
@@ -199,5 +221,30 @@
             imagePathAbsolute: true,
             status: ['upload-image', 'lines', 'words', 'cursor'],
         });
+
+        // Template data from server
+        var TEMPLATES = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.Templates.Select(t => new { t.Id, t.Name, t.Content, t.IsDefault })));
+
+        function loadTemplate(tmpl) {
+            var current = easyMDE.value().trim();
+            if (current && !confirm('Replace current content with the "' + tmpl.Name + '" template?')) return;
+            easyMDE.value(tmpl.content);
+            easyMDE.codemirror.focus();
+        }
+
+        // Wire up template buttons
+        document.querySelectorAll('.template-load-btn').forEach(function (btn) {
+            var id = parseInt(btn.dataset.templateId);
+            var tmpl = TEMPLATES.find(function (t) { return t.id === id; });
+            if (!tmpl) return;
+            btn.addEventListener('click', function () { loadTemplate(tmpl); });
+        });
+
+        // Auto-load default template if editor is empty
+        var defaultTmpl = TEMPLATES.find(function (t) { return t.isDefault; });
+        if (defaultTmpl && !easyMDE.value().trim()) {
+            easyMDE.value(defaultTmpl.content);
+        }
     </script>
 }

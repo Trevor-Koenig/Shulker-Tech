@@ -1,0 +1,157 @@
+@page
+@model TemplatesModel
+@{
+    ViewData["Title"] = "Article Templates";
+}
+
+<div class="px-4 sm:px-8 lg:px-16 xl:px-24 2xl:px-32 py-10">
+
+    <div class="mb-8">
+        <a href="/Admin/Wiki/Settings" style="font-family: var(--font-mono); font-size: 0.875rem; color: var(--color-muted); letter-spacing: 0.08em; text-decoration: none;">← WIKI SETTINGS</a>
+        <p class="tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-rune);">&#9670; WIKI ADMIN</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.08em; color: var(--color-crystal);">ARTICLE TEMPLATES</h1>
+        <p style="font-family: var(--font-body); font-size: 0.95rem; color: var(--color-muted); margin-top: 0.4rem;">
+            Templates are shown on the article Create page. The default template is auto-loaded on an empty editor.
+        </p>
+    </div>
+
+    @if (Model.StatusMessage != null)
+    {
+        <div class="panel p-4 mb-6" style="color: var(--color-plasma); font-family: var(--font-mono); font-size: 0.875rem;">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <!-- Template list -->
+    @if (Model.Templates.Count == 0)
+    {
+        <div class="panel p-8 text-center mb-8">
+            <p style="font-family: var(--font-mono); font-size: 0.875rem; color: var(--color-muted);">No templates yet. Create one below.</p>
+        </div>
+    }
+    else
+    {
+        <div class="flex flex-col gap-4 mb-10">
+            @foreach (var tmpl in Model.Templates)
+            {
+                <div class="panel p-5" id="tmpl-@tmpl.Id">
+                    <!-- Summary row -->
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                        <div style="min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+                                <span style="font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em; color: var(--color-crystal);">@tmpl.Name</span>
+                                @if (tmpl.IsDefault)
+                                {
+                                    <span style="font-family: var(--font-mono); font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 0.25rem; background: color-mix(in oklab, var(--color-plasma) 15%, transparent); color: var(--color-plasma);">★ DEFAULT</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(tmpl.Description))
+                            {
+                                <p style="font-family: var(--font-body); font-size: 0.875rem; color: var(--color-muted);">@tmpl.Description</p>
+                            }
+                            <p style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-muted); margin-top: 0.3rem; opacity: 0.6;">
+                                @tmpl.Content.Length chars · updated @tmpl.UpdatedAt.ToString("MMM d, yyyy")
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
+                            <button type="button" onclick="toggleEdit(@tmpl.Id)" class="btn-nav" style="font-size: 0.75rem;">EDIT</button>
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@tmpl.Id"
+                                  onsubmit="return confirm('Delete template \'@tmpl.Name\'?')">
+                                <button type="submit" class="btn-nav" style="font-size: 0.75rem; color: var(--color-redstone); border-color: color-mix(in oklab, var(--color-redstone) 40%, transparent);">DELETE</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Edit form (hidden by default) -->
+                    <div id="edit-form-@tmpl.Id" style="display: none; margin-top: 1.25rem; border-top: 1px solid color-mix(in oklab, var(--color-accent) 12%, transparent); padding-top: 1.25rem;">
+                        <form method="post" asp-page-handler="Edit" class="flex flex-col gap-4">
+                            <input type="hidden" asp-for="Edit.Id" value="@tmpl.Id" />
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">NAME</label>
+                                    <input name="Edit.Name" value="@tmpl.Name" required maxlength="100"
+                                           class="panel px-3 py-2 bg-transparent outline-none"
+                                           style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem;" />
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">DESCRIPTION <span style="opacity:0.5;">(OPTIONAL)</span></label>
+                                    <input name="Edit.Description" value="@tmpl.Description" maxlength="300"
+                                           class="panel px-3 py-2 bg-transparent outline-none"
+                                           style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem;" />
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">CONTENT (MARKDOWN)</label>
+                                <textarea name="Edit.Content" rows="16"
+                                          class="panel px-3 py-2 bg-transparent outline-none resize-y w-full"
+                                          style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.8rem; line-height: 1.6;">@tmpl.Content</textarea>
+                            </div>
+
+                            <label class="flex items-center gap-3 cursor-pointer select-none">
+                                <input type="checkbox" name="Edit.IsDefault" value="true" @(tmpl.IsDefault ? "checked" : "")
+                                       class="w-4 h-4" style="accent-color: var(--color-plasma);" />
+                                <span class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">★ SET AS DEFAULT</span>
+                            </label>
+
+                            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                <button type="submit" class="btn-primary" style="font-size: 0.8rem;">SAVE</button>
+                                <button type="button" onclick="toggleEdit(@tmpl.Id)" class="nav-link" style="font-size: 0.8rem;">CANCEL</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Create new template -->
+    <div class="panel p-6">
+        <p style="font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.12em; color: var(--color-accent); margin-bottom: 1.25rem;">CREATE NEW TEMPLATE</p>
+        <form method="post" asp-page-handler="Create" class="flex flex-col gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label asp-for="Create.Name" class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">NAME</label>
+                    <input asp-for="Create.Name" required maxlength="100"
+                           class="panel px-3 py-2 bg-transparent outline-none"
+                           style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem;" />
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label asp-for="Create.Description" class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">DESCRIPTION <span style="opacity:0.5;">(OPTIONAL)</span></label>
+                    <input asp-for="Create.Description" maxlength="300"
+                           class="panel px-3 py-2 bg-transparent outline-none"
+                           style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem;" />
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label asp-for="Create.Content" class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">CONTENT (MARKDOWN)</label>
+                <textarea asp-for="Create.Content" rows="16"
+                          class="panel px-3 py-2 bg-transparent outline-none resize-y w-full"
+                          style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.8rem; line-height: 1.6;"
+                          placeholder="## Introduction&#10;&#10;Write your template here..."></textarea>
+            </div>
+
+            <label class="flex items-center gap-3 cursor-pointer select-none">
+                <input asp-for="Create.IsDefault" type="checkbox" value="true"
+                       class="w-4 h-4" style="accent-color: var(--color-plasma);" />
+                <span class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">★ SET AS DEFAULT</span>
+            </label>
+
+            <div>
+                <button type="submit" class="btn-primary" style="font-size: 0.8rem;">CREATE TEMPLATE</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+function toggleEdit(id) {
+    var form = document.getElementById('edit-form-' + id);
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+}
