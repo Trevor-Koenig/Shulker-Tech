@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShulkerTech.Core.Data;
@@ -11,9 +12,11 @@ using ShulkerTech.Core.Data;
 namespace ShulkerTech.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260429205856_AddArticleFavorites")]
+    partial class AddArticleFavorites
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -316,43 +319,6 @@ namespace ShulkerTech.Web.Migrations
                     b.HasIndex("ArticleId");
 
                     b.ToTable("ArticleFavorites");
-                });
-
-            modelBuilder.Entity("ShulkerTech.Core.Models.ArticleRating", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ArticleId")
-                        .HasColumnType("integer");
-
-                    b.Property<byte>("Coolness")
-                        .HasColumnType("smallint");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<byte>("Usefulness")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("ArticleId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("ArticleRatings");
                 });
 
             modelBuilder.Entity("ShulkerTech.Core.Models.ArticleRevision", b =>
@@ -881,25 +847,6 @@ namespace ShulkerTech.Web.Migrations
                 {
                     b.HasOne("ShulkerTech.Core.Models.Article", "Article")
                         .WithMany("Favorites")
-                        .HasForeignKey("ArticleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ShulkerTech.Core.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Article");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ShulkerTech.Core.Models.ArticleRating", b =>
-                {
-                    b.HasOne("ShulkerTech.Core.Models.Article", "Article")
-                        .WithMany()
                         .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

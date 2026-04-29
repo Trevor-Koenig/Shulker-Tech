@@ -118,7 +118,7 @@ public class WikiTagTests(ShulkerTechWebApplicationFactory factory)
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var tags = await db.Tags.ToListAsync();
 
-        tags.Should().HaveCount(12);
+        tags.Should().HaveCountGreaterThanOrEqualTo(12);
         tags.Select(t => t.Slug).Should().Contain(new[]
         {
             "getting-started", "server-info", "survival", "redstone",

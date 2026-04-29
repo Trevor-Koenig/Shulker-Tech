@@ -59,6 +59,12 @@
                         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
                 </div>
+                @if (Model.PublishedCount > 0)
+                {
+                    <a href="/Wiki/random" class="btn-nav" style="display: inline-block; margin-top: 0.6rem; font-size: 0.68rem;">
+                        &#9670; RANDOM ARTICLE
+                    </a>
+                }
             </div>
         </div>
     </section>
@@ -66,8 +72,37 @@
     <!-- ═══ MAIN GRID ═══ -->
     <div class="wiki-index-grid">
 
-        <!-- LEFT: categories + article list -->
+        <!-- LEFT: pinned + tags + article list -->
         <div>
+
+            @if (Model.UserFavorites.Count > 0)
+            {
+                <!-- ── My Favorites ── -->
+                <div class="mb-8">
+                    <div class="rune-divider mb-5">
+                        <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-plasma);">★ MY FAVORITES</span>
+                    </div>
+                    <div class="wiki-pinned-grid">
+                        @foreach (var fav in Model.UserFavorites)
+                        {
+                            <a href="/articles/@fav.Slug" class="wiki-pinned-card panel" style="text-decoration: none;">
+                                <div style="font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; color: var(--color-crystal); margin-bottom: 0.5rem;">
+                                    @fav.Title
+                                </div>
+                                @if (fav.Tags.Any())
+                                {
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach (var tag in fav.Tags.Take(3))
+                                        {
+                                            <span class="tag-pill tag-pill--sm" style="--tag-color: @tag.Color;">@if (!string.IsNullOrEmpty(tag.Icon)) { @tag.Icon } @tag.Name</span>
+                                        }
+                                    </div>
+                                }
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
 
             @if (Model.Tags.Count > 0)
             {
@@ -84,7 +119,7 @@
                                     style="--tag-color: @tag.Color;"
                                     type="button"
                                     title="Show @tag.ArticleCount article@(tag.ArticleCount != 1 ? "s" : "") tagged @tag.Name">
-                                <span>@tag.Icon</span> @tag.Name.ToUpperInvariant()
+                                @if (!string.IsNullOrEmpty(tag.Icon)) { <span>@tag.Icon</span> } @tag.Name.ToUpperInvariant()
                                 <span style="opacity: 0.6; font-size: 0.7em;">@tag.ArticleCount</span>
                             </button>
                         }
@@ -133,7 +168,7 @@
                                             @foreach (var tag in article.Tags.Take(3))
                                             {
                                                 <span class="tag-pill tag-pill--sm" style="--tag-color: @tag.Color;">
-                                                    <span>@tag.Icon</span> @tag.Name.ToUpperInvariant()
+                                                    @if (!string.IsNullOrEmpty(tag.Icon)) { <span>@tag.Icon</span> } @tag.Name.ToUpperInvariant()
                                                 </span>
                                             }
                                             @if (!article.IsPublished)
@@ -250,7 +285,7 @@
     var rows         = Array.from(document.querySelectorAll('.wiki-article-row'));
     var noResults    = document.getElementById('no-results');
     var tagButtons   = Array.from(document.querySelectorAll('[data-tag-slug]'));
-    var activeFilter = null; // tag slug or null
+    var activeFilter = null;
 
     function applyFilters() {
         var q = searchInput ? searchInput.value.trim().toLowerCase() : '';
@@ -267,6 +302,28 @@
         if (noResults) noResults.classList.toggle('hidden', visible > 0 || (!q && !activeFilter));
     }
 
+    function setActiveTag(slug) {
+        activeFilter = slug || null;
+        tagButtons.forEach(function (b) {
+            b.classList.toggle('tag-pill--active', b.dataset.tagSlug === slug);
+        });
+        applyFilters();
+    }
+
+    function syncUrl(slug) {
+        var url = new URL(window.location.href);
+        if (slug) {
+            url.searchParams.set('tag', slug);
+        } else {
+            url.searchParams.delete('tag');
+        }
+        history.pushState({ tag: slug || null }, '', url.toString());
+    }
+
+    // Seed filter from URL on load
+    var initialTag = new URLSearchParams(window.location.search).get('tag');
+    if (initialTag) setActiveTag(initialTag);
+
     if (searchInput) {
         searchInput.addEventListener('input', applyFilters);
     }
@@ -274,16 +331,15 @@
     tagButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
             var slug = btn.dataset.tagSlug;
-            if (activeFilter === slug) {
-                activeFilter = null;
-                btn.classList.remove('tag-pill--active');
-            } else {
-                tagButtons.forEach(function (b) { b.classList.remove('tag-pill--active'); });
-                activeFilter = slug;
-                btn.classList.add('tag-pill--active');
-            }
-            applyFilters();
+            var next = activeFilter === slug ? null : slug;
+            setActiveTag(next);
+            syncUrl(next);
         });
+    });
+
+    // Keep filter in sync when the user navigates back/forward
+    window.addEventListener('popstate', function (e) {
+        setActiveTag(e.state && e.state.tag ? e.state.tag : null);
     });
 })();
 </script>

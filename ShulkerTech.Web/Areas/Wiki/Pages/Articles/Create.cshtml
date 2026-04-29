@@ -62,7 +62,7 @@
                     <button type="button" class="tag-pill"
                             data-tag-id="@tag.Id"
                             style="--tag-color: @tag.Color;">
-                        @tag.Icon @tag.Name
+                        @if (!string.IsNullOrEmpty(tag.Icon)) { @tag.Icon } @tag.Name
                     </button>
                 }
             </div>

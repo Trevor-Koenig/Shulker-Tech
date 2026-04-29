@@ -45,14 +45,23 @@
                         <a href="/articles/history/@Model.Article.Id" class="btn-nav"
                            style="font-size: 0.65rem; padding: 0.2rem 0.6rem;">HISTORY</a>
                     }
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form method="post" asp-page-handler="Favorite" asp-route-slug="@Model.Article.Slug" style="display: inline;">
+                            <button type="submit" class="btn-nav"
+                                    style="font-size: 0.65rem; padding: 0.2rem 0.6rem; @(Model.IsFavorited ? "color: var(--color-plasma); border-color: var(--color-plasma);" : "")">
+                                @(Model.IsFavorited ? "★ FAVORITED" : "☆ FAVORITE")
+                            </button>
+                        </form>
+                    }
                 </div>
                 @if (Model.Article.Tags.Any())
                 {
                     <div class="mt-3 flex flex-wrap gap-2">
                         @foreach (var tag in Model.Article.Tags.OrderBy(t => t.Name))
                         {
-                            <a href="/?tag=@tag.Slug" class="tag-pill" style="--tag-color: @tag.Color; text-decoration: none;">
-                                <span>@tag.Icon</span> @tag.Name.ToUpperInvariant()
+                            <a href="/Wiki?tag=@tag.Slug" class="tag-pill" style="--tag-color: @tag.Color; text-decoration: none;">
+                                @if (!string.IsNullOrEmpty(tag.Icon)) { <span>@tag.Icon</span> } @tag.Name.ToUpperInvariant()
                             </a>
                         }
                     </div>
@@ -83,6 +92,91 @@
                 @Html.Raw(Model.ContentHtml)
             </div>
 
+            <!-- ═══ RATING WIDGET ═══ -->
+            <div id="rating-widget" class="panel mt-6" style="padding: 1.25rem 1.5rem;">
+                <p style="font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.12em; color: var(--color-accent); margin-bottom: 1rem;">RATE THIS ARTICLE</p>
+
+                <!-- Averages (always visible) -->
+                <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: @(User.Identity?.IsAuthenticated == true ? "1.25rem" : "0");">
+                    <div class="wiki-rating-row">
+                        <span class="wiki-rating-label">USEFULNESS</span>
+                        <span class="wiki-rating-icons">
+                            @{ var filledU = Model.RatingCount > 0 ? (int)Math.Round(Model.AvgUsefulness) : 0; }
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span class="mc-dust @(i <= filledU ? "" : "mc-icon--empty")"><img src="/images/redstone_dust.webp" alt="" /></span>
+                            }
+                        </span>
+                        @if (Model.RatingCount > 0)
+                        {
+                            <span class="wiki-rating-avg">@Model.AvgUsefulness.ToString("F1") · @Model.RatingCount rating@(Model.RatingCount != 1 ? "s" : "")</span>
+                        }
+                        else
+                        {
+                            <span class="wiki-rating-avg">no ratings yet</span>
+                        }
+                    </div>
+                    <div class="wiki-rating-row">
+                        <span class="wiki-rating-label">COOLNESS</span>
+                        <span class="wiki-rating-icons">
+                            @{ var filledC = Model.RatingCount > 0 ? (int)Math.Round(Model.AvgCoolness) : 0; }
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span class="mc-gem @(i <= filledC ? "" : "mc-icon--empty")"><img src="/images/diamond.webp" alt="" /></span>
+                            }
+                        </span>
+                        @if (Model.RatingCount > 0)
+                        {
+                            <span class="wiki-rating-avg">@Model.AvgCoolness.ToString("F1")</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Rating form — authenticated only -->
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form method="post" asp-page-handler="Rate" asp-route-slug="@Model.Article.Slug">
+                        <div style="border-top: 1px solid color-mix(in oklab, var(--color-accent) 12%, transparent); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                            <p style="font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.1em; color: var(--color-muted);">
+                                YOUR RATING@(Model.UserUsefulness.HasValue ? " (click to update)" : ""):
+                            </p>
+
+                            <!-- Usefulness picker -->
+                            <div class="wiki-rating-row">
+                                <span class="wiki-rating-label">USEFULNESS</span>
+                                <span class="mc-picker" data-input="usefulness-val">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        var active = Model.UserUsefulness.HasValue && i <= Model.UserUsefulness.Value;
+                                        <span class="mc-picker-icon mc-picker-dust @(active ? "mc-picker-icon--on" : "")" data-val="@i" title="@i out of 5"><img src="/images/redstone_dust.webp" alt="@i" /></span>
+                                    }
+                                </span>
+                                <input type="hidden" id="usefulness-val" name="usefulness" value="@(Model.UserUsefulness ?? 1)" />
+                            </div>
+
+                            <!-- Coolness picker -->
+                            <div class="wiki-rating-row">
+                                <span class="wiki-rating-label">COOLNESS</span>
+                                <span class="mc-picker" data-input="coolness-val">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        var active = Model.UserCoolness.HasValue && i <= Model.UserCoolness.Value;
+                                        <span class="mc-picker-icon mc-picker-gem @(active ? "mc-picker-icon--on" : "")" data-val="@i" title="@i out of 5"><img src="/images/diamond.webp" alt="@i" /></span>
+                                    }
+                                </span>
+                                <input type="hidden" id="coolness-val" name="coolness" value="@(Model.UserCoolness ?? 1)" />
+                            </div>
+
+                            <div>
+                                <button type="submit" class="btn-nav" style="font-size: 0.75rem;">
+                                    @(Model.UserUsefulness.HasValue ? "UPDATE RATING" : "SUBMIT RATING")
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                }
+            </div>
+
         </div>
 
         <!-- TOC sidebar — hidden until JS builds it, visible only on large screens -->
@@ -99,6 +193,33 @@
 
 @section Scripts {
 <script>
+// Rating picker — hover preview + click to select
+(function () {
+    document.querySelectorAll('.mc-picker').forEach(function (picker) {
+        var icons   = Array.from(picker.querySelectorAll('.mc-picker-icon'));
+        var input   = document.getElementById(picker.dataset.input);
+        var current = parseInt(input.value) || 0;
+
+        function highlight(val) {
+            icons.forEach(function (ic, i) {
+                ic.classList.toggle('mc-picker-icon--on', i + 1 <= val);
+            });
+        }
+
+        highlight(current);
+
+        icons.forEach(function (ic, i) {
+            ic.addEventListener('mouseenter', function () { highlight(i + 1); });
+            ic.addEventListener('mouseleave', function () { highlight(current); });
+            ic.addEventListener('click', function () {
+                current = i + 1;
+                input.value = current;
+                highlight(current);
+            });
+        });
+    });
+})();
+
 // Persist map panel open/closed state in localStorage
 (function () {
     var mapDetails = document.getElementById('map-details');

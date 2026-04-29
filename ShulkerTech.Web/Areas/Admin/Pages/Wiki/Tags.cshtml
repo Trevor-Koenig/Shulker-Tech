@@ -1,0 +1,195 @@
+@page "/Admin/Wiki/Tags"
+@model TagsModel
+@{
+    ViewData["Title"] = "Wiki Tags";
+}
+
+<div class="px-6 lg:px-10 py-10">
+
+    <div class="mb-8">
+        <p class="text-xs tracking-widest mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; WIKI</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            MANAGE TAGS
+        </h1>
+        <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+            Create, edit, and delete tags used to categorise wiki articles.
+            &nbsp;·&nbsp; <a href="/Admin/Wiki/Settings" style="color: var(--color-muted); text-decoration: underline;">Wiki Settings</a>
+        </p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="mb-6 px-4 py-3 panel text-sm" style="color: var(--color-accent); font-family: var(--font-mono);">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <!-- ── Existing Tags ── -->
+    <div class="mb-10">
+        <div class="rune-divider mb-5">
+            <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">
+                EXISTING TAGS (@Model.Tags.Count)
+            </span>
+        </div>
+
+        @if (Model.Tags.Count == 0)
+        {
+            <p style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-muted);">No tags yet.</p>
+        }
+        else
+        {
+            <div class="panel overflow-hidden">
+                @foreach (var tag in Model.Tags)
+                {
+                    <div class="flex items-center gap-4 px-5 py-3"
+                         style="border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 8%, transparent);">
+
+                        <!-- Preview pill -->
+                        <span class="tag-pill flex-shrink-0" style="--tag-color: @tag.Color; pointer-events: none;">
+                            @if (!string.IsNullOrEmpty(tag.Icon)) { @tag.Icon } @tag.Name
+                        </span>
+
+                        <!-- Slug + article count -->
+                        <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-muted); min-width: 140px;">
+                            @tag.Slug
+                        </span>
+                        <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-muted); min-width: 80px;">
+                            @tag.ArticleCount article@(tag.ArticleCount != 1 ? "s" : "")
+                        </span>
+
+                        <!-- Edit button (opens inline form) -->
+                        <button type="button"
+                                class="text-xs nav-link ml-auto"
+                                onclick="toggleEdit(@tag.Id)"
+                                id="edit-btn-@tag.Id">
+                            EDIT
+                        </button>
+
+                        <!-- Delete -->
+                        <form method="post" asp-page-handler="Delete" asp-route-id="@tag.Id"
+                              onsubmit="return confirm('Delete tag \'@tag.Name\'? It will be removed from all articles.')">
+                            <button type="submit" class="text-xs"
+                                    style="font-family: var(--font-display); letter-spacing: 0.08em; color: var(--color-redstone); cursor: pointer; background: none; border: none; padding: 0;">
+                                DELETE
+                            </button>
+                        </form>
+
+                    </div>
+
+                    <!-- Inline edit row (hidden by default) -->
+                    <div id="edit-form-@tag.Id" class="hidden px-5 py-4"
+                         style="background: color-mix(in oklab, var(--color-accent) 4%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 8%, transparent);">
+                        <form method="post" asp-page-handler="Edit" class="flex flex-wrap gap-3 items-end">
+                            <input type="hidden" name="Edit.Id" value="@tag.Id" />
+
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">NAME</label>
+                                <input name="Edit.Name" value="@tag.Name" required maxlength="80"
+                                       class="panel px-3 py-1.5 bg-transparent outline-none"
+                                       style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.8rem; width: 180px;" />
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">ICON</label>
+                                <input name="Edit.Icon" value="@tag.Icon" maxlength="10"
+                                       class="panel px-3 py-1.5 bg-transparent outline-none text-center"
+                                       style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 1rem; width: 60px;" />
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                                <label class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">COLOR</label>
+                                <input name="Edit.Color" value="@tag.Color" required maxlength="100"
+                                       class="panel px-3 py-1.5 bg-transparent outline-none"
+                                       style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.78rem; width: 220px;" />
+                            </div>
+
+                            <div class="flex flex-col gap-1 flex-1" style="min-width: 180px;">
+                                <label class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">DESCRIPTION (optional)</label>
+                                <input name="Edit.Description" value="@(tag.Description ?? "")" maxlength="300"
+                                       class="panel px-3 py-1.5 bg-transparent outline-none w-full"
+                                       style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.78rem;" />
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="submit" class="btn-primary" style="padding: 0.35rem 0.9rem; font-size: 0.72rem;">SAVE</button>
+                                <button type="button" class="nav-link" onclick="toggleEdit(@tag.Id)" style="font-size: 0.72rem;">CANCEL</button>
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- ── Create New Tag ── -->
+    <div>
+        <div class="rune-divider mb-5">
+            <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-plasma);">+ NEW TAG</span>
+        </div>
+
+        <div class="panel p-6">
+            <form method="post" asp-page-handler="Create" class="flex flex-wrap gap-4 items-end">
+
+                <div class="flex flex-col gap-2">
+                    <label asp-for="Create.Name" class="text-xs"
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">NAME</label>
+                    <input asp-for="Create.Name" required maxlength="80" autocomplete="off"
+                           class="panel px-3 py-2 bg-transparent outline-none"
+                           style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.85rem; width: 200px;" />
+                    <span asp-validation-for="Create.Name" class="text-xs" style="color: var(--color-redstone); font-family: var(--font-mono);"></span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label asp-for="Create.Icon" class="text-xs"
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">ICON</label>
+                    <input asp-for="Create.Icon" maxlength="10" autocomplete="off"
+                           class="panel px-3 py-2 bg-transparent outline-none text-center"
+                           style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 1.1rem; width: 64px;" />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label asp-for="Create.Color" class="text-xs"
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">COLOR</label>
+                    <input asp-for="Create.Color" required maxlength="100" autocomplete="off"
+                           placeholder="var(--color-accent) or #hex"
+                           class="panel px-3 py-2 bg-transparent outline-none"
+                           style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.78rem; width: 240px;" />
+                    <span asp-validation-for="Create.Color" class="text-xs" style="color: var(--color-redstone); font-family: var(--font-mono);"></span>
+                </div>
+
+                <div class="flex flex-col gap-2 flex-1" style="min-width: 180px;">
+                    <label asp-for="Create.Description" class="text-xs"
+                           style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                        DESCRIPTION <span style="opacity: 0.5; font-size: 0.65rem;">(OPTIONAL)</span>
+                    </label>
+                    <input asp-for="Create.Description" maxlength="300" autocomplete="off"
+                           class="panel px-3 py-2 bg-transparent outline-none w-full"
+                           style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.78rem;" />
+                </div>
+
+                <div>
+                    <button type="submit" class="btn-primary">CREATE TAG</button>
+                </div>
+
+            </form>
+
+            <p class="mt-4 text-xs" style="font-family: var(--font-mono); color: var(--color-muted); opacity: 0.7;">
+                Slug is auto-generated from the name and is permanent — renaming a tag does not change its slug.
+                Color accepts any CSS value: <code>var(--color-plasma)</code>, <code>#a259ff</code>, <code>oklch(70% 0.2 300)</code>, etc.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+function toggleEdit(id) {
+    var form = document.getElementById('edit-form-' + id);
+    var btn  = document.getElementById('edit-btn-'  + id);
+    var open = !form.classList.contains('hidden');
+    form.classList.toggle('hidden', open);
+    btn.textContent = open ? 'EDIT' : 'CANCEL';
+}
+</script>
+}

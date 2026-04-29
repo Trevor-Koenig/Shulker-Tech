@@ -23,6 +23,10 @@
   --font-fantasy: 'VT323', ui-monospace, monospace;
   --font-body: 'Exo 2', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Share Tech Mono', ui-monospace, monospace;
+
+  /* Bump Tailwind's text-xs up 2 steps so inline class="text-xs" labels are readable */
+  --text-xs: 0.875rem;
+  --text-xs--line-height: calc(1.25 / 0.875);
 }
 
 @layer base {
@@ -86,7 +90,7 @@
     color: var(--color-muted);
     transition: color 150ms ease, text-shadow 150ms ease;
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
@@ -103,7 +107,7 @@
     padding: 0.65rem 1.75rem;
     border-radius: 0.25rem;
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     transition: box-shadow 150ms ease, opacity 150ms ease;
@@ -165,7 +169,7 @@
   .nav-dropdown-item {
     color: var(--color-muted);
     font-family: var(--font-display);
-    font-size: 0.72rem;
+    font-size: 0.875rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 0.4rem 0.6rem;
@@ -199,7 +203,7 @@
     padding: 0.3rem 0.85rem;
     border-radius: 0.2rem;
     font-family: var(--font-display);
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     transition: box-shadow 150ms ease, opacity 150ms ease;
@@ -214,7 +218,7 @@
   .nav-user {
     color: var(--color-accent);
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.875rem;
     letter-spacing: 0.08em;
     transition: text-shadow 150ms ease;
     text-decoration: none;
@@ -312,7 +316,7 @@
   }
   .wiki-content th {
     font-family: var(--font-display);
-    font-size: 0.72rem;
+    font-size: 0.875rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-accent);
@@ -379,7 +383,7 @@
     display: table-caption;
     caption-side: bottom;
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.875rem;
     color: var(--color-muted);
     padding: 0.25rem 0.3rem 0.1rem;
     line-height: 1.4;
@@ -390,7 +394,7 @@
   .wiki-toc-link {
     display: block;
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.875rem;
     letter-spacing: 0.04em;
     color: var(--color-muted);
     text-decoration: none;
@@ -406,7 +410,7 @@
   }
   .wiki-toc-link.toc-h3 {
     padding-left: 1rem;
-    font-size: 0.68rem;
+    font-size: 0.85rem;
   }
 
   /* Wiki index search wrapper — sits inside the hero */
@@ -485,7 +489,7 @@
 
   .wiki-hero-eyebrow {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.875rem;
     letter-spacing: 0.2em;
     color: var(--color-rune);
     margin-bottom: 0.5rem;
@@ -531,7 +535,7 @@
 
   .wiki-stat-label {
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.85rem;
     letter-spacing: 0.1em;
     color: var(--color-muted);
   }
@@ -555,7 +559,7 @@
     width: 300px;
     padding: 0.6rem 2.25rem 0.6rem 0.9rem;
     font-family: var(--font-mono);
-    font-size: 0.78rem;
+    font-size: 0.95rem;
     letter-spacing: 0.08em;
     color: var(--color-crystal);
     background: color-mix(in oklab, var(--color-void) 70%, transparent);
@@ -616,7 +620,7 @@
 
   .wiki-category-name {
     font-family: var(--font-display);
-    font-size: 0.68rem;
+    font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     color: var(--color-crystal);
@@ -625,7 +629,7 @@
 
   .wiki-category-count {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.85rem;
     color: var(--color-muted);
     margin-top: auto;
   }
@@ -691,7 +695,7 @@
 
   .wiki-article-category-badge {
     font-family: var(--font-mono);
-    font-size: 0.6rem;
+    font-size: 0.95rem;
     padding: 0.1rem 0.45rem;
     border-radius: 0.2rem;
     background: color-mix(in oklab, var(--color-accent) 12%, transparent);
@@ -703,7 +707,7 @@
 
   .wiki-article-draft-badge {
     font-family: var(--font-mono);
-    font-size: 0.6rem;
+    font-size: 0.95rem;
     padding: 0.1rem 0.45rem;
     border-radius: 0.2rem;
     background: color-mix(in oklab, var(--color-redstone) 15%, transparent);
@@ -718,7 +722,7 @@
     align-items: center;
     gap: 0.3em;
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.85rem;
     letter-spacing: 0.06em;
     padding: 0.25rem 0.6rem;
     border-radius: 0.25rem;
@@ -736,21 +740,42 @@
     border-color: color-mix(in oklab, var(--tag-color, var(--color-accent)) 50%, transparent);
   }
 
-  /* Selected state: solid fill so it's unmistakably different from unselected */
+  /* Selected state: solid border + glow so it's unmistakably different from unselected */
   .tag-pill--active {
-    background: color-mix(in oklab, var(--tag-color, var(--color-accent)) 40%, transparent);
-    border-color: color-mix(in oklab, var(--tag-color, var(--color-accent)) 80%, transparent);
+    background: color-mix(in oklab, var(--tag-color, var(--color-accent)) 25%, transparent);
+    border: 1.5px solid var(--tag-color, var(--color-accent));
     font-weight: 700;
+    box-shadow: 0 0 6px color-mix(in oklab, var(--tag-color, var(--color-accent)) 35%, transparent);
   }
 
   .tag-pill--active::before {
-    content: "✓ ";
-    font-size: 0.75em;
+    content: "✓";
+    font-size: 0.8em;
+    margin-right: 0.25em;
   }
 
   .tag-pill--sm {
-    font-size: 0.58rem;
+    font-size: 0.95rem;
     padding: 0.1rem 0.4rem;
+  }
+
+  /* ── Pinned Articles Grid ────────────────────────────────── */
+  .wiki-pinned-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .wiki-pinned-card {
+    display: block;
+    padding: 0.85rem 1rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+    border-left: 3px solid color-mix(in oklab, var(--color-plasma) 40%, transparent);
+  }
+
+  .wiki-pinned-card:hover {
+    border-left-color: var(--color-plasma);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--color-plasma) 12%, transparent);
   }
 
   /* inline meta shown only on small screens */
@@ -758,7 +783,7 @@
     display: none;
     gap: 0.4rem;
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.85rem;
     color: var(--color-muted);
     margin-top: 0.2rem;
   }
@@ -773,14 +798,14 @@
   .wiki-article-row-meta-author {
     display: block;
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.875rem;
     color: var(--color-muted);
   }
 
   .wiki-article-row-meta-date {
     display: block;
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.85rem;
     color: var(--color-muted);
     opacity: 0.6;
     margin-top: 0.1rem;
@@ -803,7 +828,7 @@
 
   .wiki-recent-title {
     font-family: var(--font-body);
-    font-size: 0.78rem;
+    font-size: 0.95rem;
     color: var(--color-muted);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -819,7 +844,7 @@
 
   .wiki-recent-date {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.85rem;
     color: var(--color-muted);
     opacity: 0.55;
     flex-shrink: 0;
@@ -968,10 +993,110 @@
 .EasyMDEContainer .editor-statusbar {
   color: var(--color-muted);
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.85rem;
   border-color: color-mix(in oklab, var(--color-accent) 20%, transparent);
 }
 
 .EasyMDEContainer .CodeMirror.CodeMirror-fullscreen {
   background: var(--color-void);
+}
+
+/* ── Minecraft-themed article ratings ───────────────────────── */
+
+.wiki-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.wiki-rating-label {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--color-muted);
+  min-width: 6.5rem;
+}
+
+.wiki-rating-icons {
+  display: flex;
+  gap: 0.2rem;
+  align-items: center;
+}
+
+.wiki-rating-avg {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+/* Redstone dust icons */
+.mc-dust {
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 120ms, filter 120ms;
+}
+
+.mc-dust img {
+  width: 22px;
+  height: 22px;
+  image-rendering: pixelated;
+  display: block;
+}
+
+/* Diamond icons */
+.mc-gem {
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 120ms, filter 120ms;
+}
+
+.mc-gem img {
+  width: 22px;
+  height: 22px;
+  image-rendering: pixelated;
+  display: block;
+}
+
+.mc-icon--empty {
+  opacity: 0.15;
+  filter: grayscale(1);
+}
+
+/* Interactive picker */
+.mc-picker {
+  display: inline-flex;
+  gap: 0.2rem;
+  align-items: center;
+}
+
+.mc-picker-icon {
+  cursor: pointer;
+  opacity: 0.18;
+  transition: opacity 120ms, transform 120ms;
+  line-height: 1;
+  display: inline-block;
+  user-select: none;
+}
+
+.mc-picker-dust img,
+.mc-picker-gem img {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+  display: block;
+  pointer-events: none;
+}
+
+.mc-picker-icon--on {
+  opacity: 1;
+}
+
+.mc-picker-icon:hover {
+  transform: scale(1.25);
+  opacity: 0.8;
+}
+
+.mc-picker-icon--on:hover {
+  opacity: 1;
 }

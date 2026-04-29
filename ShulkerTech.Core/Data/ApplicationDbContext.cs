@@ -12,6 +12,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<ArticleRevision> ArticleRevisions => Set<ArticleRevision>();
     public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<ArticleFavorite> ArticleFavorites => Set<ArticleFavorite>();
+    public DbSet<ArticleRating> ArticleRatings => Set<ArticleRating>();
     public DbSet<WikiSettings> WikiSettings => Set<WikiSettings>();
     public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
     public DbSet<SecuritySettings> SecuritySettings => Set<SecuritySettings>();
@@ -65,6 +67,37 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.Entity<ArticleRevision>()
             .HasIndex(r => new { r.ArticleId, r.EditedAt });
+
+        builder.Entity<ArticleFavorite>()
+            .HasKey(f => new { f.UserId, f.ArticleId });
+
+        builder.Entity<ArticleFavorite>()
+            .HasOne(f => f.User)
+            .WithMany()
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ArticleFavorite>()
+            .HasOne(f => f.Article)
+            .WithMany(a => a.Favorites)
+            .HasForeignKey(f => f.ArticleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ArticleRating>()
+            .HasIndex(r => new { r.ArticleId, r.UserId })
+            .IsUnique();
+
+        builder.Entity<ArticleRating>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ArticleRating>()
+            .HasOne(r => r.Article)
+            .WithMany()
+            .HasForeignKey(r => r.ArticleId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<MinecraftServer>()
             .HasIndex(s => s.ApiKey)

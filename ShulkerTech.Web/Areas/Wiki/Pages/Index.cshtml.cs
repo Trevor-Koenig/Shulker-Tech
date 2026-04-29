@@ -12,6 +12,7 @@ public class IndexModel(
     UserManager<ApplicationUser> userManager) : PageModel
 {
     public List<Article> Articles { get; set; } = [];
+    public List<Article> UserFavorites { get; set; } = [];
     public List<TagGroup> Tags { get; set; } = [];
     public int PublishedCount { get; set; }
     public int DraftCount { get; set; }
@@ -75,6 +76,17 @@ public class IndexModel(
         DraftCount       = Articles.Count(a => !a.IsPublished);
         ContributorCount = published.Select(a => a.AuthorId).Distinct().Count();
         LastUpdated      = published.Count > 0 ? published.Max(a => a.UpdatedAt) : null;
+
+        if (currentUser != null)
+        {
+            var favoriteIds = await db.ArticleFavorites
+                .Where(f => f.UserId == currentUser.Id)
+                .Select(f => f.ArticleId)
+                .ToListAsync();
+            UserFavorites = published
+                .Where(a => favoriteIds.Contains(a.Id))
+                .ToList();
+        }
 
         Tags = Articles
             .Where(a => a.IsPublished)

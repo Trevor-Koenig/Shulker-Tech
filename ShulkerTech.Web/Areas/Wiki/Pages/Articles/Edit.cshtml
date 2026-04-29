@@ -67,7 +67,7 @@
                             class="tag-pill @(selectedTagIds.Contains(tag.Id.ToString()) ? "tag-pill--active" : "")"
                             data-tag-id="@tag.Id"
                             style="--tag-color: @tag.Color;">
-                        @tag.Icon @tag.Name
+                        @if (!string.IsNullOrEmpty(tag.Icon)) { @tag.Icon } @tag.Name
                     </button>
                 }
             </div>
@@ -123,13 +123,15 @@
         </div>
 
         <!-- Publish toggle -->
-        <label class="flex items-center gap-3 cursor-pointer select-none">
-            <input asp-for="Input.IsPublished" type="checkbox"
-                   class="w-4 h-4" style="accent-color: var(--color-accent);" />
-            <span class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
-                PUBLISHED
-            </span>
-        </label>
+        <div class="flex flex-wrap gap-6">
+            <label class="flex items-center gap-3 cursor-pointer select-none">
+                <input asp-for="Input.IsPublished" type="checkbox"
+                       class="w-4 h-4" style="accent-color: var(--color-accent);" />
+                <span class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                    PUBLISHED
+                </span>
+            </label>
+        </div>
 
         <!-- Save / Cancel -->
         <div class="flex items-center gap-4 pt-2">
