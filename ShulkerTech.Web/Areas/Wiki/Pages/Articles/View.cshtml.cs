@@ -21,6 +21,7 @@ public class ViewModel(
     {
         var article = await db.Articles
             .Include(a => a.Author)
+            .Include(a => a.Tags)
             .FirstOrDefaultAsync(a => a.Slug == slug);
 
         if (article == null) return NotFound();

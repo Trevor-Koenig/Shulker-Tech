@@ -82,7 +82,6 @@ public class RevisionModel(
             ArticleId = article.Id,
             Title     = article.Title,
             Content   = article.Content,
-            Category  = article.Category,
             MapUrl    = article.MapUrl,
             EditorId  = user!.Id,
             EditedAt  = DateTime.UtcNow,
@@ -90,7 +89,6 @@ public class RevisionModel(
 
         article.Title     = revision.Title;
         article.Content   = revision.Content;
-        article.Category  = revision.Category;
         article.MapUrl    = revision.MapUrl;
         article.UpdatedAt = DateTime.UtcNow;
 

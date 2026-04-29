@@ -712,6 +712,47 @@
     flex-shrink: 0;
   }
 
+  /* ── Tag pills ── */
+  .tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.25rem;
+    border: 1px solid color-mix(in oklab, var(--tag-color, var(--color-accent)) 30%, transparent);
+    background: color-mix(in oklab, var(--tag-color, var(--color-accent)) 10%, transparent);
+    color: var(--tag-color, var(--color-accent));
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 120ms ease, border-color 120ms ease, opacity 120ms ease;
+  }
+
+  .tag-pill:hover {
+    background: color-mix(in oklab, var(--tag-color, var(--color-accent)) 18%, transparent);
+    border-color: color-mix(in oklab, var(--tag-color, var(--color-accent)) 50%, transparent);
+  }
+
+  /* Selected state: solid fill so it's unmistakably different from unselected */
+  .tag-pill--active {
+    background: color-mix(in oklab, var(--tag-color, var(--color-accent)) 40%, transparent);
+    border-color: color-mix(in oklab, var(--tag-color, var(--color-accent)) 80%, transparent);
+    font-weight: 700;
+  }
+
+  .tag-pill--active::before {
+    content: "✓ ";
+    font-size: 0.75em;
+  }
+
+  .tag-pill--sm {
+    font-size: 0.58rem;
+    padding: 0.1rem 0.4rem;
+  }
+
   /* inline meta shown only on small screens */
   .wiki-article-row-meta-inline {
     display: none;

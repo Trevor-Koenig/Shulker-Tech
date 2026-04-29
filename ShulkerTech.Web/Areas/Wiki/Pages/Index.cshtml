@@ -69,24 +69,23 @@
         <!-- LEFT: categories + article list -->
         <div>
 
-            @if (Model.Categories.Count > 0)
+            @if (Model.Tags.Count > 0)
             {
-                <!-- ── Browse by Category ── -->
+                <!-- ── Browse by Tag ── -->
                 <div class="mb-8">
                     <div class="rune-divider mb-5">
-                        <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">BROWSE BY CATEGORY</span>
+                        <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">BROWSE BY TAG</span>
                     </div>
-                    <div class="wiki-category-grid">
-                        @foreach (var cat in Model.Categories)
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (var tag in Model.Tags)
                         {
-                            <button class="wiki-category-card"
-                                    data-category="@cat.Name.ToLower()"
-                                    style="--cat-color: @cat.AccentColor;"
+                            <button class="tag-pill"
+                                    data-tag-slug="@tag.Slug"
+                                    style="--tag-color: @tag.Color;"
                                     type="button"
-                                    title="Show @cat.ArticleCount article@(cat.ArticleCount != 1 ? "s" : "") in @cat.Name">
-                                <span class="wiki-category-icon">@cat.Icon</span>
-                                <span class="wiki-category-name">@cat.Name.ToUpperInvariant()</span>
-                                <span class="wiki-category-count">@cat.ArticleCount</span>
+                                    title="Show @tag.ArticleCount article@(tag.ArticleCount != 1 ? "s" : "") tagged @tag.Name">
+                                <span>@tag.Icon</span> @tag.Name.ToUpperInvariant()
+                                <span style="opacity: 0.6; font-size: 0.7em;">@tag.ArticleCount</span>
                             </button>
                         }
                     </div>
@@ -117,13 +116,13 @@
                     <div id="article-list" class="panel overflow-hidden">
                         @foreach (var article in Model.Articles)
                         {
-                            var categorySlug = article.Category?.ToLower() ?? "";
+                            var tagSlugs = string.Join(" ", article.Tags.Select(t => t.Slug));
                             <a href="/articles/@article.Slug"
                                class="wiki-article-row"
                                style="text-decoration: none;"
                                data-title="@article.Title.ToLower()"
                                data-content="@IndexModel.StripMarkdown(article.Content).ToLower()"
-                               data-category="@categorySlug">
+                               data-tags="@tagSlugs">
                                 <div class="wiki-article-row-accent"></div>
                                 <div class="wiki-article-row-body">
                                     <div class="wiki-article-row-main">
@@ -131,9 +130,11 @@
                                             <span class="wiki-article-title-text">
                                                 @article.Title
                                             </span>
-                                            @if (!string.IsNullOrWhiteSpace(article.Category))
+                                            @foreach (var tag in article.Tags.Take(3))
                                             {
-                                                <span class="wiki-article-category-badge">@article.Category.ToUpperInvariant()</span>
+                                                <span class="tag-pill tag-pill--sm" style="--tag-color: @tag.Color;">
+                                                    <span>@tag.Icon</span> @tag.Name.ToUpperInvariant()
+                                                </span>
                                             }
                                             @if (!article.IsPublished)
                                             {
@@ -188,11 +189,11 @@
                             <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-crystal);">@Model.ContributorCount</dd>
                         </div>
                     }
-                    @if (Model.Categories.Count > 0)
+                    @if (Model.Tags.Count > 0)
                     {
                         <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Categories</dt>
-                            <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-crystal);">@Model.Categories.Count</dd>
+                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Tags</dt>
+                            <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-crystal);">@Model.Tags.Count</dd>
                         </div>
                     }
                     @if (Model.LastUpdated.HasValue)
@@ -248,17 +249,17 @@
     var searchInput  = document.getElementById('wiki-search');
     var rows         = Array.from(document.querySelectorAll('.wiki-article-row'));
     var noResults    = document.getElementById('no-results');
-    var catButtons   = Array.from(document.querySelectorAll('.wiki-category-card'));
-    var activeFilter = null; // category slug or null
+    var tagButtons   = Array.from(document.querySelectorAll('[data-tag-slug]'));
+    var activeFilter = null; // tag slug or null
 
     function applyFilters() {
         var q = searchInput ? searchInput.value.trim().toLowerCase() : '';
         var visible = 0;
 
         rows.forEach(function (row) {
-            var matchSearch   = !q || row.dataset.title.includes(q) || row.dataset.content.includes(q);
-            var matchCategory = !activeFilter || row.dataset.category === activeFilter;
-            var show = matchSearch && matchCategory;
+            var matchSearch = !q || row.dataset.title.includes(q) || row.dataset.content.includes(q);
+            var matchTag    = !activeFilter || (row.dataset.tags || '').split(' ').includes(activeFilter);
+            var show = matchSearch && matchTag;
             row.style.display = show ? '' : 'none';
             if (show) visible++;
         });
@@ -270,17 +271,16 @@
         searchInput.addEventListener('input', applyFilters);
     }
 
-    catButtons.forEach(function (btn) {
+    tagButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
-            var cat = btn.dataset.category;
-            if (activeFilter === cat) {
-                // deselect
+            var slug = btn.dataset.tagSlug;
+            if (activeFilter === slug) {
                 activeFilter = null;
-                btn.classList.remove('active');
+                btn.classList.remove('tag-pill--active');
             } else {
-                catButtons.forEach(function (b) { b.classList.remove('active'); });
-                activeFilter = cat;
-                btn.classList.add('active');
+                tagButtons.forEach(function (b) { b.classList.remove('tag-pill--active'); });
+                activeFilter = slug;
+                btn.classList.add('tag-pill--active');
             }
             applyFilters();
         });

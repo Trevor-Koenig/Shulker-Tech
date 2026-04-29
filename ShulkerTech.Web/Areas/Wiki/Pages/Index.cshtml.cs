@@ -12,35 +12,13 @@ public class IndexModel(
     UserManager<ApplicationUser> userManager) : PageModel
 {
     public List<Article> Articles { get; set; } = [];
-    public List<CategoryGroup> Categories { get; set; } = [];
+    public List<TagGroup> Tags { get; set; } = [];
     public int PublishedCount { get; set; }
     public int DraftCount { get; set; }
     public int ContributorCount { get; set; }
     public DateTime? LastUpdated { get; set; }
 
-    public record CategoryGroup(string Name, int ArticleCount, string Icon, string AccentColor);
-
-    // Maps well-known category names to icon glyphs and accent CSS colors.
-    private static readonly Dictionary<string, (string Icon, string Color)> KnownCategories =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Getting Started"]  = ("◈", "var(--color-plasma)"),
-            ["Server Info"]      = ("⬡", "var(--color-plasma)"),
-            ["Survival"]         = ("◉", "var(--color-rune)"),
-            ["Redstone"]         = ("◆", "var(--color-redstone)"),
-            ["Farms"]            = ("◆", "var(--color-redstone)"),
-            ["Building"]         = ("⎔", "var(--color-arcane)"),
-            ["Architecture"]     = ("⎔", "var(--color-arcane)"),
-            ["Events"]           = ("◍", "var(--color-rune)"),
-            ["Community"]        = ("⊕", "var(--color-plasma)"),
-            ["Rules"]            = ("▣", "var(--color-muted)"),
-            ["Lore"]             = ("◈", "var(--color-arcane)"),
-            ["Economy"]          = ("◉", "var(--color-plasma)"),
-            ["Shops"]            = ("◉", "var(--color-plasma)"),
-            ["PvP"]              = ("◆", "var(--color-redstone)"),
-            ["Combat"]           = ("◆", "var(--color-redstone)"),
-            ["Resources"]        = ("⎔", "var(--color-plasma)"),
-        };
+    public record TagGroup(int Id, string Name, string Slug, string Icon, string Color, int ArticleCount);
 
     /// <summary>Strips Markdown syntax and collapses whitespace for use in search data attributes.</summary>
     public static string StripMarkdown(string markdown)
@@ -71,6 +49,7 @@ public class IndexModel(
 
         var all = await db.Articles
             .Include(a => a.Author)
+            .Include(a => a.Tags)
             .OrderByDescending(a => a.UpdatedAt)
             .ToListAsync();
 
@@ -97,21 +76,16 @@ public class IndexModel(
         ContributorCount = published.Select(a => a.AuthorId).Distinct().Count();
         LastUpdated      = published.Count > 0 ? published.Max(a => a.UpdatedAt) : null;
 
-        Categories = Articles
-            .Where(a => a.IsPublished && !string.IsNullOrWhiteSpace(a.Category))
-            .GroupBy(a => a.Category!, StringComparer.OrdinalIgnoreCase)
+        Tags = Articles
+            .Where(a => a.IsPublished)
+            .SelectMany(a => a.Tags)
+            .GroupBy(t => t.Id)
             .Select(g =>
             {
-                var name = g.Key;
-                KnownCategories.TryGetValue(name, out var meta);
-                return new CategoryGroup(
-                    name,
-                    g.Count(),
-                    meta.Icon ?? "◈",
-                    meta.Color ?? "var(--color-accent)"
-                );
+                var tag = g.First();
+                return new TagGroup(tag.Id, tag.Name, tag.Slug, tag.Icon, tag.Color, g.Count());
             })
-            .OrderBy(c => c.Name)
+            .OrderBy(t => t.Name)
             .ToList();
     }
 }

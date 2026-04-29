@@ -5,25 +5,62 @@ using Markdig.Syntax.Inlines;
 namespace ShulkerTech.Web.Markdown;
 
 /// <summary>
-/// Custom Markdig renderer for image links that supports Minecraft-wiki-style figure syntax:
-///   ![Caption|right|thumb](url)   → float-right thumbnail figure with caption
-///   ![Caption|left|thumb](url)    → float-left thumbnail figure with caption
-///   ![Caption|center](url)        → centred block figure
-///   ![Caption](url)               → plain inline image (no figure wrapper)
-/// Non-image links fall through to base.Write() unchanged.
+/// Handles all Markdig LinkInline nodes (both images and hyperlinks).
+///
+/// Images: supports Minecraft-wiki-style figure syntax:
+///   ![Caption|right|thumb](url)  → float-right thumbnail figure with caption
+///   ![Caption|left|thumb](url)   → float-left thumbnail figure with caption
+///   ![Caption|center](url)       → centred block figure
+///   ![Caption](url)              → plain inline image
+///
+/// Hyperlinks: external URLs (http/https) get target="_blank" rel="noopener noreferrer".
+///   Internal links (relative paths, anchor fragments) are rendered normally.
 /// </summary>
-public sealed class WikiImageRenderer : LinkInlineRenderer
+public sealed class WikiLinkRenderer : LinkInlineRenderer
 {
     protected override void Write(HtmlRenderer renderer, LinkInline link)
     {
-        if (!link.IsImage)
+        if (link.IsImage)
+            WriteImage(renderer, link);
+        else
+            WriteHyperlink(renderer, link);
+    }
+
+    // ── Hyperlinks ────────────────────────────────────────────────────────────
+
+    private static void WriteHyperlink(HtmlRenderer renderer, LinkInline link)
+    {
+        var url = link.Url ?? "";
+
+        renderer.Write("<a href=\"");
+        renderer.WriteEscapeUrl(url);
+        renderer.Write("\"");
+
+        if (!string.IsNullOrEmpty(link.Title))
         {
-            base.Write(renderer, link);
-            return;
+            renderer.Write(" title=\"");
+            renderer.WriteEscape(link.Title);
+            renderer.Write("\"");
         }
 
+        if (IsExternalUrl(url))
+            renderer.Write(" target=\"_blank\" rel=\"noopener noreferrer\"");
+
+        renderer.Write(">");
+        renderer.WriteChildren(link);
+        renderer.Write("</a>");
+    }
+
+    private static bool IsExternalUrl(string url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+        uri.Scheme is "http" or "https";
+
+    // ── Images ────────────────────────────────────────────────────────────────
+
+    private static void WriteImage(HtmlRenderer renderer, LinkInline link)
+    {
         var url = link.Url ?? "";
-        if (!IsSafeUrl(url))
+        if (!IsSafeImageUrl(url))
             return;
 
         var rawAlt = ExtractAltText(link);
@@ -31,7 +68,6 @@ public sealed class WikiImageRenderer : LinkInlineRenderer
 
         if (alignment is null)
         {
-            // Plain inline image — no figure wrapper
             renderer.Write("<img src=\"");
             renderer.WriteEscapeUrl(url);
             renderer.Write("\" alt=\"");
@@ -58,7 +94,7 @@ public sealed class WikiImageRenderer : LinkInlineRenderer
         renderer.Write("</figure>");
     }
 
-    private static bool IsSafeUrl(string url)
+    private static bool IsSafeImageUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url)) return false;
         if (url.StartsWith('/')) return true;
@@ -68,8 +104,6 @@ public sealed class WikiImageRenderer : LinkInlineRenderer
 
     private static string ExtractAltText(LinkInline link)
     {
-        // The alt text lives in the link's child inline nodes (typically a LiteralInline).
-        // Use a temp writer to avoid flushing into the live output stream.
         using var sw = new StringWriter();
         var tmp = new HtmlRenderer(sw) { EnableHtmlForInline = false };
         foreach (var child in link)

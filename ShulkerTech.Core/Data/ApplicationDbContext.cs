@@ -11,6 +11,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<InviteCode> InviteCodes => Set<InviteCode>();
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<ArticleRevision> ArticleRevisions => Set<ArticleRevision>();
+    public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<WikiSettings> WikiSettings => Set<WikiSettings>();
     public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
     public DbSet<SecuritySettings> SecuritySettings => Set<SecuritySettings>();
@@ -25,6 +26,30 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Article>()
             .HasIndex(a => a.Slug)
             .IsUnique();
+
+        builder.Entity<Tag>()
+            .HasIndex(t => t.Slug)
+            .IsUnique();
+
+        builder.Entity<Article>()
+            .HasMany(a => a.Tags)
+            .WithMany(t => t.Articles)
+            .UsingEntity("ArticleTags");
+
+        builder.Entity<Tag>().HasData(
+            new Tag { Id = 1,  Name = "Getting Started", Slug = "getting-started", Icon = "🗺️", Color = "var(--color-plasma)" },
+            new Tag { Id = 2,  Name = "Server Info",     Slug = "server-info",     Icon = "📋", Color = "var(--color-crystal)" },
+            new Tag { Id = 3,  Name = "Survival",        Slug = "survival",        Icon = "⛏️", Color = "var(--color-rune)" },
+            new Tag { Id = 4,  Name = "Redstone",        Slug = "redstone",        Icon = "⚡", Color = "var(--color-redstone)" },
+            new Tag { Id = 5,  Name = "Farms",           Slug = "farms",           Icon = "🥕", Color = "#f97316" },
+            new Tag { Id = 6,  Name = "Building",        Slug = "building",        Icon = "🏗️", Color = "#a78bfa" },
+            new Tag { Id = 7,  Name = "Events",          Slug = "events",          Icon = "🎉", Color = "#ec4899" },
+            new Tag { Id = 8,  Name = "Community",       Slug = "community",       Icon = "👥", Color = "#22d3ee" },
+            new Tag { Id = 9,  Name = "Rules",           Slug = "rules",           Icon = "📜", Color = "#facc15" },
+            new Tag { Id = 10, Name = "Lore",            Slug = "lore",            Icon = "📖", Color = "#84cc16" },
+            new Tag { Id = 11, Name = "Economy",         Slug = "economy",         Icon = "💰", Color = "#fbbf24" },
+            new Tag { Id = 12, Name = "PvP",             Slug = "pvp",             Icon = "⚔️", Color = "#ef4444" }
+        );
 
         builder.Entity<ArticleRevision>()
             .HasOne(r => r.Article)

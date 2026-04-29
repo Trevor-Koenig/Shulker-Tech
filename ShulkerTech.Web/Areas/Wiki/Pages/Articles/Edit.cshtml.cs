@@ -18,6 +18,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
     public Article Article { get; set; } = null!;
     public bool IsAdmin { get; set; }
     public WikiSettings Settings { get; set; } = new();
+    public List<Tag> AllTags { get; set; } = [];
 
     public class InputModel
     {
@@ -30,7 +31,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         public string Content { get; set; } = "";
 
         public bool IsPublished { get; set; }
-        public string? Category { get; set; }
+        public string TagIds { get; set; } = "";
         public string? ViewRole { get; set; }
         public string? EditRole { get; set; }
 
@@ -47,6 +48,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         Article = article;
         IsAdmin = isAdmin;
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
+        AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
 
         Input = new InputModel
         {
@@ -54,7 +56,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
             Title = article.Title,
             Content = article.Content,
             IsPublished = article.IsPublished,
-            Category = article.Category,
+            TagIds = string.Join(",", article.Tags.Select(t => t.Id)),
             ViewRole = article.ViewRole,
             EditRole = article.EditRole,
             MapUrl = article.MapUrl,
@@ -65,6 +67,7 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
     public async Task<IActionResult> OnPostAsync()
     {
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
+        AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
 
         var (article, canEdit, isAdmin) = await ResolveAsync(Input.Id);
         if (article == null || !canEdit) return Forbid();
@@ -74,14 +77,12 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
 
         if (!ModelState.IsValid) return Page();
 
-        // Snapshot the current state before overwriting
         var user = await userManager.GetUserAsync(User)!;
         db.ArticleRevisions.Add(new ArticleRevision
         {
             ArticleId = article.Id,
             Title     = article.Title,
             Content   = article.Content,
-            Category  = article.Category,
             MapUrl    = article.MapUrl,
             EditorId  = user!.Id,
             EditedAt  = DateTime.UtcNow,
@@ -90,11 +91,19 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         article.Title = Input.Title;
         article.Content = Input.Content;
         article.IsPublished = Input.IsPublished;
-        article.Category = string.IsNullOrWhiteSpace(Input.Category) ? null : Input.Category.Trim();
         article.ViewRole = string.IsNullOrEmpty(Input.ViewRole) ? null : Input.ViewRole;
         article.EditRole = string.IsNullOrEmpty(Input.EditRole) ? null : Input.EditRole;
         article.MapUrl = string.IsNullOrWhiteSpace(Input.MapUrl) ? null : Input.MapUrl.Trim();
         article.UpdatedAt = DateTime.UtcNow;
+
+        article.Tags.Clear();
+        var selectedIds = CreateModel.ParseTagIds(Input.TagIds);
+        if (selectedIds.Count > 0)
+        {
+            var tags = await db.Tags.Where(t => selectedIds.Contains(t.Id)).ToListAsync();
+            foreach (var tag in tags)
+                article.Tags.Add(tag);
+        }
 
         await db.SaveChangesAsync();
         return Redirect($"/articles/{article.Slug}");
@@ -116,7 +125,9 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
 
     private async Task<(Article? article, bool canEdit, bool isAdmin)> ResolveAsync(int id)
     {
-        var article = await db.Articles.FindAsync(id);
+        var article = await db.Articles
+            .Include(a => a.Tags)
+            .FirstOrDefaultAsync(a => a.Id == id);
         if (article == null) return (null, false, false);
 
         var user = await userManager.GetUserAsync(User);

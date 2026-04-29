@@ -79,9 +79,14 @@ builder.Services.AddRateLimiter(opts =>
     });
 });
 
-// Markdown pipeline — advanced extensions enabled, raw HTML stripped for safety
+// Markdown pipeline — advanced extensions enabled, raw HTML stripped for safety.
+// UseAutoIdentifiers(GitHub) is called after UseAdvancedExtensions so the GitHub-style
+// ID generator (lowercase + hyphenated) overrides the default, making heading anchors
+// like #my-heading predictable for both the TOC and user-written links.
 builder.Services.AddSingleton(new MarkdownPipelineBuilder()
     .UseAdvancedExtensions()
+    .UseAutoIdentifiers(Markdig.Extensions.AutoIdentifiers.AutoIdentifierOptions.GitHub)
+    .Use<ShulkerTech.Web.Markdown.BluemapExtension>()
     .DisableHtml()
     .Build());
 builder.Services.AddSingleton<WikiMarkdownService>();
@@ -146,6 +151,7 @@ app.UseMiddleware<Require2FAMiddleware>();
 app.UseRouting();
 app.UseAuthorization();
 
+app.UseStaticFiles(); // serves runtime-uploaded files (e.g. wwwroot/uploads/wiki/) not in the build manifest
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 app.MapControllers();

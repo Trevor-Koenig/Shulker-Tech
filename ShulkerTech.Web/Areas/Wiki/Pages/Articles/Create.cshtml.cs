@@ -17,6 +17,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
     public InputModel Input { get; set; } = new();
 
     public WikiSettings Settings { get; set; } = new();
+    public List<Tag> AllTags { get; set; } = [];
 
     public class InputModel
     {
@@ -27,7 +28,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
         public string Content { get; set; } = "";
 
         public bool IsPublished { get; set; }
-        public string? Category { get; set; }
+        public string TagIds { get; set; } = "";
         public string? ViewRole { get; set; }
         public string? EditRole { get; set; }
 
@@ -39,6 +40,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
     public async Task<IActionResult> OnGetAsync()
     {
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
+        AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
 
         var user = await userManager.GetUserAsync(User);
         if (user == null) return Forbid();
@@ -53,6 +55,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
     public async Task<IActionResult> OnPostAsync()
     {
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
+        AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
 
         var user = await userManager.GetUserAsync(User)
             ?? throw new InvalidOperationException("Authenticated user not found.");
@@ -71,7 +74,6 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
             Slug = slug,
             Content = Input.Content,
             IsPublished = Input.IsPublished,
-            Category = string.IsNullOrWhiteSpace(Input.Category) ? null : Input.Category.Trim(),
             ViewRole = string.IsNullOrEmpty(Input.ViewRole) ? null : Input.ViewRole,
             EditRole = string.IsNullOrEmpty(Input.EditRole) ? null : Input.EditRole,
             MapUrl = string.IsNullOrWhiteSpace(Input.MapUrl) ? null : Input.MapUrl.Trim(),
@@ -79,6 +81,14 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
+
+        var selectedIds = ParseTagIds(Input.TagIds);
+        if (selectedIds.Count > 0)
+        {
+            var tags = await db.Tags.Where(t => selectedIds.Contains(t.Id)).ToListAsync();
+            foreach (var tag in tags)
+                article.Tags.Add(tag);
+        }
 
         db.Articles.Add(article);
         await db.SaveChangesAsync();
@@ -95,4 +105,10 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
             slug = $"{baseSlug}-{i++}";
         return slug;
     }
+
+    internal static List<int> ParseTagIds(string tagIds) =>
+        (tagIds ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => int.TryParse(s.Trim(), out var id) ? id : 0)
+            .Where(id => id > 0)
+            .ToList();
 }

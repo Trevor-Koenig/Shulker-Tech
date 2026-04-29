@@ -8,8 +8,7 @@ public class Article
     /// <summary>Markdown source content. Rendered to HTML at display time via Markdig.</summary>
     public string Content { get; set; } = "";
     public bool IsPublished { get; set; }
-    /// <summary>Optional category for grouping on the wiki index.</summary>
-    public string? Category { get; set; }
+    public bool IsPinned { get; set; }
     /// <summary>Minimum role to view. Null = inherit WikiSettings.DefaultViewRole.</summary>
     public string? ViewRole { get; set; }
     /// <summary>Minimum role to edit (non-author). Null = inherit WikiSettings.EditAnyRole.</summary>
@@ -20,4 +19,6 @@ public class Article
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     /// <summary>Optional BlueMap deep-link URL to show a live map panel for this article's location.</summary>
     public string? MapUrl { get; set; }
+
+    public ICollection<Tag> Tags { get; set; } = [];
 }

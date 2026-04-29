@@ -53,28 +53,24 @@
                       style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem; line-height: 1.7;"></textarea>
         </div>
 
-        <!-- Category -->
+        <!-- Tags -->
         <div class="flex flex-col gap-2">
-            <label asp-for="Input.Category" class="text-xs"
-                   style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">CATEGORY <span style="opacity: 0.5; font-size: 0.65rem;">(OPTIONAL)</span></label>
-            <input asp-for="Input.Category" autocomplete="off" list="category-suggestions"
-                   class="panel px-4 py-2.5 w-full bg-transparent outline-none"
-                   style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem; letter-spacing: 0.04em;"
-                   placeholder="e.g. Survival, Redstone, Server Info…" />
-            <datalist id="category-suggestions">
-                <option value="Getting Started" />
-                <option value="Server Info" />
-                <option value="Survival" />
-                <option value="Redstone" />
-                <option value="Farms" />
-                <option value="Building" />
-                <option value="Events" />
-                <option value="Community" />
-                <option value="Rules" />
-                <option value="Lore" />
-                <option value="Economy" />
-                <option value="PvP" />
-            </datalist>
+            <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                TAGS <span style="opacity: 0.5; font-size: 0.65rem;">(OPTIONAL — CLICK TO TOGGLE)</span>
+            </label>
+            <input type="hidden" asp-for="Input.TagIds" id="tag-ids-input" />
+            @{ var selectedTagIds = (Model.Input.TagIds ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToHashSet(); }
+            <div class="flex flex-wrap gap-2">
+                @foreach (var tag in Model.AllTags)
+                {
+                    <button type="button"
+                            class="tag-pill @(selectedTagIds.Contains(tag.Id.ToString()) ? "tag-pill--active" : "")"
+                            data-tag-id="@tag.Id"
+                            style="--tag-color: @tag.Color;">
+                        @tag.Icon @tag.Name
+                    </button>
+                }
+            </div>
         </div>
 
         <!-- BlueMap URL -->
@@ -168,6 +164,25 @@
 @section Scripts {
     <script src="~/js/easymde.min.js"></script>
     <script>
+        // Tag picker — seed selected set from pre-populated hidden input
+        (function () {
+            var input = document.getElementById('tag-ids-input');
+            var selected = new Set((input.value || '').split(',').filter(Boolean));
+            document.querySelectorAll('[data-tag-id]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var id = btn.dataset.tagId;
+                    if (selected.has(id)) {
+                        selected.delete(id);
+                        btn.classList.remove('tag-pill--active');
+                    } else {
+                        selected.add(id);
+                        btn.classList.add('tag-pill--active');
+                    }
+                    input.value = Array.from(selected).join(',');
+                });
+            });
+        })();
+
         var _csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
         var easyMDE = new EasyMDE({
             element: document.getElementById('content-editor'),

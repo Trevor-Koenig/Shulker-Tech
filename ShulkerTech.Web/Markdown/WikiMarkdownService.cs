@@ -11,9 +11,9 @@ public sealed class WikiMarkdownService(MarkdownPipeline pipeline)
         var document = Markdig.Markdown.Parse(markdown, pipeline);
         using var writer = new StringWriter();
         var renderer = new HtmlRenderer(writer);
-        pipeline.Setup(renderer);               // registers all default renderers first
+        pipeline.Setup(renderer);
         renderer.ObjectRenderers.TryRemove<LinkInlineRenderer>();
-        renderer.ObjectRenderers.Add(new WikiImageRenderer());
+        renderer.ObjectRenderers.Add(new WikiLinkRenderer());
         renderer.Render(document);
         writer.Flush();
         return writer.ToString();
