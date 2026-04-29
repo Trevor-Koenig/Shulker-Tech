@@ -51,6 +51,7 @@ test-coverage:
 
 # ── Production ────────────────────────────────────────────────────────────────
 
+# might also need to log in to docker first: docker login -u <your-username>
 # Push image to Docker Hub (usage: make publish DOCKER_USER=yourusername)
 publish:
 	docker build -t $(DOCKER_USER)/shulker-tech:latest -f ShulkerTech.Web/Dockerfile .
