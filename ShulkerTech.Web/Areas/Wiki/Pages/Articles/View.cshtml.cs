@@ -64,6 +64,14 @@ public class ViewModel(
         Article = article;
         ContentHtml = wikiMarkdown.ToHtml(article.Content);
 
+        // Strip markdown syntax for meta description
+        var plainText = System.Text.RegularExpressions.Regex.Replace(article.Content, @"[#*_`~>\[\]!|\\]|```[\s\S]*?```|`[^`]+`|\[([^\]]*)\]\([^)]*\)", "$1");
+        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ").Trim();
+        ViewData["Description"] = plainText.Length > 160 ? plainText[..157] + "…" : plainText;
+        ViewData["OgType"] = "article";
+        ViewData["ArticlePublishedTime"] = article.CreatedAt.ToString("O");
+        ViewData["ArticleModifiedTime"] = article.UpdatedAt.ToString("O");
+
         CanEdit = viewer != null &&
                   (viewer.Id == article.AuthorId ||
                    WikiSettings.UserSatisfies(editRole, userRoles, viewer.IsAdmin));

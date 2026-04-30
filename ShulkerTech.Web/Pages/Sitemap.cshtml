@@ -1,0 +1,52 @@
+@page "/sitemap.xml"
+@using Microsoft.EntityFrameworkCore
+@using ShulkerTech.Core.Data
+@inject ApplicationDbContext _db
+@{
+    Layout = null;
+    Response.ContentType = "application/xml";
+
+    var _scheme = HttpContext.Request.Scheme;
+    var _host   = HttpContext.Request.Host.Host;
+    var _firstSegment = _host.Split('.')[0];
+    string[] _knownSubdomains = ["wiki", "admin"];
+    var _rootHost = _knownSubdomains.Contains(_firstSegment, StringComparer.OrdinalIgnoreCase)
+        ? _host[(_firstSegment.Length + 1)..]
+        : _host;
+    var _port = HttpContext.Request.Host.Port;
+    var _portSuffix = _port.HasValue ? $":{_port}" : string.Empty;
+    var _base     = $"{_scheme}://{_rootHost}{_portSuffix}";
+    var _wikiBase = $"{_scheme}://wiki.{_rootHost}{_portSuffix}";
+
+    var articles = await _db.Articles
+        .Where(a => a.IsPublished)
+        .OrderByDescending(a => a.UpdatedAt)
+        .Select(a => new { a.Slug, a.UpdatedAt })
+        .ToListAsync();
+}
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>@(_base)/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>@(_wikiBase)/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  @foreach (var article in articles)
+  {
+  <url>
+    <loc>@(_wikiBase)/Wiki/articles/@article.Slug</loc>
+    <lastmod>@article.UpdatedAt.ToString("yyyy-MM-dd")</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  }
+
+</urlset>

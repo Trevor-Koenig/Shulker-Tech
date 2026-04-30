@@ -4,6 +4,27 @@
     ViewData["Title"] = Model.Article.Title;
 }
 
+@section Head {
+    @{
+        var _jsonTitle  = Model.Article.Title.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        var _jsonAuthor = (Model.Article.Author?.UserName ?? "Shulker Tech").Replace("\"", "\\\"");
+        var _jsonUrl    = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.Path}";
+    }
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "Article",
+      "headline": "@_jsonTitle",
+      "datePublished": "@Model.Article.CreatedAt.ToString("O")",
+      "dateModified": "@Model.Article.UpdatedAt.ToString("O")",
+      "author": { "@@type": "Person", "name": "@_jsonAuthor" },
+      "publisher": { "@@type": "Organization", "name": "Shulker Tech" },
+      "url": "@_jsonUrl"@if (Model.Article.Tags.Count > 0){<text>,
+      "keywords": "@string.Join(", ", Model.Article.Tags.Select(t => t.Name))"</text>}
+    }
+    </script>
+}
+
 <div class="wiki-outer">
 
     <!-- Breadcrumb -->

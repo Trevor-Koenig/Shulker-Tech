@@ -27,6 +27,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] — Shulker Tech</title>
 
+    @{
+        var _metaDesc = ViewData["Description"] as string
+            ?? "A technical Minecraft community — engineered by its players, built to last.";
+        var _canonicalUrl = ViewData["CanonicalUrl"] as string
+            ?? $"{_scheme}://{Context.Request.Host}{Context.Request.Path}";
+        var _ogTitle = $"{ViewData["Title"]} — Shulker Tech";
+        var _ogType = ViewData["OgType"] as string ?? "website";
+    }
+
+    <!-- SEO -->
+    <meta name="description" content="@_metaDesc" />
+    <link rel="canonical" href="@_canonicalUrl" />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Shulker Tech" />
+    <meta property="og:type" content="@_ogType" />
+    <meta property="og:title" content="@_ogTitle" />
+    <meta property="og:description" content="@_metaDesc" />
+    <meta property="og:url" content="@_canonicalUrl" />
+    @if (ViewData["OgImage"] is string _ogImage)
+    {
+        <meta property="og:image" content="@_ogImage" />
+        <meta property="og:image:alt" content="@_ogTitle" />
+    }
+    @if (ViewData["ArticlePublishedTime"] is string _pubTime)
+    {
+        <meta property="article:published_time" content="@_pubTime" />
+    }
+    @if (ViewData["ArticleModifiedTime"] is string _modTime)
+    {
+        <meta property="article:modified_time" content="@_modTime" />
+    }
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="@(ViewData["OgImage"] != null ? "summary_large_image" : "summary")" />
+    <meta name="twitter:title" content="@_ogTitle" />
+    <meta name="twitter:description" content="@_metaDesc" />
+    @if (ViewData["OgImage"] is string _twitterImage)
+    {
+        <meta name="twitter:image" content="@_twitterImage" />
+    }
+
     <!-- Restore theme before paint to avoid flash of wrong accent color -->
     <!-- Reads cookie first so theme persists across subdomains (cookies are domain-scoped, localStorage is origin-scoped) -->
     <script>(function(){function gc(n){var m=document.cookie.match('(?:^|;)\\s*'+n+'\\s*=\\s*([^;]*)');return m?m[1]:null;}var t=gc('theme')||localStorage.getItem('theme')||'plasma';document.documentElement.dataset.theme=t;})()</script>

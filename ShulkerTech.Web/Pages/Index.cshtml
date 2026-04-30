@@ -12,7 +12,12 @@
         : _host;
     var _port = HttpContext.Request.Host.Port;
     var _portSuffix = _port.HasValue ? $":{_port}" : string.Empty;
-    var _wikiBase = $"{HttpContext.Request.Scheme}://wiki.{_rootHost}{_portSuffix}";
+    var _scheme = HttpContext.Request.Scheme;
+    var _wikiBase = $"{_scheme}://wiki.{_rootHost}{_portSuffix}";
+    var _siteBase = $"{_scheme}://{_rootHost}{_portSuffix}";
+
+    ViewData["Description"] = Model.Site.HeroTagline;
+    ViewData["CanonicalUrl"] = _siteBase + "/";
 }
 
 @section Head {
@@ -20,6 +25,20 @@
         /* Pull hero section up behind the fixed nav */
         #hero { margin-top: -4rem; }
     </style>
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "WebSite",
+      "name": "Shulker Tech",
+      "url": "@_siteBase/",
+      "description": "@Model.Site.HeroTagline",
+      "potentialAction": {
+        "@@type": "SearchAction",
+        "target": "@_wikiBase/?search={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
 }
 
 @* ── Hero ────────────────────────────────────────────────────────────────── *@
