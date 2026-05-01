@@ -513,40 +513,6 @@
     margin-bottom: 1.1rem;
   }
 
-  .wiki-hero-stats {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .wiki-stat-chip {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.35rem;
-  }
-
-  .wiki-stat-value {
-    font-family: var(--font-display);
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--color-crystal);
-  }
-
-  .wiki-stat-label {
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    color: var(--color-muted);
-  }
-
-  .wiki-stat-sep {
-    color: var(--color-muted);
-    opacity: 0.4;
-    font-size: 0.9rem;
-    padding: 0 0.15rem;
-  }
-
   .wiki-hero-search-wrap {
     flex-shrink: 0;
     display: flex;
@@ -760,24 +726,6 @@
   }
 
   /* ── Pinned Articles Grid ────────────────────────────────── */
-  .wiki-pinned-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .wiki-pinned-card {
-    display: block;
-    padding: 0.85rem 1rem;
-    transition: border-color 150ms ease, box-shadow 150ms ease;
-    border-left: 3px solid color-mix(in oklab, var(--color-plasma) 40%, transparent);
-  }
-
-  .wiki-pinned-card:hover {
-    border-left-color: var(--color-plasma);
-    box-shadow: 0 0 12px color-mix(in oklab, var(--color-plasma) 12%, transparent);
-  }
-
   /* inline meta shown only on small screens */
   .wiki-article-row-meta-inline {
     display: none;

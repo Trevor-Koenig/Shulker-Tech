@@ -224,11 +224,12 @@
 
         // Template data from server
         var TEMPLATES = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-            Model.Templates.Select(t => new { t.Id, t.Name, t.Content, t.IsDefault })));
+            Model.Templates.Select(t => new { t.Id, t.Name, t.Content, t.IsDefault }),
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
 
         function loadTemplate(tmpl) {
             var current = easyMDE.value().trim();
-            if (current && !confirm('Replace current content with the "' + tmpl.Name + '" template?')) return;
+            if (current && !confirm('Replace current content with the "' + tmpl.name + '" template?')) return;
             easyMDE.value(tmpl.content);
             easyMDE.codemirror.focus();
         }

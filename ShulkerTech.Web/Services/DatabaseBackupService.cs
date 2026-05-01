@@ -9,7 +9,7 @@ public class DatabaseBackupService(
     ILogger<DatabaseBackupService> logger) : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromHours(24);
-    private const string BackupDir = "/backups";
+    private string BackupDir => configuration["BackupDir"] ?? "/backups";
     private const int RetentionDays = 14;
 
     protected override async Task ExecuteAsync(CancellationToken ct)
@@ -55,18 +55,27 @@ public class DatabaseBackupService(
             psi.Environment["PGPASSWORD"] = csb.Password ?? "";
 
             using var process = Process.Start(psi)!;
-            await using var file = File.Create(path);
-            await using var gzip = new GZipStream(file, CompressionLevel.Optimal);
 
-            var copyTask = process.StandardOutput.BaseStream.CopyToAsync(gzip);
-            var stderrTask = process.StandardError.ReadToEndAsync();
+            string stderrResult;
+            {
+                // Scope gzip/file so they are flushed and closed before we read the
+                // file size — GZipStream buffers internally and the size would read 0
+                // if we checked before disposal.
+                await using var file = File.Create(path);
+                await using var gzip = new GZipStream(file, CompressionLevel.Optimal);
 
-            await Task.WhenAll(copyTask, stderrTask);
-            await process.WaitForExitAsync();
+                var copyTask = process.StandardOutput.BaseStream.CopyToAsync(gzip);
+                var stderrTask = process.StandardError.ReadToEndAsync();
+                await Task.WhenAll(copyTask, stderrTask);
+                stderrResult = stderrTask.Result;
+            }
+
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
+            await process.WaitForExitAsync(timeoutCts.Token);
 
             if (process.ExitCode != 0)
             {
-                logger.LogError("pg_dump failed (exit {Code}): {Stderr}", process.ExitCode, stderrTask.Result);
+                logger.LogError("pg_dump failed (exit {Code}): {Stderr}", process.ExitCode, stderrResult);
                 File.Delete(path);
                 return;
             }

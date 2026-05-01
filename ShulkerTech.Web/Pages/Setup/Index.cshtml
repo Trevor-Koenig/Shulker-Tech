@@ -31,7 +31,15 @@
                     </p>
                 </div>
 
-                <form method="post" asp-page-handler="Restore" class="flex flex-col gap-3">
+                @if (!string.IsNullOrEmpty(Model.RestoreErrorMessage))
+                {
+                    <div class="text-xs p-3 rounded" style="color: var(--color-rune); background: color-mix(in oklab, var(--color-rune) 10%, transparent); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent); font-family: var(--font-mono);">
+                        @Model.RestoreErrorMessage
+                    </div>
+                }
+
+                <form method="post" action="/setup?handler=Restore" class="flex flex-col gap-3">
+                    @Html.AntiForgeryToken()
 
                     <div class="flex flex-col gap-1">
                         <label class="text-xs tracking-wider" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.08em;">BACKUP FILE</label>

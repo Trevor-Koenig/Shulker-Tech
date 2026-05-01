@@ -20,6 +20,7 @@ public class IndexModel(
     public InputModel Input { get; set; } = new();
 
     public string? ErrorMessage { get; set; }
+    public string? RestoreErrorMessage { get; set; }
     public List<BackupInfo> AvailableBackups { get; set; } = [];
 
     public record BackupInfo(string FileName, DateTime Timestamp, long SizeBytes)
@@ -75,12 +76,13 @@ public class IndexModel(
 
     public async Task<IActionResult> OnPostRestoreAsync(string setupCode, string backupFile)
     {
+        ModelState.Clear(); // Input.* fields are not part of the restore form
         AvailableBackups = ScanBackups();
 
         var expectedCode = configuration["SETUP_CODE"];
         if (string.IsNullOrEmpty(expectedCode) || setupCode != expectedCode)
         {
-            ErrorMessage = "Invalid setup code.";
+            RestoreErrorMessage = "Invalid setup code.";
             return Page();
         }
 
@@ -93,7 +95,7 @@ public class IndexModel(
             !System.IO.File.Exists(backupPath) ||
             !safeFileName.EndsWith(".sql.gz", StringComparison.OrdinalIgnoreCase))
         {
-            ErrorMessage = "Backup file not found or invalid.";
+            RestoreErrorMessage = "Backup file not found or invalid.";
             return Page();
         }
 
@@ -105,7 +107,7 @@ public class IndexModel(
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Restore failed: {ex.Message}";
+            RestoreErrorMessage = $"Restore failed: {ex.Message}";
             return Page();
         }
     }
@@ -138,20 +140,50 @@ public class IndexModel(
         var connectionString = configuration.GetConnectionString("DefaultConnection")!;
         var csb = new NpgsqlConnectionStringBuilder(connectionString);
 
-        var psi = new ProcessStartInfo
-        {
-            FileName = "psql",
-            RedirectStandardInput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-        psi.ArgumentList.Add("-h"); psi.ArgumentList.Add(csb.Host!);
-        psi.ArgumentList.Add("-p"); psi.ArgumentList.Add((csb.Port == 0 ? 5432 : csb.Port).ToString());
-        psi.ArgumentList.Add("-U"); psi.ArgumentList.Add(csb.Username!);
-        psi.ArgumentList.Add(csb.Database!);
-        psi.Environment["PGPASSWORD"] = csb.Password ?? "";
+        var host = csb.Host!;
+        var port = (csb.Port == 0 ? 5432 : csb.Port).ToString();
+        var user = csb.Username!;
+        var db   = csb.Database!;
+        var pass = csb.Password ?? "";
 
-        using var process = Process.Start(psi)!;
+        ProcessStartInfo MakePsi(string exe)
+        {
+            var p = new ProcessStartInfo
+            {
+                FileName = exe,
+                RedirectStandardInput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+            };
+            p.ArgumentList.Add("-h"); p.ArgumentList.Add(host);
+            p.ArgumentList.Add("-p"); p.ArgumentList.Add(port);
+            p.ArgumentList.Add("-U"); p.ArgumentList.Add(user);
+            p.ArgumentList.Add(db);
+            p.Environment["PGPASSWORD"] = pass;
+            return p;
+        }
+
+        // Wipe the public schema so the restore runs against a clean slate.
+        // Without this, CREATE TABLE / ADD CONSTRAINT fail because the tables
+        // already exist from EF migrations, and COPY hits live FK constraints
+        // in the wrong insertion order.
+        var cleanPsi = MakePsi("psql");
+        cleanPsi.ArgumentList.Add("-c");
+        cleanPsi.ArgumentList.Add($"DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"{user}\"; GRANT ALL ON SCHEMA public TO public;");
+        using (var cleanProc = Process.Start(cleanPsi)!)
+        {
+            cleanProc.StandardInput.Close();
+            var cleanErr = await cleanProc.StandardError.ReadToEndAsync();
+            await cleanProc.WaitForExitAsync();
+            if (cleanProc.ExitCode != 0)
+                throw new InvalidOperationException($"Schema wipe failed: {cleanErr.Trim()}");
+        }
+
+        // Restore the backup, stopping on the first error so partial restores
+        // are surfaced rather than silently producing a corrupt database.
+        var restorePsi = MakePsi("psql");
+        restorePsi.ArgumentList.Add("--set=ON_ERROR_STOP=1");
+        using var process = Process.Start(restorePsi)!;
 
         await using var file = System.IO.File.OpenRead(backupPath);
         await using var gzip = new GZipStream(file, CompressionMode.Decompress);
@@ -159,7 +191,8 @@ public class IndexModel(
         process.StandardInput.Close();
 
         var stderr = await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
+        await process.WaitForExitAsync(timeoutCts.Token);
 
         if (process.ExitCode != 0)
             throw new InvalidOperationException(stderr.Trim());

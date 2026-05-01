@@ -6,7 +6,7 @@
 
 <div class="wiki-outer">
 
-    <!-- ═══ HERO BANNER ═══ -->
+    <!-- ═══ HERO ═══ -->
     <section class="wiki-hero panel scanlines mb-8" aria-label="Wiki overview">
         <div class="wiki-hero-accent"></div>
         <div class="wiki-hero-body">
@@ -14,36 +14,6 @@
                 <p class="wiki-hero-eyebrow">&#9670; KNOWLEDGE BASE</p>
                 <h1 class="wiki-hero-title">SHULKER TECH WIKI</h1>
                 <p class="wiki-hero-tagline">Articles, guides, and lore for the Shulker Tech server.</p>
-                <div class="wiki-hero-stats">
-                    <span class="wiki-stat-chip">
-                        <span class="wiki-stat-value">@Model.PublishedCount</span>
-                        <span class="wiki-stat-label">ARTICLES</span>
-                    </span>
-                    @if (Model.ContributorCount > 0)
-                    {
-                        <span class="wiki-stat-sep">·</span>
-                        <span class="wiki-stat-chip">
-                            <span class="wiki-stat-value">@Model.ContributorCount</span>
-                            <span class="wiki-stat-label">CONTRIBUTOR@(Model.ContributorCount != 1 ? "S" : "")</span>
-                        </span>
-                    }
-                    @if (Model.LastUpdated.HasValue)
-                    {
-                        <span class="wiki-stat-sep">·</span>
-                        <span class="wiki-stat-chip">
-                            <span class="wiki-stat-label">UPDATED</span>
-                            <span class="wiki-stat-value">@Model.LastUpdated.Value.ToString("MMM d, yyyy").ToUpper()</span>
-                        </span>
-                    }
-                    @if (Model.DraftCount > 0)
-                    {
-                        <span class="wiki-stat-sep">·</span>
-                        <span class="wiki-stat-chip">
-                            <span class="wiki-stat-value" style="color: var(--color-redstone);">@Model.DraftCount</span>
-                            <span class="wiki-stat-label">DRAFT@(Model.DraftCount != 1 ? "S" : "")</span>
-                        </span>
-                    }
-                </div>
             </div>
             <div class="wiki-hero-search-wrap">
                 <div class="wiki-index-search">
@@ -72,43 +42,13 @@
     <!-- ═══ MAIN GRID ═══ -->
     <div class="wiki-index-grid">
 
-        <!-- LEFT: pinned + tags + article list -->
+        <!-- LEFT: tag filter + article list -->
         <div>
-
-            @if (Model.UserFavorites.Count > 0)
-            {
-                <!-- ── My Favorites ── -->
-                <div class="mb-8">
-                    <div class="rune-divider mb-5">
-                        <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-plasma);">★ MY FAVORITES</span>
-                    </div>
-                    <div class="wiki-pinned-grid">
-                        @foreach (var fav in Model.UserFavorites)
-                        {
-                            <a href="/articles/@fav.Slug" class="wiki-pinned-card panel" style="text-decoration: none;">
-                                <div style="font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; color: var(--color-crystal); margin-bottom: 0.5rem;">
-                                    @fav.Title
-                                </div>
-                                @if (fav.Tags.Any())
-                                {
-                                    <div class="flex flex-wrap gap-1">
-                                        @foreach (var tag in fav.Tags.Take(3))
-                                        {
-                                            <span class="tag-pill tag-pill--sm" style="--tag-color: @tag.Color;">@if (!string.IsNullOrEmpty(tag.Icon)) { @tag.Icon } @tag.Name</span>
-                                        }
-                                    </div>
-                                }
-                            </a>
-                        }
-                    </div>
-                </div>
-            }
 
             @if (Model.Tags.Count > 0)
             {
-                <!-- ── Browse by Tag ── -->
-                <div class="mb-8">
-                    <div class="rune-divider mb-5">
+                <div class="mb-7">
+                    <div class="rune-divider mb-4">
                         <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">BROWSE BY TAG</span>
                     </div>
                     <div class="flex flex-wrap gap-2">
@@ -127,7 +67,7 @@
                 </div>
             }
 
-            <!-- ── Article list ── -->
+            <!-- Article list -->
             <div>
                 <div class="rune-divider mb-4">
                     <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">ARTICLES</span>
@@ -162,9 +102,7 @@
                                 <div class="wiki-article-row-body">
                                     <div class="wiki-article-row-main">
                                         <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex-wrap: wrap;">
-                                            <span class="wiki-article-title-text">
-                                                @article.Title
-                                            </span>
+                                            <span class="wiki-article-title-text">@article.Title</span>
                                             @foreach (var tag in article.Tags.Take(3))
                                             {
                                                 <span class="tag-pill tag-pill--sm" style="--tag-color: @tag.Color;">
@@ -202,70 +140,73 @@
         <!-- RIGHT SIDEBAR -->
         <aside class="wiki-index-sidebar">
 
-            <!-- Wiki Info -->
-            <div class="panel p-5">
-                <p style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--color-accent); margin-bottom: 0.85rem;">WIKI INFO</p>
-                <dl style="display: flex; flex-direction: column; gap: 0.6rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                        <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Published</dt>
-                        <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-crystal);">@Model.PublishedCount</dd>
-                    </div>
-                    @if (Model.DraftCount > 0)
-                    {
-                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Drafts</dt>
-                            <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-redstone);">@Model.DraftCount</dd>
-                        </div>
-                    }
-                    @if (Model.ContributorCount > 0)
-                    {
-                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Contributors</dt>
-                            <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-crystal);">@Model.ContributorCount</dd>
-                        </div>
-                    }
-                    @if (Model.Tags.Count > 0)
-                    {
-                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Tags</dt>
-                            <dd style="font-family: var(--font-display); font-size: 0.8rem; color: var(--color-crystal);">@Model.Tags.Count</dd>
-                        </div>
-                    }
-                    @if (Model.LastUpdated.HasValue)
-                    {
-                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                            <dt style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">Last edit</dt>
-                            <dd style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-muted);">@Model.LastUpdated.Value.ToString("MMM d, yyyy")</dd>
-                        </div>
-                    }
-                </dl>
-            </div>
-
-            <!-- Recent Changes -->
-            @if (Model.Articles.Count > 0)
+            <!-- My Favorites -->
+            @if (Model.UserFavorites.Count > 0)
             {
                 <div class="panel p-5">
-                    <p style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--color-accent); margin-bottom: 0.75rem;">RECENT CHANGES</p>
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        @foreach (var art in Model.Articles.Where(a => a.IsPublished).Take(5))
+                    <p style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--color-plasma); margin-bottom: 0.75rem;">★ MY FAVORITES</p>
+                    <div style="display: flex; flex-direction: column;">
+                        @foreach (var fav in Model.UserFavorites)
                         {
-                            <a href="/articles/@art.Slug"
-                               class="wiki-recent-item"
-                               style="text-decoration: none;">
-                                <span class="wiki-recent-title">@art.Title</span>
-                                <span class="wiki-recent-date">@art.UpdatedAt.ToString("MMM d").ToUpper()</span>
+                            <a href="/articles/@fav.Slug" class="wiki-recent-item" style="text-decoration: none;">
+                                <span class="wiki-recent-title">@fav.Title</span>
+                                @if (fav.Tags.FirstOrDefault() is { } firstTag)
+                                {
+                                    <span class="tag-pill tag-pill--sm" style="--tag-color: @firstTag.Color; flex-shrink: 0;">
+                                        @if (!string.IsNullOrEmpty(firstTag.Icon)) { @firstTag.Icon }
+                                    </span>
+                                }
                             </a>
                         }
                     </div>
                 </div>
             }
 
+            <!-- Wiki Stats -->
+            <div class="panel p-5">
+                <p style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--color-accent); margin-bottom: 0.85rem;">WIKI INFO</p>
+                <dl style="display: flex; flex-direction: column; gap: 0.6rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <dt style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-muted);">Articles</dt>
+                        <dd style="font-family: var(--font-display); font-size: 0.9rem; color: var(--color-crystal);">@Model.PublishedCount</dd>
+                    </div>
+                    @if (Model.DraftCount > 0)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <dt style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-muted);">Drafts</dt>
+                            <dd style="font-family: var(--font-display); font-size: 0.9rem; color: var(--color-redstone);">@Model.DraftCount</dd>
+                        </div>
+                    }
+                    @if (Model.ContributorCount > 0)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <dt style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-muted);">Contributors</dt>
+                            <dd style="font-family: var(--font-display); font-size: 0.9rem; color: var(--color-crystal);">@Model.ContributorCount</dd>
+                        </div>
+                    }
+                    @if (Model.Tags.Count > 0)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <dt style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-muted);">Tags</dt>
+                            <dd style="font-family: var(--font-display); font-size: 0.9rem; color: var(--color-crystal);">@Model.Tags.Count</dd>
+                        </div>
+                    }
+                    @if (Model.LastUpdated.HasValue)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <dt style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-muted);">Last edit</dt>
+                            <dd style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-muted);">@Model.LastUpdated.Value.ToString("MMM d, yyyy")</dd>
+                        </div>
+                    }
+                </dl>
+            </div>
+
             <!-- Contribute -->
             @if (User.Identity?.IsAuthenticated == true)
             {
                 <div class="panel p-5">
                     <p style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--color-accent); margin-bottom: 0.6rem;">CONTRIBUTE</p>
-                    <p style="font-family: var(--font-body); font-size: 0.78rem; color: var(--color-muted); line-height: 1.5; margin-bottom: 0.85rem;">
+                    <p style="font-family: var(--font-body); font-size: 0.875rem; color: var(--color-muted); line-height: 1.5; margin-bottom: 0.85rem;">
                         Help grow the knowledge base by writing a new article.
                     </p>
                     <a href="/articles/create" class="btn-nav" style="display: block; text-align: center;">+ NEW ARTICLE</a>
@@ -337,7 +278,6 @@
         });
     });
 
-    // Keep filter in sync when the user navigates back/forward
     window.addEventListener('popstate', function (e) {
         setActiveTag(e.state && e.state.tag ? e.state.tag : null);
     });
