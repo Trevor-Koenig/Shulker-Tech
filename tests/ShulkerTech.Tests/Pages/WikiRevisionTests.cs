@@ -148,7 +148,7 @@ public class WikiRevisionTests(ShulkerTechWebApplicationFactory factory)
     public async Task RevisionView_AsNonEditor_ReturnsForbid()
     {
         using var scope = factory.Services.CreateScope();
-        var author = await TestDbHelper.CreateUserAsync(scope.ServiceProvider);
+        var author = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, role: "Member");
         var other = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, role: "Member");
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var article = await TestDbHelper.CreateArticleAsync(db, author.Id);

@@ -67,7 +67,7 @@
 
                         <!-- Delete -->
                         <form method="post" asp-page-handler="Delete" asp-route-id="@tag.Id"
-                              onsubmit="return confirm('Delete tag \'@tag.Name\'? It will be removed from all articles.')">
+                              data-confirm="Delete tag &quot;@tag.Name&quot;? It will be removed from all articles.">
                             <button type="submit" class="text-xs"
                                     style="font-family: var(--font-display); letter-spacing: 0.08em; color: var(--color-redstone); cursor: pointer; background: none; border: none; padding: 0;">
                                 DELETE

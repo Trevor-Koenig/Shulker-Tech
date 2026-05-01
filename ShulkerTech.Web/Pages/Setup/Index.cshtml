@@ -38,7 +38,8 @@
                     </div>
                 }
 
-                <form method="post" action="/setup?handler=Restore" class="flex flex-col gap-3">
+                <form method="post" action="/setup?handler=Restore" class="flex flex-col gap-3"
+                      data-confirm="This will overwrite the current database with the selected backup. This cannot be undone. Continue?">
                     @Html.AntiForgeryToken()
 
                     <div class="flex flex-col gap-1">
@@ -62,8 +63,7 @@
                     </div>
 
                     <button type="submit" class="btn-nav w-full py-2 text-xs"
-                            style="border-color: var(--color-accent); color: var(--color-accent);"
-                            onclick="return confirm('This will overwrite the current database. Continue?')">
+                            style="border-color: var(--color-accent); color: var(--color-accent);">
                         RESTORE DATABASE
                     </button>
 

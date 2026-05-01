@@ -30,7 +30,7 @@
 
     <form method="post" class="flex flex-col gap-6">
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             <!-- Default view role -->
             <div class="panel p-6 flex flex-col gap-3">
@@ -38,7 +38,7 @@
                     DEFAULT VIEW PERMISSION
                 </label>
                 <p class="text-xs flex-1" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
-                    Who can read wiki articles that have no per-article override set.
+                    Who can read wiki articles that have no per-article override set. Public = anyone including guests.
                 </p>
                 <select asp-for="Input.DefaultViewRole" class="@SelectStyle" style="@SelectInlineStyle">
                     <option value="">Public (anyone)</option>
@@ -49,36 +49,16 @@
                 </select>
             </div>
 
-            <!-- Create role -->
+            <!-- Info card -->
             <div class="panel p-6 flex flex-col gap-3">
                 <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
-                    WHO CAN CREATE ARTICLES
+                    CREATE / EDIT / DELETE PERMISSIONS
                 </label>
                 <p class="text-xs flex-1" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
-                    Minimum role required to write a new wiki article.
+                    Which roles can create, edit, or delete articles is now managed per-role in the Roles panel.
+                    Individual articles can still override edit access with a per-article role setting.
                 </p>
-                <select asp-for="Input.CreateRole" class="@SelectStyle" style="@SelectInlineStyle">
-                    @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
-                    {
-                        <option value="@role" selected="@(Model.Input.CreateRole == role)">@role and above</option>
-                    }
-                </select>
-            </div>
-
-            <!-- Edit any role -->
-            <div class="panel p-6 flex flex-col gap-3">
-                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
-                    WHO CAN EDIT OTHERS' ARTICLES
-                </label>
-                <p class="text-xs flex-1" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
-                    Minimum role to edit articles not written by the user. Authors can always edit their own work. Individual articles can override this.
-                </p>
-                <select asp-for="Input.EditAnyRole" class="@SelectStyle" style="@SelectInlineStyle">
-                    @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
-                    {
-                        <option value="@role" selected="@(Model.Input.EditAnyRole == role)">@role and above</option>
-                    }
-                </select>
+                <a href="/Admin/Roles" class="nav-link text-xs" style="font-family: var(--font-display);">MANAGE ROLES →</a>
             </div>
 
         </div>

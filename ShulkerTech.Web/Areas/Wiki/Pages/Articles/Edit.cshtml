@@ -113,7 +113,7 @@
                 <select asp-for="Input.EditRole"
                         class="panel px-3 py-2 bg-transparent outline-none text-sm"
                         style="color: var(--color-crystal); font-family: var(--font-mono);">
-                    <option value="">Default (@Model.Settings.EditAnyRole)</option>
+                    <option value="">Default (Permissions-based)</option>
                     @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
                     {
                         <option value="@role" selected="@(Model.Input.EditRole == role)">@role only</option>
@@ -146,7 +146,7 @@
         <div class="mt-12 pt-6" style="border-top: 1px solid color-mix(in oklab, var(--color-redstone) 20%, transparent);">
             <p class="text-xs mb-3" style="font-family: var(--font-mono); color: var(--color-muted);">DANGER ZONE</p>
             <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Article.Id"
-                  onsubmit="return confirm('Delete this article permanently?')">
+                  data-confirm="Delete this article permanently? This cannot be undone.">
                 <button type="submit" class="text-xs px-4 py-2 rounded"
                         style="font-family: var(--font-display); letter-spacing: 0.1em; border: 1px solid color-mix(in oklab, var(--color-redstone) 40%, transparent); color: var(--color-redstone); background: color-mix(in oklab, var(--color-redstone) 8%, transparent); cursor: pointer; transition: background 150ms ease;"
                         onmouseover="this.style.background='color-mix(in oklab, var(--color-redstone) 18%, transparent)'"

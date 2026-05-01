@@ -5,13 +5,15 @@ using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
 using ShulkerTech.Web.Markdown;
+using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 
 public class ViewModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
-    WikiMarkdownService wikiMarkdown) : PageModel
+    WikiMarkdownService wikiMarkdown,
+    PermissionService permissions) : PageModel
 {
     public Article Article { get; set; } = null!;
     public string ContentHtml { get; set; } = "";
@@ -45,14 +47,18 @@ public class ViewModel(
                 userRoles = await userManager.GetRolesAsync(viewer);
         }
 
-        var editRole = article.EditRole ?? settings.EditAnyRole;
-
         if (!article.IsPublished)
         {
-            var canSeeUnpublished = viewer != null &&
-                (viewer.Id == article.AuthorId ||
-                 viewer.IsAdmin ||
-                 WikiSettings.UserSatisfies(editRole, userRoles, viewer.IsAdmin));
+            bool canSeeUnpublished = false;
+            if (viewer != null)
+            {
+                if (viewer.IsAdmin || viewer.Id == article.AuthorId)
+                    canSeeUnpublished = true;
+                else if (article.EditRole != null)
+                    canSeeUnpublished = WikiSettings.UserSatisfies(article.EditRole, userRoles, false);
+                else
+                    canSeeUnpublished = await permissions.HasAsync(viewer, userRoles, SiteResource.WikiEditAny);
+            }
             if (!canSeeUnpublished)
                 return NotFound();
         }
@@ -72,9 +78,18 @@ public class ViewModel(
         ViewData["ArticlePublishedTime"] = article.CreatedAt.ToString("O");
         ViewData["ArticleModifiedTime"] = article.UpdatedAt.ToString("O");
 
-        CanEdit = viewer != null &&
-                  (viewer.Id == article.AuthorId ||
-                   WikiSettings.UserSatisfies(editRole, userRoles, viewer.IsAdmin));
+        if (viewer != null)
+        {
+            if (article.EditRole != null)
+                CanEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, viewer.IsAdmin);
+            else
+            {
+                var isAuthor = viewer.Id == article.AuthorId;
+                var editOwn = isAuthor && await permissions.HasAsync(viewer, userRoles, SiteResource.WikiEditOwn);
+                var editAny = await permissions.HasAsync(viewer, userRoles, SiteResource.WikiEditAny);
+                CanEdit = editOwn || editAny;
+            }
+        }
 
         if (viewer != null)
             IsFavorited = await db.ArticleFavorites

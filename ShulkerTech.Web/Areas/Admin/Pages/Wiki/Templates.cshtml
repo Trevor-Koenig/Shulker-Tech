@@ -56,7 +56,7 @@
                         <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
                             <button type="button" onclick="toggleEdit(@tmpl.Id)" class="btn-nav" style="font-size: 0.75rem;">EDIT</button>
                             <form method="post" asp-page-handler="Delete" asp-route-id="@tmpl.Id"
-                                  onsubmit="return confirm('Delete template \'@tmpl.Name\'?')">
+                                  data-confirm="Delete template &quot;@tmpl.Name&quot;? This cannot be undone.">
                                 <button type="submit" class="btn-nav" style="font-size: 0.75rem; color: var(--color-redstone); border-color: color-mix(in oklab, var(--color-redstone) 40%, transparent);">DELETE</button>
                             </form>
                         </div>

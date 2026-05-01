@@ -108,19 +108,19 @@
                                 @(server.IsActive ? "DISABLE" : "ENABLE")
                             </button>
                         </form>
-                        <form method="post" asp-page-handler="RegenerateKey">
+                        <form method="post" asp-page-handler="RegenerateKey"
+                              data-confirm="Regenerate API key? The plugin must be updated with the new key before it can reconnect.">
                             <input type="hidden" name="id" value="@server.Id" />
                             <button type="submit" class="px-3 py-1 rounded text-xs"
-                                    style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-arcane); border: 1px solid color-mix(in oklab, var(--color-arcane) 30%, transparent);"
-                                    onclick="return confirm('Regenerate API key? The plugin must be updated with the new key.');">
+                                    style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-arcane); border: 1px solid color-mix(in oklab, var(--color-arcane) 30%, transparent);">
                                 REGEN KEY
                             </button>
                         </form>
-                        <form method="post" asp-page-handler="Delete">
+                        <form method="post" asp-page-handler="Delete"
+                              data-confirm="Delete this server and all session history? This cannot be undone.">
                             <input type="hidden" name="id" value="@server.Id" />
                             <button type="submit" class="px-3 py-1 rounded text-xs"
-                                    style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-rune); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent);"
-                                    onclick="return confirm('Delete this server and all session history?');">
+                                    style="font-family: var(--font-display); letter-spacing: 0.05em; color: var(--color-rune); border: 1px solid color-mix(in oklab, var(--color-rune) 30%, transparent);">
                                 REMOVE
                             </button>
                         </form>

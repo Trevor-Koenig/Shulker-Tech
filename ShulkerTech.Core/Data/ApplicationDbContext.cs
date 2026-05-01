@@ -21,6 +21,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<MinecraftServer> MinecraftServers => Set<MinecraftServer>();
     public DbSet<PlayerSession> PlayerSessions => Set<PlayerSession>();
     public DbSet<ServerPingLog> ServerPingLogs => Set<ServerPingLog>();
+    public DbSet<SitePermission> SitePermissions => Set<SitePermission>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -124,6 +125,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.Entity<ServerPingLog>()
             .HasIndex(l => new { l.ServerId, l.Timestamp });
+
+        builder.Entity<SitePermission>()
+            .HasIndex(p => new { p.RoleName, p.Resource })
+            .IsUnique();
+
+        // Default permission grants — Member: create + edit own; Moderator: also edit any + delete
+        builder.Entity<SitePermission>().HasData(
+            new SitePermission { Id = 1, RoleName = "Member",    Resource = "wiki.create"   },
+            new SitePermission { Id = 2, RoleName = "Member",    Resource = "wiki.edit_own" },
+            new SitePermission { Id = 3, RoleName = "Moderator", Resource = "wiki.create"   },
+            new SitePermission { Id = 4, RoleName = "Moderator", Resource = "wiki.edit_own" },
+            new SitePermission { Id = 5, RoleName = "Moderator", Resource = "wiki.edit_any" },
+            new SitePermission { Id = 6, RoleName = "Moderator", Resource = "wiki.delete"   }
+        );
 
         // Seed a single WikiSettings row with sensible defaults
         builder.Entity<WikiSettings>().HasData(new WikiSettings { Id = 1 });

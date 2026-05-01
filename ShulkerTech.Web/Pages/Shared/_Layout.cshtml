@@ -148,6 +148,87 @@
     <script src="~/js/htmx.min.js"></script>
     <script src="~/js/signalr.min.js"></script>
 
+    <!-- ── Site confirm modal ── -->
+    <div id="site-confirm-overlay" aria-modal="true" role="dialog" aria-labelledby="site-confirm-msg"
+         style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.65);backdrop-filter:blur(3px);padding:1rem;">
+        <div style="max-width:420px;width:100%;padding:2rem;border:1px solid color-mix(in oklab,var(--color-accent) 30%,transparent);background:var(--color-deep-space);box-shadow:0 0 48px color-mix(in oklab,var(--color-accent) 12%,transparent);">
+            <p style="font-family:var(--font-display);font-size:0.6rem;letter-spacing:0.18em;color:var(--color-rune);margin:0 0 0.85rem;">&#9670; CONFIRM ACTION</p>
+            <p id="site-confirm-msg" style="font-family:var(--font-mono);font-size:0.875rem;color:var(--color-crystal);line-height:1.65;margin:0 0 1.75rem;white-space:pre-wrap;"></p>
+            <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                <button id="site-confirm-cancel" type="button" class="btn-nav" style="font-size:0.8rem;">CANCEL</button>
+                <button id="site-confirm-ok" type="button"
+                        style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:0.08em;padding:0.5rem 1.35rem;border:1px solid var(--color-redstone);color:var(--color-redstone);background:color-mix(in oklab,var(--color-redstone) 10%,transparent);cursor:pointer;transition:background 150ms;">
+                    CONFIRM
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var overlay  = document.getElementById('site-confirm-overlay');
+            var msgEl    = document.getElementById('site-confirm-msg');
+            var cancelBtn = document.getElementById('site-confirm-cancel');
+            var okBtn    = document.getElementById('site-confirm-ok');
+            var _resolve = null;
+
+            okBtn.addEventListener('mouseover', function () {
+                okBtn.style.background = 'color-mix(in oklab,var(--color-redstone) 22%,transparent)';
+            });
+            okBtn.addEventListener('mouseout', function () {
+                okBtn.style.background = 'color-mix(in oklab,var(--color-redstone) 10%,transparent)';
+            });
+
+            function open(message) {
+                return new Promise(function (resolve) {
+                    _resolve = resolve;
+                    msgEl.textContent = message;
+                    overlay.style.display = 'flex';
+                    okBtn.focus();
+                });
+            }
+
+            function close(result) {
+                overlay.style.display = 'none';
+                if (_resolve) { _resolve(result); _resolve = null; }
+            }
+
+            cancelBtn.addEventListener('click', function () { close(false); });
+            okBtn.addEventListener('click',     function () { close(true); });
+
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) close(false);
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (overlay.style.display !== 'flex') return;
+                if (e.key === 'Escape') { e.preventDefault(); close(false); }
+                if (e.key === 'Enter')  { e.preventDefault(); close(true); }
+                if (e.key === 'Tab') {
+                    // Trap focus between cancel and ok buttons
+                    e.preventDefault();
+                    document.activeElement === okBtn ? cancelBtn.focus() : okBtn.focus();
+                }
+            });
+
+            window.siteConfirm = open;
+
+            // Intercept any form submit that carries data-confirm
+            document.addEventListener('submit', function (e) {
+                var form = e.target;
+                var message = form.dataset.confirm;
+                if (!message) return;
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                open(message).then(function (ok) {
+                    if (!ok) return;
+                    delete form.dataset.confirm;
+                    form.submit();
+                });
+            }, true);
+        })();
+    </script>
+
     <script>
         // Settings dropdown
         var settingsBtn = document.getElementById('settings-btn');

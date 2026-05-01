@@ -39,6 +39,7 @@ builder.Services.AddSingleton<ServerStatusCache>();
 builder.Services.AddSingleton<ServerStatsCache>();
 builder.Services.AddHostedService<ServerStatusRefresher>();
 builder.Services.AddHostedService<DatabaseBackupService>();
+builder.Services.AddScoped<PermissionService>();
 builder.Services.Configure<HostOptions>(opts =>
     opts.ShutdownTimeout = TimeSpan.FromMinutes(5));
 builder.Services.AddRazorPages();

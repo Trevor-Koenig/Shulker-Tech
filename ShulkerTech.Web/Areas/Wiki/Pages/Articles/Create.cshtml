@@ -130,7 +130,7 @@
                 <select asp-for="Input.EditRole"
                         class="panel px-3 py-2 bg-transparent outline-none text-sm"
                         style="color: var(--color-crystal); font-family: var(--font-mono);">
-                    <option value="">Default (@Model.Settings.EditAnyRole)</option>
+                    <option value="">Default (Permissions-based)</option>
                     @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
                     {
                         <option value="@role" selected="@(Model.Input.EditRole == role)">@role only</option>
@@ -227,9 +227,9 @@
             Model.Templates.Select(t => new { t.Id, t.Name, t.Content, t.IsDefault }),
             new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
 
-        function loadTemplate(tmpl) {
+        async function loadTemplate(tmpl) {
             var current = easyMDE.value().trim();
-            if (current && !confirm('Replace current content with the "' + tmpl.name + '" template?')) return;
+            if (current && !await siteConfirm('Replace current content with the "' + tmpl.name + '" template?')) return;
             easyMDE.value(tmpl.content);
             easyMDE.codemirror.focus();
         }

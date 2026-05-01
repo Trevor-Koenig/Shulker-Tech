@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
 using ShulkerTech.Web.Markdown;
+using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 
@@ -15,7 +16,8 @@ namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 public class RevisionModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
-    WikiMarkdownService wikiMarkdown) : PageModel
+    WikiMarkdownService wikiMarkdown,
+    PermissionService permissions) : PageModel
 {
     public ArticleRevision Revision { get; set; } = null!;
     public Article Article { get; set; } = null!;
@@ -159,11 +161,17 @@ public class RevisionModel(
         var user = await userManager.GetUserAsync(User);
         if (user == null) return (revision, article, false);
 
-        var settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
         var userRoles = await userManager.GetRolesAsync(user);
-        var editRole = article.EditRole ?? settings.EditAnyRole;
-        var canEdit = user.Id == article.AuthorId ||
-                      WikiSettings.UserSatisfies(editRole, userRoles, user.IsAdmin);
+        bool canEdit;
+        if (article.EditRole != null)
+            canEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, user.IsAdmin);
+        else
+        {
+            var isAuthor = user.Id == article.AuthorId;
+            var editOwn = isAuthor && await permissions.HasAsync(user, userRoles, SiteResource.WikiEditOwn);
+            var editAny = await permissions.HasAsync(user, userRoles, SiteResource.WikiEditAny);
+            canEdit = editOwn || editAny;
+        }
 
         return (revision, article, canEdit);
     }

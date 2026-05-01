@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
+using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages;
 
 public class IndexModel(
     ApplicationDbContext db,
-    UserManager<ApplicationUser> userManager) : PageModel
+    UserManager<ApplicationUser> userManager,
+    PermissionService permissions) : PageModel
 {
     public List<Article> Articles { get; set; } = [];
     public List<Article> UserFavorites { get; set; } = [];
@@ -55,6 +57,8 @@ public class IndexModel(
             .ToListAsync();
 
         var isAdmin = currentUser?.IsAdmin == true;
+        var canEditAny = currentUser != null &&
+                         await permissions.HasAsync(currentUser, userRoles, SiteResource.WikiEditAny);
 
         Articles = all.Where(a =>
         {
@@ -62,8 +66,9 @@ public class IndexModel(
             {
                 if (isAdmin || (currentUser != null && currentUser.Id == a.AuthorId))
                     return true;
-                var editRole = a.EditRole ?? settings.EditAnyRole;
-                return currentUser != null && WikiSettings.UserSatisfies(editRole, userRoles, isAdmin);
+                if (a.EditRole != null)
+                    return currentUser != null && WikiSettings.UserSatisfies(a.EditRole, userRoles, isAdmin);
+                return canEditAny;
             }
 
             var viewRole = a.ViewRole ?? settings.DefaultViewRole;

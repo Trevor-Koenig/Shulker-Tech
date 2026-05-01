@@ -7,11 +7,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
+using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 
 [Authorize]
-public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : PageModel
+public class CreateModel(
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    PermissionService permissions) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -48,7 +52,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
         if (user == null) return Forbid();
 
         var userRoles = await userManager.GetRolesAsync(user);
-        if (!WikiSettings.UserSatisfies(Settings.CreateRole, userRoles, user.IsAdmin))
+        if (!await permissions.HasAsync(user, userRoles, SiteResource.WikiCreate))
             return Forbid();
 
         return Page();
@@ -64,7 +68,7 @@ public class CreateModel(ApplicationDbContext db, UserManager<ApplicationUser> u
             ?? throw new InvalidOperationException("Authenticated user not found.");
 
         var userRoles = await userManager.GetRolesAsync(user);
-        if (!WikiSettings.UserSatisfies(Settings.CreateRole, userRoles, user.IsAdmin))
+        if (!await permissions.HasAsync(user, userRoles, SiteResource.WikiCreate))
             return Forbid();
 
         if (!ModelState.IsValid) return Page();

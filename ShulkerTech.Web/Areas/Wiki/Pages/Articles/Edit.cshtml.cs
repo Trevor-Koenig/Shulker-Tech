@@ -6,11 +6,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
+using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 
 [Authorize]
-public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : PageModel
+public class EditModel(
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    PermissionService permissions) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -112,7 +116,11 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
         var user = await userManager.GetUserAsync(User);
-        if (user == null || !user.IsAdmin) return Forbid();
+        if (user == null) return Forbid();
+
+        var userRoles = await userManager.GetRolesAsync(user);
+        if (!await permissions.HasAsync(user, userRoles, SiteResource.WikiDelete))
+            return Forbid();
 
         var article = await db.Articles.FindAsync(id);
         if (article != null)
@@ -133,12 +141,22 @@ public class EditModel(ApplicationDbContext db, UserManager<ApplicationUser> use
         var user = await userManager.GetUserAsync(User);
         if (user == null) return (article, false, false);
 
-        var settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
         var userRoles = await userManager.GetRolesAsync(user);
-        var editRole = article.EditRole ?? settings.EditAnyRole;
 
-        var canEdit = user.Id == article.AuthorId ||
-                      WikiSettings.UserSatisfies(editRole, userRoles, user.IsAdmin);
+        bool canEdit;
+        if (article.EditRole != null)
+        {
+            // Per-article override uses the rank-based hierarchy
+            canEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, user.IsAdmin);
+        }
+        else
+        {
+            // Global: author + edit_own permission, or edit_any permission
+            var isAuthor = user.Id == article.AuthorId;
+            var editOwn = isAuthor && await permissions.HasAsync(user, userRoles, SiteResource.WikiEditOwn);
+            var editAny = await permissions.HasAsync(user, userRoles, SiteResource.WikiEditAny);
+            canEdit = editOwn || editAny;
+        }
 
         return (article, canEdit, user.IsAdmin);
     }
