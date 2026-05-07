@@ -111,6 +111,15 @@ public class ShulkerTechWebApplicationFactory : WebApplicationFactory<Program>, 
                 roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
         }
 
+        if (!db.SitePermissions.Any(p => p.RoleName == "Admin"))
+        {
+            db.SitePermissions.AddRange(
+                SiteResource.All
+                    .Where(r => !r.IsPublicByDefault)
+                    .Select(r => new SitePermission { RoleName = "Admin", Resource = r.Key }));
+            db.SaveChanges();
+        }
+
         return host;
     }
 

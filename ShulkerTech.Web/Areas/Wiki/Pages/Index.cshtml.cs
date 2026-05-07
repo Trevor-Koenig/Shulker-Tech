@@ -56,7 +56,6 @@ public class IndexModel(
             .OrderByDescending(a => a.UpdatedAt)
             .ToListAsync();
 
-        var isAdmin = currentUser?.IsAdmin == true;
         var canEditAny = currentUser != null &&
                          await permissions.HasAsync(currentUser, userRoles, SiteResource.WikiEditAny);
 
@@ -64,15 +63,15 @@ public class IndexModel(
         {
             if (!a.IsPublished)
             {
-                if (isAdmin || (currentUser != null && currentUser.Id == a.AuthorId))
+                if (canEditAny || (currentUser != null && currentUser.Id == a.AuthorId))
                     return true;
                 if (a.EditRole != null)
-                    return currentUser != null && WikiSettings.UserSatisfies(a.EditRole, userRoles, isAdmin);
-                return canEditAny;
+                    return currentUser != null && WikiSettings.UserSatisfies(a.EditRole, userRoles, canEditAny);
+                return false;
             }
 
             var viewRole = a.ViewRole ?? settings.DefaultViewRole;
-            return WikiSettings.UserSatisfies(viewRole, userRoles, isAdmin);
+            return WikiSettings.UserSatisfies(viewRole, userRoles, canEditAny);
         }).ToList();
 
         var published = Articles.Where(a => a.IsPublished).ToList();

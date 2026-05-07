@@ -3,6 +3,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery AntiforgeryService
+@inject ShulkerTech.Web.Services.PermissionService _layoutPermissions
 @{
     // Build subdomain URLs from the current request so this works in any environment
     // (dev: shulker.dev:8080, prod: shulkertech.com) without hardcoding domains.
@@ -19,6 +20,8 @@
     var _wikiBase = $"{_scheme}://wiki.{_rootHost}{_portSuffix}";
     var _adminBase = $"{_scheme}://admin.{_rootHost}{_portSuffix}";
     var _layoutCurrentUser = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
+    var _layoutUserRoles = _layoutCurrentUser != null ? await UserManager.GetRolesAsync(_layoutCurrentUser) : (IList<string>)[];
+    var _canSeeAdmin = await _layoutPermissions.CanAccessAsync(_layoutCurrentUser, _layoutUserRoles, ShulkerTech.Core.Models.SiteResource.AdminAccess, isPublicByDefault: false);
 }
 <!DOCTYPE html>
 <html lang="en" class="h-full">
@@ -111,7 +114,7 @@
             <ul class="hidden sm:flex items-center gap-6">
                 <li><a class="nav-link" href="@_base/">Home</a></li>
                 <li><a class="nav-link" href="@_wikiBase/">Wiki</a></li>
-                @if (_layoutCurrentUser?.IsAdmin == true)
+                @if (_canSeeAdmin)
                 {
                     <li><a class="nav-link" href="@_adminBase/">ADMIN</a></li>
                 }
@@ -123,7 +126,7 @@
         <div id="nav-menu" class="hidden sm:hidden px-4 pb-4 flex flex-col gap-3">
             <a class="nav-link" href="@_base/">Home</a>
             <a class="nav-link" href="@_wikiBase/">Wiki</a>
-            @if (_layoutCurrentUser?.IsAdmin == true)
+            @if (_canSeeAdmin)
             {
                 <a class="nav-link" href="@_adminBase/">ADMIN</a>
             }

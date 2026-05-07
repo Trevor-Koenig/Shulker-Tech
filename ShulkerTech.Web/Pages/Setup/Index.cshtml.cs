@@ -5,7 +5,9 @@ using System.IO.Compression;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
 
 namespace ShulkerTech.Web.Pages.Setup;
@@ -14,7 +16,9 @@ public class IndexModel(
     UserManager<ApplicationUser> userManager,
     IUserStore<ApplicationUser> userStore,
     SignInManager<ApplicationUser> signInManager,
-    IConfiguration configuration) : PageModel
+    IConfiguration configuration,
+    ApplicationDbContext db,
+    RoleManager<IdentityRole> roleManager) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -102,6 +106,38 @@ public class IndexModel(
         try
         {
             await RestoreBackupAsync(backupPath);
+
+            // Apply any migrations the backup was missing, then ensure roles exist.
+            await db.Database.MigrateAsync();
+            foreach (var role in new[] { "Admin", "Moderator", "Member" })
+                if (!await roleManager.RoleExistsAsync(role))
+                    await roleManager.CreateAsync(new IdentityRole(role));
+
+            // Re-seed Admin permissions if the backup predated the RBAC system.
+            if (!await db.SitePermissions.AnyAsync(p => p.RoleName == "Admin"))
+            {
+                db.SitePermissions.AddRange(
+                    SiteResource.All
+                        .Where(r => !r.IsPublicByDefault)
+                        .Select(r => new SitePermission { RoleName = "Admin", Resource = r.Key }));
+                await db.SaveChangesAsync();
+            }
+
+            // Ensure at least one user is in the Admin role.
+            // Old backups used IsAdmin=true to mark the superuser — promote those first.
+            // If none exist, fall back to the first user in the table.
+            if ((await userManager.GetUsersInRoleAsync("Admin")).Count == 0)
+            {
+                var candidates = await userManager.Users
+                    .Where(u => u.IsAdmin)
+                    .ToListAsync();
+                if (candidates.Count == 0)
+                    candidates = await userManager.Users.Take(1).ToListAsync();
+
+                foreach (var candidate in candidates)
+                    await userManager.AddToRoleAsync(candidate, "Admin");
+            }
+
             // After restore users exist — send to login
             return RedirectToPage("/Account/Login", new { area = "Identity" });
         }

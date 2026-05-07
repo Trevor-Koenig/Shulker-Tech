@@ -47,24 +47,24 @@ public class ViewModel(
                 userRoles = await userManager.GetRolesAsync(viewer);
         }
 
+        var canEditAny = await permissions.HasAsync(viewer, userRoles, SiteResource.WikiEditAny);
+
         if (!article.IsPublished)
         {
             bool canSeeUnpublished = false;
             if (viewer != null)
             {
-                if (viewer.IsAdmin || viewer.Id == article.AuthorId)
+                if (viewer.Id == article.AuthorId || canEditAny)
                     canSeeUnpublished = true;
                 else if (article.EditRole != null)
                     canSeeUnpublished = WikiSettings.UserSatisfies(article.EditRole, userRoles, false);
-                else
-                    canSeeUnpublished = await permissions.HasAsync(viewer, userRoles, SiteResource.WikiEditAny);
             }
             if (!canSeeUnpublished)
                 return NotFound();
         }
 
         var viewRole = article.ViewRole ?? settings.DefaultViewRole;
-        if (!WikiSettings.UserSatisfies(viewRole, userRoles, viewer?.IsAdmin == true))
+        if (!WikiSettings.UserSatisfies(viewRole, userRoles, canEditAny))
             return NotFound();
 
         Article = article;
@@ -81,7 +81,7 @@ public class ViewModel(
         if (viewer != null)
         {
             if (article.EditRole != null)
-                CanEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, viewer.IsAdmin);
+                CanEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, canEditAny);
             else
             {
                 var isAuthor = viewer.Id == article.AuthorId;

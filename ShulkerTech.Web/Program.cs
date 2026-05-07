@@ -130,6 +130,19 @@ if (!app.Environment.IsEnvironment("Testing"))
         if (!await roleManager.RoleExistsAsync(role))
             await roleManager.CreateAsync(new IdentityRole(role));
     }
+
+    // Seed Admin role with every permission if it has none yet.
+    // This runs once on first startup (or after a bare-schema restore).
+    // After initial seeding, admins can freely adjust grants through the Roles page.
+    var hasAdminPerms = await db.SitePermissions.AnyAsync(p => p.RoleName == "Admin");
+    if (!hasAdminPerms)
+    {
+        db.SitePermissions.AddRange(
+            SiteResource.All
+                .Where(r => !r.IsPublicByDefault)
+                .Select(r => new SitePermission { RoleName = "Admin", Resource = r.Key }));
+        await db.SaveChangesAsync();
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -151,6 +164,7 @@ app.UseMiddleware<SubdomainRoutingMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<AdminGuardMiddleware>();
 app.UseMiddleware<Require2FAMiddleware>();
+app.UseMiddleware<PageGuardMiddleware>();
 app.UseRouting();
 app.UseAuthorization();
 

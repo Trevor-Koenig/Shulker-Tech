@@ -162,14 +162,14 @@ public class RevisionModel(
         if (user == null) return (revision, article, false);
 
         var userRoles = await userManager.GetRolesAsync(user);
+        var editAny = await permissions.HasAsync(user, userRoles, SiteResource.WikiEditAny);
         bool canEdit;
         if (article.EditRole != null)
-            canEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, user.IsAdmin);
+            canEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, editAny);
         else
         {
             var isAuthor = user.Id == article.AuthorId;
             var editOwn = isAuthor && await permissions.HasAsync(user, userRoles, SiteResource.WikiEditOwn);
-            var editAny = await permissions.HasAsync(user, userRoles, SiteResource.WikiEditAny);
             canEdit = editOwn || editAny;
         }
 

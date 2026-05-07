@@ -29,13 +29,13 @@ public class HistoryModel(
 
         var userRoles = await userManager.GetRolesAsync(user);
 
+        var editAny = await permissions.HasAsync(user, userRoles, SiteResource.WikiEditAny);
         if (article.EditRole != null)
-            CanEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, user.IsAdmin);
+            CanEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, editAny);
         else
         {
             var isAuthor = user.Id == article.AuthorId;
             var editOwn = isAuthor && await permissions.HasAsync(user, userRoles, SiteResource.WikiEditOwn);
-            var editAny = await permissions.HasAsync(user, userRoles, SiteResource.WikiEditAny);
             CanEdit = editOwn || editAny;
         }
 

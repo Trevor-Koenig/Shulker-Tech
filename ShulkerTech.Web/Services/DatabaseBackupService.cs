@@ -14,8 +14,6 @@ public class DatabaseBackupService(
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        await RunBackupAsync("startup");
-
         using var timer = new PeriodicTimer(Interval);
         try
         {

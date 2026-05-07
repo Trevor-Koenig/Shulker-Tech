@@ -20,7 +20,7 @@ public class EditModel(
     public InputModel Input { get; set; } = new();
 
     public Article Article { get; set; } = null!;
-    public bool IsAdmin { get; set; }
+    public bool CanEditAny { get; set; }
     public WikiSettings Settings { get; set; } = new();
     public List<Tag> AllTags { get; set; } = [];
 
@@ -46,11 +46,11 @@ public class EditModel(
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        var (article, canEdit, isAdmin) = await ResolveAsync(id);
+        var (article, canEdit, canEditAny) = await ResolveAsync(id);
         if (article == null || !canEdit) return Forbid();
 
         Article = article;
-        IsAdmin = isAdmin;
+        CanEditAny = canEditAny;
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
         AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
 
@@ -73,11 +73,11 @@ public class EditModel(
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
         AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
 
-        var (article, canEdit, isAdmin) = await ResolveAsync(Input.Id);
+        var (article, canEdit, canEditAny) = await ResolveAsync(Input.Id);
         if (article == null || !canEdit) return Forbid();
 
         Article = article;
-        IsAdmin = isAdmin;
+        CanEditAny = canEditAny;
 
         if (!ModelState.IsValid) return Page();
 
@@ -131,7 +131,7 @@ public class EditModel(
         return Redirect("/");
     }
 
-    private async Task<(Article? article, bool canEdit, bool isAdmin)> ResolveAsync(int id)
+    private async Task<(Article? article, bool canEdit, bool canEditAny)> ResolveAsync(int id)
     {
         var article = await db.Articles
             .Include(a => a.Tags)
@@ -142,22 +142,20 @@ public class EditModel(
         if (user == null) return (article, false, false);
 
         var userRoles = await userManager.GetRolesAsync(user);
+        var editAny = await permissions.HasAsync(user, userRoles, SiteResource.WikiEditAny);
 
         bool canEdit;
         if (article.EditRole != null)
         {
-            // Per-article override uses the rank-based hierarchy
-            canEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, user.IsAdmin);
+            canEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, editAny);
         }
         else
         {
-            // Global: author + edit_own permission, or edit_any permission
             var isAuthor = user.Id == article.AuthorId;
             var editOwn = isAuthor && await permissions.HasAsync(user, userRoles, SiteResource.WikiEditOwn);
-            var editAny = await permissions.HasAsync(user, userRoles, SiteResource.WikiEditAny);
             canEdit = editOwn || editAny;
         }
 
-        return (article, canEdit, user.IsAdmin);
+        return (article, canEdit, editAny);
     }
 }

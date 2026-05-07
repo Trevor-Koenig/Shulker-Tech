@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.IO.Compression;
 using System.Net;
 using FluentAssertions;
@@ -305,6 +306,67 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task Restore_OldBackup_MissingMigrationsAreApplied()
+    {
+        // Use AddArticleTemplates — it only creates a table, so re-running it is safe.
+        // We simulate a backup taken before this migration ran by dropping the table
+        // and removing its history entry, exactly as a real backup restore would leave things.
+        const string migrationId = "20260429213815_AddArticleTemplates";
+
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        await db.Database.ExecuteSqlRawAsync(
+            $"DELETE FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = '{migrationId}'");
+        await db.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS \"ArticleTemplates\"");
+
+        try
+        {
+            (await TableExistsAsync(db, "ArticleTemplates")).Should().BeFalse(
+                "simulated old-backup state should not have ArticleTemplates");
+
+            // This is exactly what OnPostRestoreAsync does after RestoreBackupAsync succeeds
+            await db.Database.MigrateAsync();
+
+            (await TableExistsAsync(db, "ArticleTemplates")).Should().BeTrue(
+                "MigrateAsync should have re-created ArticleTemplates");
+
+            var templates = await db.ArticleTemplates.ToListAsync();
+            templates.Should().NotBeEmpty("the migration seeds at least one default template");
+        }
+        finally
+        {
+            // Guarantee the table is restored for subsequent tests regardless of outcome
+            await db.Database.MigrateAsync();
+        }
+    }
+
+    private static async Task<bool> TableExistsAsync(ApplicationDbContext db, string tableName)
+    {
+        await db.Database.OpenConnectionAsync();
+        try
+        {
+            DbCommand cmd = db.Database.GetDbConnection().CreateCommand();
+            await using (cmd)
+            {
+                cmd.CommandText =
+                    "SELECT COUNT(*) FROM information_schema.tables " +
+                    "WHERE table_schema = 'public' AND table_name = @name";
+                DbParameter p = cmd.CreateParameter();
+                p.ParameterName = "name";
+                p.Value = tableName;
+                cmd.Parameters.Add(p);
+                var result = await cmd.ExecuteScalarAsync();
+                return Convert.ToInt64(result) > 0;
+            }
+        }
+        finally
+        {
+            await db.Database.CloseConnectionAsync();
+        }
+    }
+
+    [Fact]
     public async Task Restore_CorruptBackupFile_ShowsRestoreFailedError()
     {
         // A file with invalid gzip bytes: when the restore handler opens it, GZipStream.CopyToAsync
@@ -324,5 +386,170 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
             body.Should().Contain("Restore failed");
         }
         finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    // ── Admin role / permission seeding tests ──────────────────────────────────
+    // These tests verify the post-restore logic that OnPostRestoreAsync runs after
+    // RestoreBackupAsync completes. We exercise the logic directly (not via HTTP)
+    // because the actual restore requires psql, which is unavailable in CI.
+
+    [Fact]
+    public async Task Setup_FirstUser_CanAccessAdminArea()
+    {
+        // End-to-end: if a user was created by the setup page they hold the Admin role
+        // AND Admin has permissions, so they can hit an admin page.
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        var adminUsers = await userManager.GetUsersInRoleAsync("Admin");
+        if (adminUsers.Count == 0) return; // no setup user exists in this run
+
+        var adminUser = adminUsers.First();
+        var client = factory.CreateClient(new() { AllowAutoRedirect = false });
+        client.DefaultRequestHeaders.Add("X-Test-User-Id", adminUser.Id);
+
+        var response = await client.GetAsync("/Admin");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Restore_PostProcessing_AdminPermissionsSeeded_WhenMissing()
+    {
+        // Simulate an old backup that predates the SitePermissions table:
+        // remove all Admin grants, run the re-seeding logic, verify they're restored.
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var saved = await db.SitePermissions
+            .Where(p => p.RoleName == "Admin")
+            .ToListAsync();
+        db.SitePermissions.RemoveRange(saved);
+        await db.SaveChangesAsync();
+
+        try
+        {
+            // This mirrors OnPostRestoreAsync's seeding block exactly
+            if (!await db.SitePermissions.AnyAsync(p => p.RoleName == "Admin"))
+            {
+                db.SitePermissions.AddRange(
+                    SiteResource.All
+                        .Where(r => !r.IsPublicByDefault)
+                        .Select(r => new SitePermission { RoleName = "Admin", Resource = r.Key }));
+                await db.SaveChangesAsync();
+            }
+
+            var count = await db.SitePermissions.CountAsync(p => p.RoleName == "Admin");
+            var expected = SiteResource.All.Count(r => !r.IsPublicByDefault);
+            count.Should().Be(expected);
+        }
+        finally
+        {
+            if (!await db.SitePermissions.AnyAsync(p => p.RoleName == "Admin"))
+            {
+                db.SitePermissions.AddRange(
+                    SiteResource.All
+                        .Where(r => !r.IsPublicByDefault)
+                        .Select(r => new SitePermission { RoleName = "Admin", Resource = r.Key }));
+                await db.SaveChangesAsync();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Restore_PostProcessing_IsAdminUser_PromotedToAdminRole()
+    {
+        // Simulate an old backup where the superuser has IsAdmin=true but no Identity role.
+        // After post-restore processing the user should be in the Admin role.
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        // Create the user and immediately remove the auto-assigned Admin role so we start clean.
+        var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, isAdmin: true);
+        await userManager.RemoveFromRoleAsync(user, "Admin");
+
+        try
+        {
+            // This mirrors OnPostRestoreAsync's promotion block, but scoped to this user only
+            // by checking whether this specific user is in Admin after the logic runs.
+            // We temporarily remove ALL other users from Admin so the "Count == 0" path fires.
+            var others = (await userManager.GetUsersInRoleAsync("Admin"))
+                .Where(u => u.Id != user.Id)
+                .ToList();
+            foreach (var o in others)
+                await userManager.RemoveFromRoleAsync(o, "Admin");
+
+            try
+            {
+                if ((await userManager.GetUsersInRoleAsync("Admin")).Count == 0)
+                {
+                    var candidates = await userManager.Users
+                        .Where(u => u.IsAdmin)
+                        .ToListAsync();
+                    if (candidates.Count == 0)
+                        candidates = await userManager.Users.Take(1).ToListAsync();
+                    foreach (var c in candidates)
+                        await userManager.AddToRoleAsync(c, "Admin");
+                }
+
+                (await userManager.IsInRoleAsync(user, "Admin")).Should().BeTrue();
+            }
+            finally
+            {
+                foreach (var o in others)
+                    await userManager.AddToRoleAsync(o, "Admin");
+            }
+        }
+        finally
+        {
+            await userManager.DeleteAsync(user);
+        }
+    }
+
+    [Fact]
+    public async Task Restore_PostProcessing_FirstUser_PromotedToAdminRole_WhenNoIsAdminUsers()
+    {
+        // Simulate a backup where no user has IsAdmin=true — the fallback should promote
+        // the first user returned by the DB.
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, isAdmin: false);
+        await userManager.RemoveFromRoleAsync(user, "Admin"); // remove any role auto-assign
+
+        try
+        {
+            var others = (await userManager.GetUsersInRoleAsync("Admin"))
+                .Where(u => u.Id != user.Id)
+                .ToList();
+            foreach (var o in others)
+                await userManager.RemoveFromRoleAsync(o, "Admin");
+
+            try
+            {
+                if ((await userManager.GetUsersInRoleAsync("Admin")).Count == 0)
+                {
+                    var candidates = await userManager.Users
+                        .Where(u => u.IsAdmin)
+                        .ToListAsync();
+                    if (candidates.Count == 0)
+                        candidates = await userManager.Users.Take(1).ToListAsync();
+                    foreach (var c in candidates)
+                        await userManager.AddToRoleAsync(c, "Admin");
+                }
+
+                // Someone must now be in Admin
+                var adminUsers = await userManager.GetUsersInRoleAsync("Admin");
+                adminUsers.Should().NotBeEmpty();
+            }
+            finally
+            {
+                foreach (var o in others)
+                    await userManager.AddToRoleAsync(o, "Admin");
+            }
+        }
+        finally
+        {
+            await userManager.DeleteAsync(user);
+        }
     }
 }

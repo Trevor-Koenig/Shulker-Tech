@@ -141,7 +141,7 @@
     </form>
 
     <!-- Delete — admin only -->
-    @if (Model.IsAdmin)
+    @if (Model.CanEditAny)
     {
         <div class="mt-12 pt-6" style="border-top: 1px solid color-mix(in oklab, var(--color-redstone) 20%, transparent);">
             <p class="text-xs mb-3" style="font-family: var(--font-mono); color: var(--color-muted);">DANGER ZONE</p>

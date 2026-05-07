@@ -59,8 +59,9 @@ public static class TestDbHelper
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         await userManager.ConfirmEmailAsync(user, token);
 
-        if (role != null)
-            await userManager.AddToRoleAsync(user, role);
+        var effectiveRole = role ?? (isAdmin ? "Admin" : null);
+        if (effectiveRole != null)
+            await userManager.AddToRoleAsync(user, effectiveRole);
 
         return user;
     }
