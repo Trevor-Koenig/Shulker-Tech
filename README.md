@@ -52,7 +52,32 @@ Copy `.env.example` to `.env` and fill in the required values before running.
 | `BackupDir` | Path to the directory containing `.sql.gz` backup files (default: `/backups`) |
 | `ConnectionStrings__DefaultConnection` | PostgreSQL connection string |
 
-## Roadmap
+## Software Practices
+
+### Architecture & Code Quality
+- **Separation of concerns** — Domain models and data access live in `ShulkerTech.Core`; all web concerns (pages, middleware, services) stay in `ShulkerTech.Web`. Neither project bleeds into the other.
+- **Object-oriented design** — Business logic is encapsulated in focused classes (middleware, scoped services, page models). Page models are thin coordinators; heavy logic belongs in services.
+- **Minimal, purposeful code** — No speculative abstractions, no half-finished features, no backwards-compatibility shims. Three similar lines are preferred over a premature helper.
+- **No comments on obvious code** — Comments are reserved for non-obvious constraints, subtle invariants, or deliberate workarounds. Well-named identifiers document the *what*; comments explain the *why*.
+
+### Testing
+- **Integration tests over mocks** — The test suite runs against a real PostgreSQL instance via Testcontainers. Database mocks are avoided because mock/real divergence has historically masked broken migrations.
+- **Full coverage of critical paths** — Every feature ships with integration tests covering the happy path, edge cases, and access-control boundaries (authenticated, unauthenticated, wrong role).
+- **Tests clean up after themselves** — Shared fixture state is always restored in `finally` blocks so test ordering never affects results.
+- **CI parity** — `make test` runs the full suite locally in the same Docker environment used in production; no "works on my machine" gaps.
+
+### Security (OWASP Top 10 and beyond)
+- **SQL injection (A03)** — All database access goes through EF Core with parameterised queries. Raw SQL is never used.
+- **Broken access control (A01)** — Every page and admin route is guarded by `PageGuardMiddleware` and `AdminGuardMiddleware` using a fully dynamic RBAC system. There are no hardcoded role bypasses anywhere in the codebase.
+- **XSS (A03/A07)** — Razor auto-encodes all output. The Markdown pipeline runs with `DisableHtml()` so raw HTML in article content is stripped before rendering.
+- **CSRF (A01)** — Antiforgery tokens are validated on every state-changing POST. The test suite replaces antiforgery with a no-op only in the test environment.
+- **Broken authentication (A07)** — ASP.NET Core Identity handles password hashing and account lockout. TOTP-based 2FA can be enforced per role. Invite codes gate registration.
+- **Rate limiting (A04/A07)** — Login, registration, and password-reset endpoints are rate-limited by IP using ASP.NET Core's built-in rate limiter. The upload API has its own named policy.
+- **Security headers** — Every response includes `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, and `Referrer-Policy: strict-origin-when-cross-origin` via `SecurityHeadersMiddleware`.
+- **Path traversal** — Backup restore validates filenames with `Path.GetFileName` and a `Path.GetFullPath` prefix check before touching the filesystem.
+- **Secrets management** — All sensitive values (`SETUP_CODE`, database credentials, email config) are supplied via environment variables and never committed to source control.
+
+
 
 ### Completed
 
@@ -72,8 +97,22 @@ Copy `.env.example` to `.env` and fill in the required values before running.
 
 ### Planned
 
+#### Wiki
 - **Article search** — Full-text search using PostgreSQL `tsvector` on article title and content; search bar on the wiki index
+- **Table of contents** — Auto-generated TOC sidebar for long articles using Markdig's built-in extension
+- **Article comments** — Per-article discussion thread so users can ask questions and give feedback
+- **Last edited by** — Surface the most recent editor and timestamp on the article view page
+- **Meilisearch** — Drop-in search upgrade once PostgreSQL FTS becomes insufficient
+
+#### Admin
+- **Audit log** — Persistent record of permission changes, article deletions, role assignments, and other admin actions
+- **Site announcements** — Admin-posted banners or notices displayed site-wide; useful for downtime, events, and rule changes
+- **Invite code usage tracking** — Show which user redeemed each invite code and when
+
+#### Minecraft & Community
+- **Player profile pages** — Public `/players/{username}` pages showing a user's articles, playtime from session data, and Minecraft skin via the Mojang API
 - **Discord OAuth** — Sign in with Discord alongside local Identity accounts (natural fit for Minecraft communities)
 - **Live server status push** — `ServerStatusHub` and SignalR are wired up; remaining work is the server-side push logic and replacing the HTMX polling on the homepage with a SignalR client connection
+
+#### Long-term
 - **Collaborative editing** — Real-time co-editing via Yjs + SignalR transport (requires editor upgrade from EasyMDE)
-- **Meilisearch** — Drop-in search upgrade once PostgreSQL FTS becomes insufficient
