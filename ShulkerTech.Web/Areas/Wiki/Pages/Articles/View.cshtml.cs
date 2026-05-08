@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -15,8 +16,11 @@ public class ViewModel(
     WikiMarkdownService wikiMarkdown,
     PermissionService permissions) : PageModel
 {
+    public record TocEntry(int Level, string Id, string Text);
+
     public Article Article { get; set; } = null!;
     public string ContentHtml { get; set; } = "";
+    public List<TocEntry> TocEntries { get; set; } = [];
     public bool CanEdit { get; set; }
     public bool IsFavorited { get; set; }
 
@@ -26,6 +30,21 @@ public class ViewModel(
     public int RatingCount { get; set; }
     public byte? UserUsefulness { get; set; }
     public byte? UserCoolness { get; set; }
+
+    private static readonly Regex HeadingPattern =
+        new(@"<h([23])\s[^>]*id=""([^""]+)""[^>]*>(.*?)</h\1>",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
+
+    private static readonly Regex HtmlTagPattern =
+        new(@"<[^>]+>", RegexOptions.Compiled);
+
+    private static List<TocEntry> ExtractTocEntries(string html) =>
+        HeadingPattern.Matches(html)
+            .Select(m => new TocEntry(
+                int.Parse(m.Groups[1].Value),
+                m.Groups[2].Value,
+                HtmlTagPattern.Replace(m.Groups[3].Value, "").Trim()))
+            .ToList();
 
     public async Task<IActionResult> OnGetAsync(string slug)
     {
@@ -69,6 +88,7 @@ public class ViewModel(
 
         Article = article;
         ContentHtml = wikiMarkdown.ToHtml(article.Content);
+        TocEntries = ExtractTocEntries(ContentHtml);
 
         // Strip markdown syntax for meta description
         var plainText = System.Text.RegularExpressions.Regex.Replace(article.Content, @"[#*_`~>\[\]!|\\]|```[\s\S]*?```|`[^`]+`|\[([^\]]*)\]\([^)]*\)", "$1");

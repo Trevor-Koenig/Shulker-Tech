@@ -1,0 +1,98 @@
+@page "/players/{username}"
+@model ShulkerTech.Web.Pages.Players.IndexModel
+@{
+    var displayName = (Model.ProfileUser.MinecraftUsername ?? Model.ProfileUser.UserName ?? "Unknown").ToUpperInvariant();
+}
+
+<div style="max-width: 860px; margin: 0 auto; padding: 2rem 1rem;">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 flex items-center gap-2" style="font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--color-muted);">
+        <a href="/" style="color: var(--color-muted); text-decoration: none; transition: color 120ms ease;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-muted)'">HOME</a>
+        <span style="color: var(--color-accent); opacity: 0.6;">›</span>
+        <span style="color: var(--color-crystal);">@displayName</span>
+    </nav>
+
+    <!-- Profile header -->
+    <div class="panel mb-6" style="padding: 2rem; display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+        @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+        {
+            <img src="@Model.AvatarUrl"
+                 alt="@displayName's Minecraft skin"
+                 width="96" height="96"
+                 style="image-rendering: pixelated; border-radius: 0.25rem; flex-shrink: 0;"
+                 loading="lazy" />
+        }
+        else
+        {
+            <div style="width: 96px; height: 96px; border-radius: 0.25rem; background: color-mix(in oklab, var(--color-accent) 10%, transparent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <span style="font-family: var(--font-display); font-size: 2rem; color: var(--color-accent);">?</span>
+            </div>
+        }
+
+        <div style="flex: 1; min-width: 0;">
+            <h1 style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 900; letter-spacing: 0.06em; color: var(--color-crystal); line-height: 1.2; margin-bottom: 0.5rem;">
+                @displayName
+            </h1>
+            <div class="flex flex-wrap gap-x-6 gap-y-1 mt-2">
+                <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">
+                    MEMBER SINCE @Model.ProfileUser.CreatedAt.ToString("MMM yyyy").ToUpper()
+                </span>
+                <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">
+                    @Model.Articles.Count ARTICLE@(Model.Articles.Count != 1 ? "S" : "")
+                </span>
+                <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted);">
+                    @IndexModel.FormatPlaytime(Model.TotalPlaytimeSeconds).ToUpper()
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Articles section -->
+    <div class="mb-3 flex items-center gap-3">
+        <p style="font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.12em; color: var(--color-accent);">ARTICLES</p>
+    </div>
+
+    @if (Model.Articles.Count == 0)
+    {
+        <div class="panel p-6 text-center">
+            <p style="color: var(--color-muted); font-family: var(--font-mono); font-size: 0.85rem;">No published articles yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="flex flex-col gap-3">
+            @foreach (var article in Model.Articles)
+            {
+                <a href="/articles/@article.Slug"
+                   style="text-decoration: none; display: block;"
+                   class="panel p-4"
+                   onmouseover="this.style.borderColor='color-mix(in oklab, var(--color-accent) 40%, transparent)'"
+                   onmouseout="this.style.borderColor=''">
+                    <div class="flex items-start justify-between gap-4 flex-wrap">
+                        <div style="flex: 1; min-width: 0;">
+                            <p style="font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; color: var(--color-crystal); letter-spacing: 0.04em; margin-bottom: 0.25rem;">
+                                @article.Title
+                            </p>
+                            @if (article.Tags.Any())
+                            {
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    @foreach (var tag in article.Tags.OrderBy(t => t.Name))
+                                    {
+                                        <span class="tag-pill" style="--tag-color: @tag.Color; font-size: 0.6rem;">
+                                            @if (!string.IsNullOrEmpty(tag.Icon)) { <span>@tag.Icon</span> } @tag.Name.ToUpperInvariant()
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--color-muted); white-space: nowrap; flex-shrink: 0;">
+                            @article.UpdatedAt.ToString("MMM d, yyyy").ToUpper()
+                        </span>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+
+</div>

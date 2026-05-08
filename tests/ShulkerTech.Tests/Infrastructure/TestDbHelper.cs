@@ -101,7 +101,8 @@ public static class TestDbHelper
         string? slug = null,
         bool isPublished = true,
         string? viewRole = null,
-        string? editRole = null)
+        string? editRole = null,
+        string? content = null)
     {
         title ??= $"Test Article {Guid.NewGuid():N}";
         slug ??= title.ToLowerInvariant().Replace(" ", "-");
@@ -110,7 +111,7 @@ public static class TestDbHelper
         {
             Title = title,
             Slug = slug,
-            Content = "## Test Content\n\nThis is test content.",
+            Content = content ?? "## Test Content\n\nThis is test content.",
             IsPublished = isPublished,
             AuthorId = authorId,
             ViewRole = viewRole,

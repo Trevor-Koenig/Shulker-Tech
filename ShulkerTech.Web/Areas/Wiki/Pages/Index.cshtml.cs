@@ -20,6 +20,7 @@ public class IndexModel(
     public int DraftCount { get; set; }
     public int ContributorCount { get; set; }
     public DateTime? LastUpdated { get; set; }
+    public string? SearchQuery { get; set; }
 
     public record TagGroup(int Id, string Name, string Slug, string Icon, string Color, int ArticleCount);
 
@@ -36,7 +37,7 @@ public class IndexModel(
         return text.Trim();
     }
 
-    public async Task OnGetAsync()
+    public async Task OnGetAsync(string? q = null)
     {
         var settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
 
@@ -50,11 +51,24 @@ public class IndexModel(
                 userRoles = await userManager.GetRolesAsync(currentUser);
         }
 
-        var all = await db.Articles
+        SearchQuery = string.IsNullOrWhiteSpace(q) ? null : q.Trim();
+
+        IQueryable<Article> query = db.Articles
             .Include(a => a.Author)
-            .Include(a => a.Tags)
-            .OrderByDescending(a => a.UpdatedAt)
-            .ToListAsync();
+            .Include(a => a.Tags);
+
+        if (SearchQuery != null)
+        {
+            query = query
+                .Where(a => a.IsPublished && a.SearchVector!.Matches(EF.Functions.PlainToTsQuery("english", SearchQuery)))
+                .OrderByDescending(a => a.UpdatedAt);
+        }
+        else
+        {
+            query = query.OrderByDescending(a => a.UpdatedAt);
+        }
+
+        var all = await query.ToListAsync();
 
         var canEditAny = currentUser != null &&
                          await permissions.HasAsync(currentUser, userRoles, SiteResource.WikiEditAny);

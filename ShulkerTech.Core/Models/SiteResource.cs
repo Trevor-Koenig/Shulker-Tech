@@ -7,6 +7,7 @@ public static class SiteResource
     public const string PageHome         = "page.home";
     public const string PageServerStatus = "page.server_status";
     public const string PagePrivacy      = "page.privacy";
+    public const string PagePlayers      = "page.players";
 
     // ── Wiki ───────────────────────────────────────────────────────────────
     public const string WikiView    = "wiki.view";
@@ -27,6 +28,7 @@ public static class SiteResource
     public const string AdminInvites       = "admin.invites";
     public const string AdminServers       = "admin.servers";
     public const string AdminMaps          = "admin.maps";
+    public const string AdminAuditLog      = "admin.audit_log";
 
     public static readonly ResourceInfo[] All =
     [
@@ -34,6 +36,7 @@ public static class SiteResource
         new(PageHome,         "Pages", "Home Page",        "Access the site home page",          IsPublicByDefault: true),
         new(PageServerStatus, "Pages", "Server Status",    "View the server status page",        IsPublicByDefault: true),
         new(PagePrivacy,      "Pages", "Privacy Policy",   "View the privacy policy page",       IsPublicByDefault: true),
+        new(PagePlayers,      "Pages", "Player Profiles",  "View public player profile pages",   IsPublicByDefault: true),
 
         // Wiki — view is public by default; write actions require explicit grants
         new(WikiView,    "Wiki", "View Articles",     "View published wiki articles",       IsPublicByDefault: true),
@@ -54,6 +57,7 @@ public static class SiteResource
         new(AdminInvites,       "Admin", "Invite Codes",         "Create and manage invite codes",     IsPublicByDefault: false),
         new(AdminServers,       "Admin", "Server Management",    "Configure Minecraft servers",        IsPublicByDefault: false),
         new(AdminMaps,          "Admin", "Map Management",       "Manage BlueMap configurations",      IsPublicByDefault: false),
+        new(AdminAuditLog,      "Admin", "Audit Log",            "View the admin audit log",            IsPublicByDefault: false),
     ];
 }
 

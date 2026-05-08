@@ -26,7 +26,8 @@ public class PageGuardMiddleware(RequestDelegate next)
     // Prefix → resource — checked longest-prefix-first; wiki area covers all /Wiki/* paths
     private static readonly (string Prefix, string Resource)[] PrefixResourceMap =
     [
-        ("/Wiki", SiteResource.WikiView),
+        ("/Wiki",    SiteResource.WikiView),
+        ("/players", SiteResource.PagePlayers),
     ];
 
     // Pre-build a lookup so we don't iterate SiteResource.All on every request

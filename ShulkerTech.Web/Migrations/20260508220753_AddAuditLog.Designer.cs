@@ -2,9 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using NpgsqlTypes;
 using ShulkerTech.Core.Data;
 
 #nullable disable
@@ -12,9 +12,11 @@ using ShulkerTech.Core.Data;
 namespace ShulkerTech.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260508220753_AddAuditLog")]
+    partial class AddAuditLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -277,11 +279,6 @@ namespace ShulkerTech.Web.Migrations
                     b.Property<string>("MapUrl")
                         .HasColumnType("text");
 
-                    b.Property<NpgsqlTsVector>("SearchVector")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("tsvector")
-                        .HasComputedColumnSql("to_tsvector('english', coalesce(\"Title\", '') || ' ' || coalesce(\"Content\", ''))", true);
-
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasColumnType("text");
@@ -299,10 +296,6 @@ namespace ShulkerTech.Web.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
-
-                    b.HasIndex("SearchVector");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
 
                     b.HasIndex("Slug")
                         .IsUnique();
@@ -497,18 +490,10 @@ namespace ShulkerTech.Web.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("RedeemedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RedeemedById")
-                        .HasColumnType("text");
-
                     b.Property<int>("UseCount")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RedeemedById");
 
                     b.ToTable("InviteCodes");
                 });
@@ -1083,16 +1068,6 @@ namespace ShulkerTech.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Actor");
-                });
-
-            modelBuilder.Entity("ShulkerTech.Core.Models.InviteCode", b =>
-                {
-                    b.HasOne("ShulkerTech.Core.Models.ApplicationUser", "RedeemedBy")
-                        .WithMany()
-                        .HasForeignKey("RedeemedById")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("RedeemedBy");
                 });
 
             modelBuilder.Entity("ShulkerTech.Core.Models.PlayerSession", b =>

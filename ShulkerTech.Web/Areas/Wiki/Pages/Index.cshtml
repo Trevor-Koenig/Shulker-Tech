@@ -16,25 +16,38 @@
                 <p class="wiki-hero-tagline">Articles, guides, and lore for the Shulker Tech server.</p>
             </div>
             <div class="wiki-hero-search-wrap">
-                <div class="wiki-index-search">
-                    <input id="wiki-search"
-                           type="text"
-                           placeholder="SEARCH ARTICLES..."
-                           autocomplete="off"
-                           class="wiki-search-input" />
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
-                         fill="none" stroke="currentColor" stroke-width="2.5"
-                         stroke-linecap="round" stroke-linejoin="round"
-                         style="position: absolute; right: 0.75rem; color: var(--color-muted); pointer-events: none; flex-shrink: 0;">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
+                <form method="get" action="/Wiki" style="width: 100%;">
+                    <div class="wiki-index-search">
+                        <input id="wiki-search"
+                               name="q"
+                               type="search"
+                               placeholder="SEARCH ARTICLES..."
+                               autocomplete="off"
+                               value="@Model.SearchQuery"
+                               class="wiki-search-input" />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2.5"
+                             stroke-linecap="round" stroke-linejoin="round"
+                             style="position: absolute; right: 0.75rem; color: var(--color-muted); pointer-events: none; flex-shrink: 0;">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                    </div>
+                </form>
+                <div class="flex gap-3 items-center flex-wrap" style="margin-top: 0.6rem;">
+                    @if (Model.PublishedCount > 0 && Model.SearchQuery == null)
+                    {
+                        <a href="/Wiki/random" class="btn-nav" style="display: inline-block; font-size: 0.68rem;">
+                            &#9670; RANDOM ARTICLE
+                        </a>
+                    }
+                    @if (Model.SearchQuery != null)
+                    {
+                        <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--color-muted);">
+                            @Model.Articles.Count result@(Model.Articles.Count != 1 ? "s" : "") for <em style="color: var(--color-crystal);">"@Model.SearchQuery"</em>
+                        </span>
+                        <a href="/Wiki" class="btn-nav" style="font-size: 0.68rem;">✕ CLEAR</a>
+                    }
                 </div>
-                @if (Model.PublishedCount > 0)
-                {
-                    <a href="/Wiki/random" class="btn-nav" style="display: inline-block; margin-top: 0.6rem; font-size: 0.68rem;">
-                        &#9670; RANDOM ARTICLE
-                    </a>
-                }
             </div>
         </div>
     </section>
@@ -76,13 +89,23 @@
                 @if (Model.Articles.Count == 0)
                 {
                     <div class="panel p-10 text-center">
-                        <p style="font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em; color: var(--color-muted);">NO ARTICLES YET</p>
-                        <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                            Be the first to contribute to the knowledge base.
-                        </p>
-                        @if (User.Identity?.IsAuthenticated == true)
+                        @if (!string.IsNullOrEmpty(Model.SearchQuery))
                         {
-                            <a href="/articles/create" class="btn-nav inline-block mt-4">+ NEW ARTICLE</a>
+                            <p style="font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em; color: var(--color-muted);">NO MATCHING ARTICLES</p>
+                            <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                                No articles match "<strong>@Model.SearchQuery</strong>". Try a different search term.
+                            </p>
+                        }
+                        else
+                        {
+                            <p style="font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em; color: var(--color-muted);">NO ARTICLES YET</p>
+                            <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                                Be the first to contribute to the knowledge base.
+                            </p>
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <a href="/articles/create" class="btn-nav inline-block mt-4">+ NEW ARTICLE</a>
+                            }
                         }
                     </div>
                 }

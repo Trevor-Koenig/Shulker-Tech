@@ -15,7 +15,8 @@ namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 public class CreateModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
-    PermissionService permissions) : PageModel
+    PermissionService permissions,
+    AuditLogService auditLog) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -98,6 +99,9 @@ public class CreateModel(
         }
 
         db.Articles.Add(article);
+        await db.SaveChangesAsync();
+
+        auditLog.Log(AuditAction.ArticleCreated, user.Id, article.Id, article.Title);
         await db.SaveChangesAsync();
 
         return Redirect($"/articles/{article.Slug}");

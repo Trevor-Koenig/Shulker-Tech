@@ -22,6 +22,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<PlayerSession> PlayerSessions => Set<PlayerSession>();
     public DbSet<ServerPingLog> ServerPingLogs => Set<ServerPingLog>();
     public DbSet<SitePermission> SitePermissions => Set<SitePermission>();
+    public DbSet<AuditLogEntry> AuditLog => Set<AuditLogEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -30,6 +31,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Article>()
             .HasIndex(a => a.Slug)
             .IsUnique();
+
+        builder.Entity<Article>()
+            .Property(a => a.SearchVector)
+            .HasComputedColumnSql(
+                "to_tsvector('english', coalesce(\"Title\", '') || ' ' || coalesce(\"Content\", ''))",
+                stored: true);
+
+        builder.Entity<Article>()
+            .HasIndex(a => a.SearchVector)
+            .HasMethod("GIN");
 
         builder.Entity<Tag>()
             .HasIndex(t => t.Slug)
@@ -129,6 +140,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<SitePermission>()
             .HasIndex(p => new { p.RoleName, p.Resource })
             .IsUnique();
+
+        builder.Entity<AuditLogEntry>()
+            .HasOne(e => e.Actor)
+            .WithMany()
+            .HasForeignKey(e => e.ActorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<AuditLogEntry>()
+            .HasIndex(e => e.OccurredAt);
+
+        builder.Entity<InviteCode>()
+            .HasOne(c => c.RedeemedBy)
+            .WithMany()
+            .HasForeignKey(c => c.RedeemedById)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Default permission grants — Member: create + edit own; Moderator: also edit any + delete
         builder.Entity<SitePermission>().HasData(

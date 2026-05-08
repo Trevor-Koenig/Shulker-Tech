@@ -14,7 +14,8 @@ namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 public class EditModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
-    PermissionService permissions) : PageModel
+    PermissionService permissions,
+    AuditLogService auditLog) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -109,6 +110,7 @@ public class EditModel(
                 article.Tags.Add(tag);
         }
 
+        auditLog.Log(AuditAction.ArticleUpdated, user!.Id, article.Id, article.Title);
         await db.SaveChangesAsync();
         return Redirect($"/articles/{article.Slug}");
     }
@@ -125,6 +127,7 @@ public class EditModel(
         var article = await db.Articles.FindAsync(id);
         if (article != null)
         {
+            auditLog.Log(AuditAction.ArticleDeleted, user.Id, article.Id, article.Title);
             db.Articles.Remove(article);
             await db.SaveChangesAsync();
         }

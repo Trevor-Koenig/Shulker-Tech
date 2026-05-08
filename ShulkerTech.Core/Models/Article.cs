@@ -1,3 +1,5 @@
+using NpgsqlTypes;
+
 namespace ShulkerTech.Core.Models;
 
 public class Article
@@ -21,4 +23,7 @@ public class Article
 
     public ICollection<Tag> Tags { get; set; } = [];
     public ICollection<ArticleFavorite> Favorites { get; set; } = [];
+
+    /// <summary>PostgreSQL full-text search vector generated from Title + Content. Do not set manually.</summary>
+    public NpgsqlTsVector? SearchVector { get; set; }
 }

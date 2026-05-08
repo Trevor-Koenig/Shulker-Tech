@@ -26,6 +26,7 @@ public class IndexModel(ApplicationDbContext db) : PageModel
     public async Task OnGetAsync()
     {
         Codes = await db.InviteCodes
+            .Include(c => c.RedeemedBy)
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
     }

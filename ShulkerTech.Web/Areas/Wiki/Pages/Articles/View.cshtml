@@ -200,13 +200,21 @@
 
         </div>
 
-        <!-- TOC sidebar — hidden until JS builds it, visible only on large screens -->
-        <aside id="toc-sidebar" style="display: none;">
-            <div class="panel p-4" style="position: sticky; top: 5.5rem;">
-                <p style="font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.12em; color: var(--color-accent); margin-bottom: 0.75rem; text-transform: uppercase;">Contents</p>
-                <nav id="toc-nav"></nav>
-            </div>
-        </aside>
+        @* TOC sidebar — server-rendered; JS only handles responsive layout + scroll-spy *@
+        @if (Model.TocEntries.Count >= 2)
+        {
+            <aside id="toc-sidebar" style="display: none;">
+                <div class="panel p-4" style="position: sticky; top: 5.5rem;">
+                    <p style="font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.12em; color: var(--color-accent); margin-bottom: 0.75rem; text-transform: uppercase;">Contents</p>
+                    <nav id="toc-nav">
+                        @foreach (var entry in Model.TocEntries)
+                        {
+                            <a href="#@entry.Id" class="wiki-toc-link@(entry.Level == 3 ? " toc-h3" : "")">@entry.Text</a>
+                        }
+                    </nav>
+                </div>
+            </aside>
+        }
 
     </div>
 
@@ -252,27 +260,14 @@
     });
 })();
 
+@if (Model.TocEntries.Count >= 2)
+{
+<text>
 (function () {
-    var content = document.querySelector('.wiki-content');
-    var tocNav  = document.getElementById('toc-nav');
     var sidebar = document.getElementById('toc-sidebar');
     var layout  = document.getElementById('wiki-layout');
-    if (!content || !tocNav || !sidebar || !layout) return;
+    if (!sidebar || !layout) return;
 
-    // Collect h2 / h3 headings that have an id
-    var headings = Array.from(content.querySelectorAll('h2[id], h3[id]'));
-    if (headings.length < 2) return; // not worth showing TOC for very short articles
-
-    // Build TOC links
-    headings.forEach(function (h) {
-        var a = document.createElement('a');
-        a.href = '#' + h.id;
-        a.textContent = h.textContent;
-        a.className = 'wiki-toc-link' + (h.tagName === 'H3' ? ' toc-h3' : '');
-        tocNav.appendChild(a);
-    });
-
-    // Show sidebar and switch layout to two columns (only on large-enough viewports)
     function applyLayout() {
         if (window.innerWidth >= 1400) {
             sidebar.style.display = 'block';
@@ -288,8 +283,11 @@
     applyLayout();
     window.addEventListener('resize', applyLayout);
 
-    // Scroll spy
-    var links = Array.from(tocNav.querySelectorAll('.wiki-toc-link'));
+    var links = Array.from(document.querySelectorAll('#toc-nav .wiki-toc-link'));
+    var headings = links.map(function (l) {
+        return document.querySelector(l.getAttribute('href'));
+    }).filter(Boolean);
+
     var observer = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
             if (entry.isIntersecting) {
@@ -303,5 +301,7 @@
 
     headings.forEach(function (h) { observer.observe(h); });
 })();
+</text>
+}
 </script>
 }
