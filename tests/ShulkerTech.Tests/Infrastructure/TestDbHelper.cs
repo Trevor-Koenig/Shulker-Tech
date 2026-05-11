@@ -41,7 +41,6 @@ public static class TestDbHelper
 
         var user = new ApplicationUser
         {
-            IsAdmin = isAdmin,
             MinecraftUuid = minecraftUuid,
         };
 

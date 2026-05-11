@@ -1,5 +1,5 @@
-@page "/players/{username}"
-@model ShulkerTech.Web.Pages.Players.IndexModel
+@page "/Community/players/{username}"
+@model ShulkerTech.Web.Areas.Community.Pages.Players.IndexModel
 @{
     var displayName = (Model.ProfileUser.MinecraftUsername ?? Model.ProfileUser.UserName ?? "Unknown").ToUpperInvariant();
 }
@@ -8,7 +8,7 @@
 
     <!-- Breadcrumb -->
     <nav class="mb-6 flex items-center gap-2" style="font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--color-muted);">
-        <a href="/" style="color: var(--color-muted); text-decoration: none; transition: color 120ms ease;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-muted)'">HOME</a>
+        <a href="/" style="color: var(--color-muted); text-decoration: none; transition: color 120ms ease;" onmouseover="this.style.color='var(--color-accent)'" onmouseout="this.style.color='var(--color-muted)'">COMMUNITY</a>
         <span style="color: var(--color-accent); opacity: 0.6;">›</span>
         <span style="color: var(--color-crystal);">@displayName</span>
     </nav>
@@ -64,7 +64,7 @@
         <div class="flex flex-col gap-3">
             @foreach (var article in Model.Articles)
             {
-                <a href="/articles/@article.Slug"
+                <a href="@(ViewData["WikiBase"])/articles/@article.Slug"
                    style="text-decoration: none; display: block;"
                    class="panel p-4"
                    onmouseover="this.style.borderColor='color-mix(in oklab, var(--color-accent) 40%, transparent)'"

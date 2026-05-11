@@ -22,6 +22,9 @@ public class ServerStatusCache
 
     public IReadOnlyCollection<CachedServerStatus> All => _statuses.Values.OrderBy(s => s.Name).ToList();
 
+    public CachedServerStatus? TryGet(int serverId) =>
+        _statuses.TryGetValue(serverId, out var s) ? s : null;
+
     public void Set(CachedServerStatus status) => _statuses[status.ServerId] = status;
 
     public void Remove(int serverId) => _statuses.TryRemove(serverId, out _);

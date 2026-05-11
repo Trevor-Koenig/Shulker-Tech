@@ -7,7 +7,11 @@ namespace ShulkerTech.Core.Services;
 
 public class MinecraftPingService
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
+    internal static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
+    private readonly TimeSpan _timeout;
+
+    public MinecraftPingService() => _timeout = DefaultTimeout;
+    internal MinecraftPingService(TimeSpan timeout) => _timeout = timeout;
 
     public virtual async Task<ServerPingResult> PingAsync(string host, int port, CancellationToken ct = default)
     {
@@ -15,11 +19,15 @@ public class MinecraftPingService
         {
             using var tcp = new TcpClient();
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeoutCts.CancelAfter(Timeout);
+            timeoutCts.CancelAfter(_timeout);
 
             await tcp.ConnectAsync(host, port, timeoutCts.Token);
 
             using var stream = tcp.GetStream();
+            // Synchronous reads (ReadVarInt/ReadString) don't observe a CancellationToken,
+            // so we set the stream timeout directly to bound blocking reads.
+            stream.ReadTimeout  = (int)_timeout.TotalMilliseconds;
+            stream.WriteTimeout = (int)_timeout.TotalMilliseconds;
 
             // ── Handshake packet ──────────────────────────────────────────────
             var handshake = new List<byte>();
@@ -325,6 +333,10 @@ public class MinecraftPingService
     private static string ReadString(NetworkStream stream)
     {
         int length = ReadVarInt(stream);
+        // A status response JSON is never legitimately larger than 64 KB.
+        // Reject anything bigger to prevent a malicious server from causing a huge allocation.
+        if (length < 0 || length > 1 << 16)
+            throw new IOException($"String length {length} is out of range");
         var buf = new byte[length];
         var read = 0;
         while (read < length)

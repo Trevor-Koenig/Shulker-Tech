@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
@@ -22,10 +23,22 @@ public class IndexModel(ApplicationDbContext db) : PageModel
         [Required]
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? Host { get; set; }
+        [Required(ErrorMessage = "Host is required — enter the server's hostname or IP address.")]
+        public string Host { get; set; } = string.Empty;
         [Range(1, 65535)]
         public int Port { get; set; } = 25565;
     }
+
+    public class EditHostModel
+    {
+        [Required(ErrorMessage = "Host is required.")]
+        public string Host { get; set; } = string.Empty;
+        [Range(1, 65535)]
+        public int Port { get; set; } = 25565;
+    }
+
+    [BindProperty]
+    public EditHostModel EditHost { get; set; } = new();
 
     public record ServerViewModel(
         int Id,
@@ -69,7 +82,17 @@ public class IndexModel(ApplicationDbContext db) : PageModel
 
     public async Task<IActionResult> OnPostAddAsync()
     {
-        if (!ModelState.IsValid)
+        // Preserve binding errors for Input (e.g., non-numeric port) before clearing EditHost noise
+        var inputErrors = ModelState
+            .Where(kv => kv.Key.StartsWith("Input") && kv.Value?.ValidationState == ModelValidationState.Invalid)
+            .SelectMany(kv => kv.Value!.Errors.Select(e => (kv.Key, e.ErrorMessage)))
+            .ToList();
+
+        ModelState.Clear();
+        foreach (var (key, msg) in inputErrors)
+            ModelState.AddModelError(key, msg);
+
+        if (!TryValidateModel(Input, nameof(Input)))
         {
             await OnGetAsync();
             return Page();
@@ -79,12 +102,40 @@ public class IndexModel(ApplicationDbContext db) : PageModel
         {
             Name = Input.Name,
             Description = Input.Description,
-            Host = string.IsNullOrWhiteSpace(Input.Host) ? null : Input.Host.Trim(),
+            Host = Input.Host.Trim(),
             Port = Input.Port,
             ApiKey = GenerateApiKey(),
         });
         await db.SaveChangesAsync();
         StatusMessage = $"Server '{Input.Name}' added.";
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostEditHostAsync(int id)
+    {
+        var editErrors = ModelState
+            .Where(kv => kv.Key.StartsWith("EditHost") && kv.Value?.ValidationState == ModelValidationState.Invalid)
+            .SelectMany(kv => kv.Value!.Errors.Select(e => (kv.Key, e.ErrorMessage)))
+            .ToList();
+
+        ModelState.Clear();
+        foreach (var (key, msg) in editErrors)
+            ModelState.AddModelError(key, msg);
+
+        if (!TryValidateModel(EditHost, nameof(EditHost)))
+        {
+            await OnGetAsync();
+            return Page();
+        }
+
+        var server = await db.MinecraftServers.FindAsync(id);
+        if (server is not null)
+        {
+            server.Host = EditHost.Host.Trim();
+            server.Port = EditHost.Port;
+            await db.SaveChangesAsync();
+            StatusMessage = $"Host updated for '{server.Name}'.";
+        }
         return RedirectToPage();
     }
 

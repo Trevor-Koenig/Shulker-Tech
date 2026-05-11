@@ -56,7 +56,7 @@ public class IndexModel(
             return Page();
         }
 
-        var user = new ApplicationUser { IsAdmin = true };
+        var user = new ApplicationUser();
         var emailStore = (IUserEmailStore<ApplicationUser>)userStore;
         await userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -123,17 +123,10 @@ public class IndexModel(
                 await db.SaveChangesAsync();
             }
 
-            // Ensure at least one user is in the Admin role.
-            // Old backups used IsAdmin=true to mark the superuser — promote those first.
-            // If none exist, fall back to the first user in the table.
+            // Ensure at least one user is in the Admin role. Fall back to the first user.
             if ((await userManager.GetUsersInRoleAsync("Admin")).Count == 0)
             {
-                var candidates = await userManager.Users
-                    .Where(u => u.IsAdmin)
-                    .ToListAsync();
-                if (candidates.Count == 0)
-                    candidates = await userManager.Users.Take(1).ToListAsync();
-
+                var candidates = await userManager.Users.Take(1).ToListAsync();
                 foreach (var candidate in candidates)
                     await userManager.AddToRoleAsync(candidate, "Admin");
             }

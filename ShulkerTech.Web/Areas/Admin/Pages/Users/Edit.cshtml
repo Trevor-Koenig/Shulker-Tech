@@ -46,10 +46,6 @@
                 <dd style="color: var(--color-crystal);">@Model.Member.CreatedAt.ToString("yyyy-MM-dd")</dd>
             </div>
             <div class="flex gap-4">
-                <dt style="color: var(--color-muted); min-width: 8rem;">Owner</dt>
-                <dd style="color: var(--color-crystal);">@(Model.Member.IsAdmin ? "Yes" : "No")</dd>
-            </div>
-            <div class="flex gap-4">
                 <dt style="color: var(--color-muted); min-width: 8rem;">Status</dt>
                 <dd style="color: @(Model.IsDeactivated ? "var(--color-rune)" : "var(--color-arcane)");">
                     @(Model.IsDeactivated ? "DEACTIVATED" : "ACTIVE")

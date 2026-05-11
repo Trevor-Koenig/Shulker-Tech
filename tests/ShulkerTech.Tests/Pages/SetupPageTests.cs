@@ -134,7 +134,6 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
 
         var createdUser = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
         createdUser.Should().NotBeNull();
-        createdUser!.IsAdmin.Should().BeTrue();
     }
 
     [Fact]
@@ -456,22 +455,18 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
     }
 
     [Fact]
-    public async Task Restore_PostProcessing_IsAdminUser_PromotedToAdminRole()
+    public async Task Restore_PostProcessing_FirstUser_PromotedToAdminRole()
     {
-        // Simulate an old backup where the superuser has IsAdmin=true but no Identity role.
-        // After post-restore processing the user should be in the Admin role.
+        // When no users are in the Admin role after restore, the first user in the DB
+        // should be promoted automatically.
         using var scope = factory.Services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        // Create the user and immediately remove the auto-assigned Admin role so we start clean.
-        var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, isAdmin: true);
+        var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider);
         await userManager.RemoveFromRoleAsync(user, "Admin");
 
         try
         {
-            // This mirrors OnPostRestoreAsync's promotion block, but scoped to this user only
-            // by checking whether this specific user is in Admin after the logic runs.
-            // We temporarily remove ALL other users from Admin so the "Count == 0" path fires.
             var others = (await userManager.GetUsersInRoleAsync("Admin"))
                 .Where(u => u.Id != user.Id)
                 .ToList();
@@ -482,62 +477,11 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
             {
                 if ((await userManager.GetUsersInRoleAsync("Admin")).Count == 0)
                 {
-                    var candidates = await userManager.Users
-                        .Where(u => u.IsAdmin)
-                        .ToListAsync();
-                    if (candidates.Count == 0)
-                        candidates = await userManager.Users.Take(1).ToListAsync();
+                    var candidates = await userManager.Users.Take(1).ToListAsync();
                     foreach (var c in candidates)
                         await userManager.AddToRoleAsync(c, "Admin");
                 }
 
-                (await userManager.IsInRoleAsync(user, "Admin")).Should().BeTrue();
-            }
-            finally
-            {
-                foreach (var o in others)
-                    await userManager.AddToRoleAsync(o, "Admin");
-            }
-        }
-        finally
-        {
-            await userManager.DeleteAsync(user);
-        }
-    }
-
-    [Fact]
-    public async Task Restore_PostProcessing_FirstUser_PromotedToAdminRole_WhenNoIsAdminUsers()
-    {
-        // Simulate a backup where no user has IsAdmin=true — the fallback should promote
-        // the first user returned by the DB.
-        using var scope = factory.Services.CreateScope();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-        var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, isAdmin: false);
-        await userManager.RemoveFromRoleAsync(user, "Admin"); // remove any role auto-assign
-
-        try
-        {
-            var others = (await userManager.GetUsersInRoleAsync("Admin"))
-                .Where(u => u.Id != user.Id)
-                .ToList();
-            foreach (var o in others)
-                await userManager.RemoveFromRoleAsync(o, "Admin");
-
-            try
-            {
-                if ((await userManager.GetUsersInRoleAsync("Admin")).Count == 0)
-                {
-                    var candidates = await userManager.Users
-                        .Where(u => u.IsAdmin)
-                        .ToListAsync();
-                    if (candidates.Count == 0)
-                        candidates = await userManager.Users.Take(1).ToListAsync();
-                    foreach (var c in candidates)
-                        await userManager.AddToRoleAsync(c, "Admin");
-                }
-
-                // Someone must now be in Admin
                 var adminUsers = await userManager.GetUsersInRoleAsync("Admin");
                 adminUsers.Should().NotBeEmpty();
             }

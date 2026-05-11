@@ -11,6 +11,9 @@ namespace ShulkerTech.Tests.Pages;
 [Trait("Category", "Integration")]
 public class PlayerProfileTests(ShulkerTechWebApplicationFactory factory)
 {
+    // In tests there's no subdomain, so the community area is reached at /Community/players/...
+    private const string PlayerBase = "/Community/players";
+
     private HttpClient CreateClient(string? userId = null)
     {
         var client = factory.CreateClient(new() { AllowAutoRedirect = false });
@@ -30,14 +33,14 @@ public class PlayerProfileTests(ShulkerTechWebApplicationFactory factory)
         user.MinecraftUsername = mcName;
         await db.SaveChangesAsync();
 
-        var response = await CreateClient().GetAsync($"/players/{mcName}");
+        var response = await CreateClient().GetAsync($"{PlayerBase}/{mcName}");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task Get_UnknownPlayer_Returns404()
     {
-        var response = await CreateClient().GetAsync("/players/ThisPlayerDoesNotExist99999");
+        var response = await CreateClient().GetAsync($"{PlayerBase}/ThisPlayerDoesNotExist99999");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -52,7 +55,7 @@ public class PlayerProfileTests(ShulkerTechWebApplicationFactory factory)
         user.MinecraftUsername = mcName;
         await db.SaveChangesAsync();
 
-        var response = await CreateClient().GetAsync($"/players/{mcName.ToUpper()}");
+        var response = await CreateClient().GetAsync($"{PlayerBase}/{mcName.ToUpper()}");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -71,7 +74,7 @@ public class PlayerProfileTests(ShulkerTechWebApplicationFactory factory)
             title: $"Profile Article {Guid.NewGuid():N}",
             slug: $"profile-article-{Guid.NewGuid():N}");
 
-        var html = await CreateClient().GetStringAsync($"/players/{mcName}");
+        var html = await CreateClient().GetStringAsync($"{PlayerBase}/{mcName}");
         html.Should().Contain(article.Title);
     }
 
@@ -91,7 +94,7 @@ public class PlayerProfileTests(ShulkerTechWebApplicationFactory factory)
             slug: $"draft-article-{Guid.NewGuid():N}",
             isPublished: false);
 
-        var html = await CreateClient().GetStringAsync($"/players/{mcName}");
+        var html = await CreateClient().GetStringAsync($"{PlayerBase}/{mcName}");
         html.Should().NotContain(draft.Title);
     }
 
@@ -117,7 +120,7 @@ public class PlayerProfileTests(ShulkerTechWebApplicationFactory factory)
         });
         await db.SaveChangesAsync();
 
-        var html = await CreateClient().GetStringAsync($"/players/{mcName}");
+        var html = await CreateClient().GetStringAsync($"{PlayerBase}/{mcName}");
         html.Should().Contain("2H 0M");
     }
 
@@ -132,7 +135,7 @@ public class PlayerProfileTests(ShulkerTechWebApplicationFactory factory)
         user.MinecraftUsername = mcName;
         await db.SaveChangesAsync();
 
-        var response = await CreateClient().GetAsync($"/players/{mcName}");
+        var response = await CreateClient().GetAsync($"{PlayerBase}/{mcName}");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

@@ -9,7 +9,7 @@
     // (dev: shulker.dev:8080, prod: shulkertech.com) without hardcoding domains.
     var _host = Context.Request.Host.Host;
     var _firstSegment = _host.Split('.')[0];
-    string[] _knownSubdomains = ["wiki", "admin"];
+    string[] _knownSubdomains = ["wiki", "admin", "community"];
     var _rootHost = _knownSubdomains.Contains(_firstSegment, StringComparer.OrdinalIgnoreCase)
         ? _host[(_firstSegment.Length + 1)..]
         : _host;
@@ -19,6 +19,9 @@
     var _base = $"{_scheme}://{_rootHost}{_portSuffix}";
     var _wikiBase = $"{_scheme}://wiki.{_rootHost}{_portSuffix}";
     var _adminBase = $"{_scheme}://admin.{_rootHost}{_portSuffix}";
+    var _communityBase = $"{_scheme}://community.{_rootHost}{_portSuffix}";
+    ViewData["CommunityBase"] = _communityBase;
+    ViewData["WikiBase"] = _wikiBase;
     var _layoutCurrentUser = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
     var _layoutUserRoles = _layoutCurrentUser != null ? await UserManager.GetRolesAsync(_layoutCurrentUser) : (IList<string>)[];
     var _canSeeAdmin = await _layoutPermissions.CanAccessAsync(_layoutCurrentUser, _layoutUserRoles, ShulkerTech.Core.Models.SiteResource.AdminAccess, isPublicByDefault: false);
@@ -114,6 +117,7 @@
             <ul class="hidden sm:flex items-center gap-6">
                 <li><a class="nav-link" href="@_base/">Home</a></li>
                 <li><a class="nav-link" href="@_wikiBase/">Wiki</a></li>
+                <li><a class="nav-link" href="@_communityBase/">Community</a></li>
                 @if (_canSeeAdmin)
                 {
                     <li><a class="nav-link" href="@_adminBase/">ADMIN</a></li>
@@ -126,6 +130,7 @@
         <div id="nav-menu" class="hidden sm:hidden px-4 pb-4 flex flex-col gap-3">
             <a class="nav-link" href="@_base/">Home</a>
             <a class="nav-link" href="@_wikiBase/">Wiki</a>
+            <a class="nav-link" href="@_communityBase/">Community</a>
             @if (_canSeeAdmin)
             {
                 <a class="nav-link" href="@_adminBase/">ADMIN</a>

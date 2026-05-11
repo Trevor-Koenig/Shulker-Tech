@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
 
-namespace ShulkerTech.Web.Pages.Players;
+namespace ShulkerTech.Web.Areas.Community.Pages.Players;
 
 public class IndexModel(ApplicationDbContext db) : PageModel
 {
@@ -35,9 +35,7 @@ public class IndexModel(ApplicationDbContext db) : PageModel
             .SumAsync(ps => (long)ps.DurationSeconds!);
 
         if (!string.IsNullOrEmpty(user.MinecraftUuid))
-            AvatarUrl = $"https://crafatar.com/avatars/{user.MinecraftUuid}?size=128&overlay";
-
-        ViewData["Title"] = user.MinecraftUsername ?? user.UserName ?? username;
+            AvatarUrl = $"https://api.mineatar.io/face/{user.MinecraftUuid}?scale=12";
 
         return Page();
     }
