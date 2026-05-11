@@ -1,0 +1,39 @@
+@page "/Admin/Site/DbExport"
+@model DbExportModel
+@{
+    ViewData["Title"] = "Database Export";
+}
+
+<div class="px-6 lg:px-10 py-10">
+
+    <div class="mb-8">
+        <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; SITE</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            DATABASE EXPORT
+        </h1>
+        <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+            Download a full gzip-compressed SQL dump of the database.
+        </p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="mb-6 px-4 py-3 rounded panel text-sm" style="color: var(--color-rune); font-family: var(--font-mono);">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <div class="panel p-6 flex flex-col gap-4" style="max-width: 520px;">
+        <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.7;">
+            The export runs <code style="color: var(--color-arcane);">pg_dump</code> on demand and streams a
+            <code style="color: var(--color-arcane);">.sql.gz</code> file directly to your browser.
+            Keep the exported file secure — it contains all user data.
+        </p>
+        <a href="?handler=Export"
+           class="btn-primary px-4 py-2 text-sm self-start"
+           style="font-family: var(--font-display); letter-spacing: 0.08em;">
+            DOWNLOAD EXPORT
+        </a>
+    </div>
+
+</div>

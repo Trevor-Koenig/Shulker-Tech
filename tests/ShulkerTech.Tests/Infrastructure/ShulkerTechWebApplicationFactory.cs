@@ -12,6 +12,7 @@ using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
 using ShulkerTech.Core.Services;
 using ShulkerTech.Web.Services;
+using System.IO;
 using Testcontainers.PostgreSql;
 
 namespace ShulkerTech.Tests.Infrastructure;
@@ -68,6 +69,19 @@ public class ShulkerTechWebApplicationFactory : WebApplicationFactory<Program>, 
             var emailDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IEmailSender));
             if (emailDescriptor != null) services.Remove(emailDescriptor);
             services.AddSingleton<IEmailSender>(Mock.Of<IEmailSender>());
+
+            // Replace IDatabaseExporter with a mock that writes a small known payload
+            var exporterDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IDatabaseExporter));
+            if (exporterDescriptor != null) services.Remove(exporterDescriptor);
+            var mockExporter = new Mock<IDatabaseExporter>();
+            mockExporter
+                .Setup(e => e.ExportAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                .Returns(async (Stream dest, CancellationToken _) =>
+                {
+                    var payload = "-- mock sql export"u8.ToArray();
+                    await dest.WriteAsync(payload);
+                });
+            services.AddScoped<IDatabaseExporter>(_ => mockExporter.Object);
 
             // Replace MinecraftPingService with a mock that always returns Offline
             var pingDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MinecraftPingService));

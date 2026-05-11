@@ -29,6 +29,7 @@ public static class SiteResource
     public const string AdminServers       = "admin.servers";
     public const string AdminMaps          = "admin.maps";
     public const string AdminAuditLog      = "admin.audit_log";
+    public const string AdminDbExport      = "admin.db_export";
 
     public static readonly ResourceInfo[] All =
     [
@@ -58,6 +59,7 @@ public static class SiteResource
         new(AdminServers,       "Admin", "Server Management",    "Configure Minecraft servers",        IsPublicByDefault: false),
         new(AdminMaps,          "Admin", "Map Management",       "Manage BlueMap configurations",      IsPublicByDefault: false),
         new(AdminAuditLog,      "Admin", "Audit Log",            "View the admin audit log",            IsPublicByDefault: false),
+        new(AdminDbExport,      "Admin", "Database Export",      "Download a full database export",     IsPublicByDefault: false),
     ];
 }
 

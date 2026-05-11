@@ -21,6 +21,7 @@ public class AdminGuardMiddleware(RequestDelegate next)
         ("/Admin/Users",           SiteResource.AdminUsers),
         ("/Admin/Roles",           SiteResource.AdminRoles),
         ("/Admin/Security",        SiteResource.AdminSecurity),
+        ("/Admin/Site/DbExport",   SiteResource.AdminDbExport),
         ("/Admin/Site",            SiteResource.AdminSiteSettings),
         ("/Admin/Invites",         SiteResource.AdminInvites),
         ("/Admin/Servers",         SiteResource.AdminServers),
