@@ -13,7 +13,8 @@ public class EditModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
     PermissionService permissions,
-    AuditLogService auditLog) : PageModel
+    AuditLogService auditLog,
+    WikiDocumentStore docStore) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -112,6 +113,7 @@ public class EditModel(
 
         auditLog.Log(AuditAction.ArticleUpdated, user!.Id, article.Id, article.Title);
         await db.SaveChangesAsync();
+        docStore.ClearContent(article.Id);
         return Redirect($"/articles/{article.Slug}");
     }
 

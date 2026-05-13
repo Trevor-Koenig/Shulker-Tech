@@ -6,6 +6,15 @@
 
 <div class="px-4 sm:px-8 lg:px-16 xl:px-24 2xl:px-32 py-10">
 
+    <!-- Collaborative editing presence indicator -->
+    <div id="collab-presence" style="display: none; margin-bottom: 1.25rem; padding: 0.6rem 1rem;
+         border: 1px solid color-mix(in oklab, var(--color-plasma) 30%, transparent);
+         background: color-mix(in oklab, var(--color-plasma) 6%, transparent);
+         border-radius: 4px; font-family: var(--font-mono); font-size: 0.72rem;
+         letter-spacing: 0.08em; color: var(--color-plasma);">
+        &#10022; ALSO EDITING: <span id="collab-names"></span>
+    </div>
+
     <!-- Header -->
     <div class="mb-8">
         <a href="/articles/@Model.Article.Slug"
@@ -165,6 +174,7 @@
 
 @section Scripts {
     <script src="~/js/easymde.min.js"></script>
+    <script src="~/js/signalr.min.js"></script>
     <script>
         // Tag picker — seed selected set from pre-populated hidden input
         (function () {
@@ -215,5 +225,89 @@
             imagePathAbsolute: true,
             status: ['upload-image', 'lines', 'words', 'cursor'],
         });
+
+        // ── Collaborative editing via SignalR ─────────────────────────────
+        (function () {
+            var articleId  = @Model.Article.Id;
+            var presence   = document.getElementById('collab-presence');
+            var namesEl    = document.getElementById('collab-names');
+            var editors    = new Set();
+
+            function renderPresence() {
+                if (editors.size === 0) {
+                    presence.style.display = 'none';
+                } else {
+                    namesEl.textContent = Array.from(editors).join(', ');
+                    presence.style.display = 'block';
+                }
+            }
+
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl('/hubs/wiki-edit')
+                .withAutomaticReconnect()
+                .build();
+
+            // Remote editor joined
+            connection.on('EditorJoined', function (name) {
+                editors.add(name);
+                renderPresence();
+            });
+
+            // Remote editor left
+            connection.on('EditorLeft', function (name) {
+                editors.delete(name);
+                renderPresence();
+            });
+
+            // Initial list of co-editors already in the session
+            connection.on('EditorList', function (names) {
+                editors.clear();
+                names.forEach(function (n) { editors.add(n); });
+                renderPresence();
+            });
+
+            // Incoming content from a co-editor — patch the editor without destroying cursor
+            connection.on('ContentSync', function (content) {
+                var cm       = easyMDE.codemirror;
+                var current  = cm.getValue();
+                if (current === content) return;
+
+                var cursor = cm.getCursor();
+                var scroll = cm.getScrollInfo();
+                cm.setValue(content);
+
+                // Restore cursor clamped to the new content bounds
+                var lines = content.split('\n');
+                var line  = Math.min(cursor.line, lines.length - 1);
+                var ch    = Math.min(cursor.ch, (lines[line] || '').length);
+                cm.setCursor({ line: line, ch: ch });
+                cm.scrollTo(scroll.left, scroll.top);
+            });
+
+            // Start connection, then join the document group
+            connection.start().then(function () {
+                return connection.invoke('JoinDocument', articleId);
+            }).catch(function (err) {
+                console.error('WikiCollab: failed to connect:', err);
+            });
+
+            // Throttled broadcast — only sends when content changed
+            var lastSent = easyMDE.value();
+            setInterval(function () {
+                if (connection.state !== signalR.HubConnectionState.Connected) return;
+                var current = easyMDE.value();
+                if (current !== lastSent) {
+                    lastSent = current;
+                    connection.invoke('BroadcastContent', articleId, current)
+                              .catch(function (e) { console.error('WikiCollab broadcast error:', e); });
+                }
+            }, 1500);
+
+            // Leave cleanly when navigating away
+            window.addEventListener('beforeunload', function () {
+                if (connection.state === signalR.HubConnectionState.Connected)
+                    connection.invoke('LeaveDocument', articleId).catch(function () {});
+            });
+        })();
     </script>
 }

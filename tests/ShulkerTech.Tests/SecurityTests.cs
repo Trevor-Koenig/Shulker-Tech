@@ -141,7 +141,7 @@ public class SecurityTests(ShulkerTechWebApplicationFactory factory)
             ["backupFile"] = maliciousPath,
         });
 
-        var response = await AnonClient().PostAsync("/Setup?handler=Restore", form);
+        var response = await AnonClient().PostAsync("/Setup/Restore?handler=Existing", form);
 
         ((int)response.StatusCode).Should().NotBe(500,
             $"path traversal attempt '{maliciousPath}' must not cause a server error");
@@ -160,7 +160,7 @@ public class SecurityTests(ShulkerTechWebApplicationFactory factory)
 
         // Follow redirects so we can read the page body
         var client = factory.CreateClient();
-        var response = await client.PostAsync("/Setup?handler=Restore", form);
+        var response = await client.PostAsync("/Setup/Restore?handler=Existing", form);
         var body = await response.Content.ReadAsStringAsync();
 
         // If the traversal were allowed, /etc/passwd content would appear; it must not

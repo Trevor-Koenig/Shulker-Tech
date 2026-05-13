@@ -47,6 +47,7 @@ builder.Services.Configure<HostOptions>(opts =>
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<WikiDocumentStore>();
 
 builder.Services.AddRateLimiter(opts =>
 {
@@ -180,6 +181,7 @@ app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 app.MapControllers();
 app.MapHub<ServerStatusHub>("/hubs/server-status");
+app.MapHub<WikiEditHub>("/hubs/wiki-edit");
 
 app.Run();
 

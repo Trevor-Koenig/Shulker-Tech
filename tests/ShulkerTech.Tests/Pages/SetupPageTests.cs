@@ -195,10 +195,10 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
             await using var derived = FactoryWithBackupDir(dir);
             var client = derived.CreateClient(new() { AllowAutoRedirect = false });
 
-            var response = await client.PostAsync("/setup?handler=Restore",
+            var response = await client.PostAsync("/setup/restore?handler=Existing",
                 RestoreForm("WRONG-CODE", "any.sql.gz"));
             var body = await response.Content.ReadAsStringAsync();
-            body.Should().Contain("RESTORE FROM BACKUP");
+            body.Should().Contain("EXISTING BACKUPS");
             body.Should().Contain("RESTORE DATABASE");
         }
         finally { Directory.Delete(dir, recursive: true); }
@@ -213,10 +213,10 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
             await using var derived = FactoryWithBackupDir(dir);
             var client = derived.CreateClient(new() { AllowAutoRedirect = false });
 
-            var response = await client.PostAsync("/setup?handler=Restore",
+            var response = await client.PostAsync("/setup/restore?handler=Existing",
                 RestoreForm("WRONG-CODE", "any.sql.gz"));
             var body = await response.Content.ReadAsStringAsync();
-            body.Should().NotContain("RESTORE FROM BACKUP");
+            body.Should().NotContain("EXISTING BACKUPS");
         }
         finally { Directory.Delete(dir, recursive: true); }
     }
@@ -231,15 +231,11 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
             await using var derived = FactoryWithBackupDir(dir);
             var client = derived.CreateClient(new() { AllowAutoRedirect = false });
 
-            var response = await client.PostAsync("/setup?handler=Restore",
+            var response = await client.PostAsync("/setup/restore?handler=Existing",
                 RestoreForm("WRONG-CODE", "backup_20260101_120000.sql.gz"));
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var body = await response.Content.ReadAsStringAsync();
             body.Should().Contain("Invalid setup code");
-            // The error must appear before INITIALISE SYSTEM — i.e., it's in the restore panel,
-            // not the creation form below it.
-            body.IndexOf("Invalid setup code", StringComparison.Ordinal)
-                .Should().BeLessThan(body.IndexOf("INITIALISE SYSTEM", StringComparison.Ordinal));
         }
         finally { Directory.Delete(dir, recursive: true); }
     }
@@ -256,7 +252,7 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
 
             // Path.GetFileName strips directory components, so "../../etc/passwd" → "passwd"
             // which fails the .sql.gz extension check
-            var response = await client.PostAsync("/setup?handler=Restore",
+            var response = await client.PostAsync("/setup/restore?handler=Existing",
                 RestoreForm("test-setup-code", "../../etc/passwd"));
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var body = await response.Content.ReadAsStringAsync();
@@ -275,7 +271,7 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
             await using var derived = FactoryWithBackupDir(dir);
             var client = derived.CreateClient(new() { AllowAutoRedirect = false });
 
-            var response = await client.PostAsync("/setup?handler=Restore",
+            var response = await client.PostAsync("/setup/restore?handler=Existing",
                 RestoreForm("test-setup-code", "backup_does_not_exist.sql.gz"));
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var body = await response.Content.ReadAsStringAsync();
@@ -295,7 +291,7 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
             await using var derived = FactoryWithBackupDir(dir);
             var client = derived.CreateClient(new() { AllowAutoRedirect = false });
 
-            var response = await client.PostAsync("/setup?handler=Restore",
+            var response = await client.PostAsync("/setup/restore?handler=Existing",
                 RestoreForm("test-setup-code", "backup_20260101_120000.sql"));
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var body = await response.Content.ReadAsStringAsync();
@@ -378,7 +374,7 @@ public class SetupPageTests(ShulkerTechWebApplicationFactory factory)
             await using var derived = FactoryWithBackupDir(dir);
             var client = derived.CreateClient(new() { AllowAutoRedirect = false });
 
-            var response = await client.PostAsync("/setup?handler=Restore",
+            var response = await client.PostAsync("/setup/restore?handler=Existing",
                 RestoreForm("test-setup-code", backupFile));
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var body = await response.Content.ReadAsStringAsync();

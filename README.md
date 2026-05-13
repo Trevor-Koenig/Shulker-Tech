@@ -101,6 +101,9 @@ Copy `.env.example` to `.env` and fill in the required values before running.
 - **Player profile pages** — Public `/Community/players/{username}` pages showing a user's Minecraft username, playtime from session data, and linked wiki articles
 - **Article search** — PostgreSQL `tsvector` generated column on title + content with a GIN index; results ordered by `ts_rank` relevance; search bar in the wiki hero with result count, CLEAR link, and a "no results" state; drafts and permission-restricted articles excluded from results
 - **Codebase cleanup** — Removed stale `IsAdmin` comments from middleware and models; extracted duplicate slug generation into a shared `SlugHelper`; removed redundant `[Authorize]` attributes from pages already protected by middleware
+- **Ping-based playtime tracking** — `ServerStatusRefresher` automatically opens and closes `PlayerSession` records from the 30-second Minecraft ping player list; no Minecraft plugin required
+- **Security hardening** — Unauthenticated requests on wiki edit/history pages challenge for login before revealing whether an article ID is valid (prevents information disclosure); security test suite added covering headers, RBAC isolation, XSS, and path traversal
+- **Collaborative wiki editing** — Real-time co-editing on the article edit page via SignalR (`WikiEditHub` at `/hubs/wiki-edit`); editors see each other's changes within 1.5 s and a presence banner shows who else is editing; `WikiDocumentStore` (singleton) holds in-flight content per article and is cleared on save so the next session always starts from the DB
 
 ### Planned
 
@@ -117,6 +120,3 @@ Copy `.env.example` to `.env` and fill in the required values before running.
 #### Minecraft & Community
 - **Discord OAuth** — Sign in with Discord alongside local Identity accounts (natural fit for Minecraft communities)
 - **Live server status push** — `ServerStatusHub` and SignalR are wired up; remaining work is the server-side push logic and replacing the HTMX polling on the homepage with a SignalR client connection
-
-#### Long-term
-- **Collaborative editing** — Real-time co-editing via Yjs + SignalR transport (requires editor upgrade from EasyMDE)
