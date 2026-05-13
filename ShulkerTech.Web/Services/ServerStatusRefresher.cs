@@ -65,6 +65,8 @@ public class ServerStatusRefresher(
                         ServerId = s.Id, Timestamp = now,
                         IsOnline = true, PlayersOnline = result.PlayersOnline, PlayersMax = result.PlayersMax,
                     });
+
+                    await SyncSessionsAsync(db, s.Id, result.OnlinePlayers ?? [], now, ct);
                 }
                 else
                 {
@@ -94,6 +96,9 @@ public class ServerStatusRefresher(
                                 IsOnline = false, PlayersOnline = 0, PlayersMax = 0,
                             });
                         }
+
+                        // Close all open sessions — server is confirmed down
+                        await CloseAllSessionsAsync(db, s.Id, now, ct);
                     }
                 }
             }
@@ -128,6 +133,71 @@ public class ServerStatusRefresher(
             logger.LogError(ex, "Error refreshing server status");
         }
     }
+
+    private static async Task SyncSessionsAsync(
+        ApplicationDbContext db,
+        int serverId,
+        IReadOnlyList<OnlinePlayer> pingPlayers,
+        DateTime now,
+        CancellationToken ct)
+    {
+        // Collect UUIDs reported by this ping (normalised to lowercase, no dashes)
+        var pingUuids = pingPlayers
+            .Where(p => !string.IsNullOrWhiteSpace(p.Uuid))
+            .Select(p => NormaliseUuid(p.Uuid!))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Load all registered users whose UUID appears in the ping sample
+        var matchedUsers = pingUuids.Count > 0
+            ? await db.Users
+                .Where(u => u.MinecraftUuid != null && pingUuids.Contains(u.MinecraftUuid))
+                .Select(u => new { u.Id, u.MinecraftUuid })
+                .ToListAsync(ct)
+            : [];
+
+        var matchedUserIds = matchedUsers.Select(u => u.Id).ToHashSet();
+
+        // Load open sessions for this server
+        var openSessions = await db.PlayerSessions
+            .Where(s => s.ServerId == serverId && s.LeftAt == null)
+            .ToListAsync(ct);
+
+        var openUserIds = openSessions.Select(s => s.UserId).ToHashSet();
+
+        // Open a new session for each matched user who isn't already in an open session
+        foreach (var user in matchedUsers)
+        {
+            if (!openUserIds.Contains(user.Id))
+                db.PlayerSessions.Add(new PlayerSession { UserId = user.Id, ServerId = serverId, JoinedAt = now });
+        }
+
+        // Close sessions for users no longer in the ping sample
+        foreach (var session in openSessions)
+        {
+            if (!matchedUserIds.Contains(session.UserId))
+            {
+                session.LeftAt = now;
+                session.DurationSeconds = (long)(now - session.JoinedAt).TotalSeconds;
+            }
+        }
+    }
+
+    private static async Task CloseAllSessionsAsync(
+        ApplicationDbContext db, int serverId, DateTime now, CancellationToken ct)
+    {
+        var openSessions = await db.PlayerSessions
+            .Where(s => s.ServerId == serverId && s.LeftAt == null)
+            .ToListAsync(ct);
+
+        foreach (var s in openSessions)
+        {
+            s.LeftAt = now;
+            s.DurationSeconds = (long)(now - s.JoinedAt).TotalSeconds;
+        }
+    }
+
+    private static string NormaliseUuid(string uuid) =>
+        uuid.Replace("-", "").ToLowerInvariant();
 
     private static async Task<CachedServerStats> ComputeStatsAsync(
         ApplicationDbContext db, int serverId, DateTime now, CancellationToken ct)
