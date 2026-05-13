@@ -119,4 +119,91 @@ public class WikiArticleSearchTests(ShulkerTechWebApplicationFactory factory)
         var html = await CreateClient().GetStringAsync($"/Wiki?q={uniqueWord}");
         html.Should().NotContain($"{uniqueWord} Admin Only Article");
     }
+
+    [Fact]
+    public async Task Search_ResultsOrderedByRelevance()
+    {
+        using var scope = factory.Services.CreateScope();
+        var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, role: "Member");
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        // Use a unique alphabetic word so PG FTS indexes it cleanly
+        var uniqueWord = "zylvex" + Guid.NewGuid().ToString("N")[..6];
+
+        // Lower relevance: term appears once, only in content
+        await TestDbHelper.CreateArticleAsync(db, user.Id,
+            title: "A Generic Guide",
+            slug: $"rank-low-{Guid.NewGuid():N}",
+            content: $"This article mentions {uniqueWord} just once.");
+
+        // Higher relevance: term appears in both title and content
+        await TestDbHelper.CreateArticleAsync(db, user.Id,
+            title: $"{uniqueWord} Complete Reference",
+            slug: $"rank-high-{Guid.NewGuid():N}",
+            content: $"Everything you need to know about {uniqueWord}.");
+
+        var html = await CreateClient().GetStringAsync($"/Wiki?q={uniqueWord}");
+
+        var highPos = html.IndexOf($"{uniqueWord} Complete Reference", StringComparison.OrdinalIgnoreCase);
+        var lowPos  = html.IndexOf("A Generic Guide", StringComparison.OrdinalIgnoreCase);
+
+        highPos.Should().BeGreaterThan(-1, "the higher-relevance article should appear in results");
+        lowPos.Should().BeGreaterThan(-1, "the lower-relevance article should appear in results");
+        highPos.Should().BeLessThan(lowPos, "the title-matching article should rank above the content-only match");
+    }
+
+    [Fact]
+    public async Task Search_ShowsResultCount()
+    {
+        using var scope = factory.Services.CreateScope();
+        var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, role: "Member");
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var uniqueWord = "vornex" + Guid.NewGuid().ToString("N")[..6];
+        await TestDbHelper.CreateArticleAsync(db, user.Id,
+            title: $"{uniqueWord} First Article",
+            slug: $"count-a-{Guid.NewGuid():N}");
+        await TestDbHelper.CreateArticleAsync(db, user.Id,
+            title: $"{uniqueWord} Second Article",
+            slug: $"count-b-{Guid.NewGuid():N}");
+
+        var html = await CreateClient().GetStringAsync($"/Wiki?q={uniqueWord}");
+
+        html.Should().Contain("2 results");
+    }
+
+    [Fact]
+    public async Task Search_SingleResult_ShowsSingular()
+    {
+        using var scope = factory.Services.CreateScope();
+        var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, role: "Member");
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var uniqueWord = "krynox" + Guid.NewGuid().ToString("N")[..6];
+        await TestDbHelper.CreateArticleAsync(db, user.Id,
+            title: $"{uniqueWord} Only Article",
+            slug: $"singular-{Guid.NewGuid():N}");
+
+        var html = await CreateClient().GetStringAsync($"/Wiki?q={uniqueWord}");
+
+        html.Should().Contain("1 result");
+        html.Should().NotContain("1 results");
+    }
+
+    [Fact]
+    public async Task Search_CaseInsensitive_FindsMatch()
+    {
+        using var scope = factory.Services.CreateScope();
+        var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, role: "Member");
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var uniqueWord = "glimrek" + Guid.NewGuid().ToString("N")[..6];
+        await TestDbHelper.CreateArticleAsync(db, user.Id,
+            title: $"{uniqueWord} lowercase article",
+            slug: $"case-{Guid.NewGuid():N}");
+
+        var html = await CreateClient().GetStringAsync($"/Wiki?q={uniqueWord.ToUpperInvariant()}");
+
+        html.Should().Contain($"{uniqueWord} lowercase article");
+    }
 }

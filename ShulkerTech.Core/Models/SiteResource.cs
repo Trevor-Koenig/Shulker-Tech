@@ -46,7 +46,7 @@ public static class SiteResource
         new(WikiEditAny, "Wiki", "Edit Any Article",  "Edit articles written by others",    IsPublicByDefault: false),
         new(WikiDelete,  "Wiki", "Delete Articles",   "Delete any wiki article",            IsPublicByDefault: false),
 
-        // Admin — never public; IsAdmin bypasses all checks
+        // Admin — never public; access is determined solely by RBAC grants
         new(AdminAccess,        "Admin", "Admin Dashboard",      "Access the admin dashboard",         IsPublicByDefault: false),
         new(AdminUsers,         "Admin", "User Management",      "View and edit user accounts",        IsPublicByDefault: false),
         new(AdminRoles,         "Admin", "Roles & Permissions",  "Manage roles and permission grants", IsPublicByDefault: false),

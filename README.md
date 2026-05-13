@@ -97,23 +97,24 @@ Copy `.env.example` to `.env` and fill in the required values before running.
 - **Database export** — Admin page (`/Admin/Site/DbExport`) streams a gzip-compressed `pg_dump` to the browser; protected by the `admin.db_export` RBAC resource; error handling redirects back to the page on failure
 - **Permission-aware admin dashboard** — Each card on the admin dashboard checks the current user's RBAC grants; inaccessible cards are grayed out with `pointer-events: none` and no `href`, so they are entirely non-interactive without changing the element type
 - **Incremental permission seeding** — On each startup the app compares `SiteResource.All` against the Admin role's existing grants and inserts only the missing entries, so newly-added resources are granted automatically on the next deploy without touching existing permissions
+- **Audit log** — Persistent record of admin actions (permission changes, role assignments, article deletions, etc.) viewable in the admin panel; protected by the `admin.audit_log` RBAC resource
+- **Player profile pages** — Public `/Community/players/{username}` pages showing a user's Minecraft username, playtime from session data, and linked wiki articles
+- **Article search** — PostgreSQL `tsvector` generated column on title + content with a GIN index; results ordered by `ts_rank` relevance; search bar in the wiki hero with result count, CLEAR link, and a "no results" state; drafts and permission-restricted articles excluded from results
+- **Codebase cleanup** — Removed stale `IsAdmin` comments from middleware and models; extracted duplicate slug generation into a shared `SlugHelper`; removed redundant `[Authorize]` attributes from pages already protected by middleware
 
 ### Planned
 
 #### Wiki
-- **Article search** — Full-text search using PostgreSQL `tsvector` on article title and content; search bar on the wiki index
 - **Table of contents** — Auto-generated TOC sidebar for long articles using Markdig's built-in extension
 - **Article comments** — Per-article discussion thread so users can ask questions and give feedback
 - **Last edited by** — Surface the most recent editor and timestamp on the article view page
 - **Meilisearch** — Drop-in search upgrade once PostgreSQL FTS becomes insufficient
 
 #### Admin
-- **Audit log** — Persistent record of permission changes, article deletions, role assignments, and other admin actions
 - **Site announcements** — Admin-posted banners or notices displayed site-wide; useful for downtime, events, and rule changes
 - **Invite code usage tracking** — Show which user redeemed each invite code and when
 
 #### Minecraft & Community
-- **Player profile pages** — Public `/players/{username}` pages showing a user's articles, playtime from session data, and Minecraft skin via the Mojang API
 - **Discord OAuth** — Sign in with Discord alongside local Identity accounts (natural fit for Minecraft communities)
 - **Live server status push** — `ServerStatusHub` and SignalR are wired up; remaining work is the server-side push logic and replacing the HTMX polling on the homepage with a SignalR client connection
 

@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -11,7 +9,6 @@ using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 
-[Authorize]
 public class CreateModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
@@ -50,7 +47,7 @@ public class CreateModel(
         Templates = await db.ArticleTemplates.OrderByDescending(t => t.IsDefault).ThenBy(t => t.Name).ToListAsync();
 
         var user = await userManager.GetUserAsync(User);
-        if (user == null) return Forbid();
+        if (user == null) return Challenge();
 
         var userRoles = await userManager.GetRolesAsync(user);
         if (!await permissions.HasAsync(user, userRoles, SiteResource.WikiCreate))
@@ -65,8 +62,8 @@ public class CreateModel(
         AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
         Templates = await db.ArticleTemplates.OrderByDescending(t => t.IsDefault).ThenBy(t => t.Name).ToListAsync();
 
-        var user = await userManager.GetUserAsync(User)
-            ?? throw new InvalidOperationException("Authenticated user not found.");
+        var user = await userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
 
         var userRoles = await userManager.GetRolesAsync(user);
         if (!await permissions.HasAsync(user, userRoles, SiteResource.WikiCreate))
@@ -74,7 +71,7 @@ public class CreateModel(
 
         if (!ModelState.IsValid) return Page();
 
-        var slug = await GenerateUniqueSlugAsync(Input.Title);
+        var slug = await SlugHelper.GenerateUniqueSlugAsync(Input.Title, s => db.Articles.AnyAsync(a => a.Slug == s));
 
         var article = new Article
         {
@@ -105,16 +102,6 @@ public class CreateModel(
         await db.SaveChangesAsync();
 
         return Redirect($"/articles/{article.Slug}");
-    }
-
-    private async Task<string> GenerateUniqueSlugAsync(string title)
-    {
-        var baseSlug = Regex.Replace(title.ToLowerInvariant().Trim(), @"[^a-z0-9]+", "-").Trim('-');
-        var slug = baseSlug;
-        var i = 2;
-        while (await db.Articles.AnyAsync(a => a.Slug == slug))
-            slug = $"{baseSlug}-{i++}";
-        return slug;
     }
 
     internal static List<int> ParseTagIds(string tagIds) =>

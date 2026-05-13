@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ using ShulkerTech.Core.Models;
 
 namespace ShulkerTech.Web.Areas.Admin.Pages.Wiki;
 
-[Authorize]
 public class TemplatesModel(ApplicationDbContext db) : PageModel
 {
     public List<ArticleTemplate> Templates { get; set; } = [];

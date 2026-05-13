@@ -1,6 +1,5 @@
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -12,7 +11,6 @@ using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 
-[Authorize]
 public class RevisionModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,

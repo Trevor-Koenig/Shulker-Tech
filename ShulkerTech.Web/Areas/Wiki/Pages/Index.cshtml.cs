@@ -61,7 +61,7 @@ public class IndexModel(
         {
             query = query
                 .Where(a => a.IsPublished && a.SearchVector!.Matches(EF.Functions.PlainToTsQuery("english", SearchQuery)))
-                .OrderByDescending(a => a.UpdatedAt);
+                .OrderByDescending(a => a.SearchVector!.Rank(EF.Functions.PlainToTsQuery("english", SearchQuery!)));
         }
         else
         {

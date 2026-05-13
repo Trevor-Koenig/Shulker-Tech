@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -10,7 +9,6 @@ using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 
-[Authorize]
 public class EditModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
@@ -47,6 +45,7 @@ public class EditModel(
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
+        if (User.Identity?.IsAuthenticated != true) return Challenge();
         var (article, canEdit, canEditAny) = await ResolveAsync(id);
         if (article == null || !canEdit) return Forbid();
 
@@ -71,6 +70,7 @@ public class EditModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
+        if (User.Identity?.IsAuthenticated != true) return Challenge();
         Settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
         AllTags = await db.Tags.OrderBy(t => t.Name).ToListAsync();
 

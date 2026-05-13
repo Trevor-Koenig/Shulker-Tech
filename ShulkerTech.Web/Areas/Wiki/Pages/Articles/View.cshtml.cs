@@ -90,8 +90,8 @@ public class ViewModel(
         ContentHtml = wikiMarkdown.ToHtml(article.Content);
         TocEntries = ExtractTocEntries(ContentHtml);
 
-        // Strip markdown syntax for meta description
-        var plainText = System.Text.RegularExpressions.Regex.Replace(article.Content, @"[#*_`~>\[\]!|\\]|```[\s\S]*?```|`[^`]+`|\[([^\]]*)\]\([^)]*\)", "$1");
+        // Derive description from sanitized ContentHtml (Markdig already stripped raw HTML via DisableHtml)
+        var plainText = HtmlTagPattern.Replace(ContentHtml, " ");
         plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ").Trim();
         ViewData["Description"] = plainText.Length > 160 ? plainText[..157] + "…" : plainText;
         ViewData["OgType"] = "article";

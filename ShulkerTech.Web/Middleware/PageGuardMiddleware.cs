@@ -8,7 +8,7 @@ namespace ShulkerTech.Web.Middleware;
 /// Guards main-site pages and the wiki area using the RBAC permission system.
 /// Resources that are public-by-default remain accessible to everyone until an admin
 /// explicitly grants the resource to specific roles — at that point only those roles
-/// (or IsAdmin users) can access it.
+/// can access it.
 /// Runs after SubdomainRoutingMiddleware so paths already have area prefixes applied.
 /// </summary>
 public class PageGuardMiddleware(RequestDelegate next)

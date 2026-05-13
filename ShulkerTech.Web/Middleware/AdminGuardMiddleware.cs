@@ -5,9 +5,8 @@ using ShulkerTech.Web.Services;
 namespace ShulkerTech.Web.Middleware;
 
 /// <summary>
-/// Guards all /Admin/* paths. IsAdmin users pass immediately.
-/// Other authenticated users are checked against the per-path admin resource grant.
-/// Unauthenticated users are redirected to login.
+/// Guards all /Admin/* paths using RBAC. Authenticated users are checked against
+/// the per-path admin resource grant. Unauthenticated users are redirected to login.
 /// </summary>
 public class AdminGuardMiddleware(RequestDelegate next)
 {

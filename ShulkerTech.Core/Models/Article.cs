@@ -12,7 +12,7 @@ public class Article
     public bool IsPublished { get; set; }
     /// <summary>Minimum role to view. Null = inherit WikiSettings.DefaultViewRole.</summary>
     public string? ViewRole { get; set; }
-    /// <summary>Minimum role to edit (non-author). Null = inherit WikiSettings.EditAnyRole.</summary>
+    /// <summary>Minimum role to edit (non-author). Null = determined by WikiEditOwn/WikiEditAny RBAC grants.</summary>
     public string? EditRole { get; set; }
     public required string AuthorId { get; set; }
     public ApplicationUser Author { get; set; } = null!;
