@@ -133,16 +133,21 @@ if (!app.Environment.IsEnvironment("Testing"))
             await roleManager.CreateAsync(new IdentityRole(role));
     }
 
-    // Seed Admin role with every permission if it has none yet.
-    // This runs once on first startup (or after a bare-schema restore).
-    // After initial seeding, admins can freely adjust grants through the Roles page.
-    var hasAdminPerms = await db.SitePermissions.AnyAsync(p => p.RoleName == "Admin");
-    if (!hasAdminPerms)
+    // Ensure Admin role has every non-public permission. Runs on each startup so that
+    // newly-added resources are granted automatically without wiping existing grants.
+    var existingAdminResources = await db.SitePermissions
+        .Where(p => p.RoleName == "Admin")
+        .Select(p => p.Resource)
+        .ToHashSetAsync();
+
+    var missingAdminPerms = SiteResource.All
+        .Where(r => !r.IsPublicByDefault && !existingAdminResources.Contains(r.Key))
+        .Select(r => new SitePermission { RoleName = "Admin", Resource = r.Key })
+        .ToList();
+
+    if (missingAdminPerms.Count > 0)
     {
-        db.SitePermissions.AddRange(
-            SiteResource.All
-                .Where(r => !r.IsPublicByDefault)
-                .Select(r => new SitePermission { RoleName = "Admin", Resource = r.Key }));
+        db.SitePermissions.AddRange(missingAdminPerms);
         await db.SaveChangesAsync();
     }
 }

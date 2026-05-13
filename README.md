@@ -13,7 +13,7 @@ The web platform for the Shulker Tech Minecraft server — a community-driven su
 - **Inline BlueMap embeds** — Fenced ` ```map ` blocks in article Markdown render as collapsible interactive map panels
 - **Invite-only registration** — Accounts require a valid invite code and a real Minecraft username (verified via the Mojang API)
 - **Two-factor authentication** — TOTP-based 2FA via ASP.NET Core Identity
-- **Admin panel** — Manage users, roles, invite codes, map servers, site settings, wiki permissions, tags, and article templates
+- **Admin panel** — Manage users, roles, invite codes, map servers, site settings, wiki permissions, tags, and article templates; permission-gated cards are grayed out for roles that lack access; includes a one-click database export (gzip-compressed SQL dump)
 - **First-run setup** — Setup wizard creates the initial admin account; if database backups exist they can be restored directly from the setup page
 
 ## Tech Stack
@@ -94,6 +94,9 @@ Copy `.env.example` to `.env` and fill in the required values before running.
 - **RBAC permission system** — Fully dynamic role-based access control covering every page (home, wiki, admin); permissions managed through the admin panel with no hardcoded bypasses
 - **Per-role 2FA enforcement** — Admin-configurable list of roles that must complete TOTP setup before accessing the site
 - **Guest role** — Any role can be designated as the "guest" role; unauthenticated visitors are treated as holding that role for all permission checks
+- **Database export** — Admin page (`/Admin/Site/DbExport`) streams a gzip-compressed `pg_dump` to the browser; protected by the `admin.db_export` RBAC resource; error handling redirects back to the page on failure
+- **Permission-aware admin dashboard** — Each card on the admin dashboard checks the current user's RBAC grants; inaccessible cards are grayed out with `pointer-events: none` and no `href`, so they are entirely non-interactive without changing the element type
+- **Incremental permission seeding** — On each startup the app compares `SiteResource.All` against the Admin role's existing grants and inserts only the missing entries, so newly-added resources are granted automatically on the next deploy without touching existing permissions
 
 ### Planned
 
