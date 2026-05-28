@@ -44,8 +44,30 @@ public class SubdomainRoutingMiddleware(RequestDelegate next)
     public async Task InvokeAsync(HttpContext context)
     {
         var host = context.Request.Host.Host;
-        var subdomain = host.Split('.')[0];
         var path = context.Request.Path.Value ?? string.Empty;
+
+        // IP addresses have no subdomains — use path-based area routing instead.
+        // /wiki/... or /Wiki/... → normalised to /Wiki/...
+        // /admin/... or /Admin/... → normalised to /Admin/...
+        if (System.Net.IPAddress.TryParse(host, out _))
+        {
+            foreach (var (_, ipArea) in SubdomainAreaMap)
+            {
+                var areaPrefix = $"/{ipArea}";
+                if (path.StartsWith(areaPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Normalise casing so Razor Pages area routing matches correctly
+                    if (!path.StartsWith(areaPrefix, StringComparison.Ordinal))
+                        context.Request.Path = areaPrefix + path[areaPrefix.Length..];
+                    break;
+                }
+            }
+
+            await next(context);
+            return;
+        }
+
+        var subdomain = host.Split('.')[0];
 
         // Static assets — served directly, no redirect, no area-prefix.
         if (HasPrefix(path, StaticPaths))

@@ -12,9 +12,7 @@ services:
       - pgdata:/var/lib/postgresql/18/main
 
   app:
-    build:
-      context: .
-      dockerfile: ShulkerTech.Web/Dockerfile
+    image: ${DOCKER_IMAGE:-trevorkoenig/shulker-tech:latest}
     restart: unless-stopped
     ports:
       - "80:8080"

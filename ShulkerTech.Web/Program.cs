@@ -93,8 +93,7 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error");
-    app.UseHsts();
-    app.UseHttpsRedirection();
+    // HSTS and HTTPS redirection are handled by the reverse proxy, not the app.
 }
 app.UseCookiePolicy();
 app.UseMiddleware<FirstRunMiddleware>();

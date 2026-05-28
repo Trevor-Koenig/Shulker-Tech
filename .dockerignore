@@ -2,18 +2,47 @@
 .git
 .gitignore
 
-# Build output — restored inside the image
+# Build output — restored and compiled inside the image
 **/bin
 **/obj
 
-# Dev-only files
+# Secrets and certificates — never send to Docker daemon
+.env
+.env.*
+certs/
+
+# Dev-only config and tools
 tailwindcss
-ShulkerTech.Web/app.db
+appsettings.Development.json
 ShulkerTech.Web/appsettings.Development.json
 docker-compose.override.yml
+Directory.Build.props
 
-# Tailwind source — only the compiled output is needed
+# Dev-generated files
+ShulkerTech.Web/dev-emails/
+ShulkerTech.Web/app.db
+
+# Tailwind source — only the compiled output (app.out.css) is needed
 ShulkerTech.Web/wwwroot/css/app.css
 
 # Unused scaffolded libraries (Bootstrap/jQuery — replaced by Tailwind/HTMX)
 ShulkerTech.Web/wwwroot/lib
+
+# Backups — potentially large and sensitive
+backups/
+
+# Test projects — not needed to build the app
+tests/
+
+# IDE and editor config
+.vscode/
+.vs/
+*.user
+
+# Repo-level docs and tooling — not needed in the build context
+README.md
+LICENSE
+Makefile
+docker/
+ScaffoldingReadMe.txt
+libman.json
