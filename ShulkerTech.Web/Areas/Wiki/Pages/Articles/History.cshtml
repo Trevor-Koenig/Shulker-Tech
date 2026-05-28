@@ -1,0 +1,69 @@
+@page "/Wiki/articles/history/{id:int}"
+@model HistoryModel
+@{
+    ViewData["Title"] = $"History — {Model.Article.Title}";
+}
+
+<div class="px-4 sm:px-8 lg:px-16 xl:px-24 2xl:px-32 py-10">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="/articles/@Model.Article.Slug"
+           style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-muted); letter-spacing: 0.08em; text-decoration: none;">
+            ← @Model.Article.Title.ToUpperInvariant()
+        </a>
+        <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">◆ REVISION HISTORY</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.08em; color: var(--color-crystal);">
+            @Model.Article.Title.ToUpperInvariant()
+        </h1>
+    </div>
+
+    @if (!Model.Revisions.Any())
+    {
+        <div class="panel p-8 text-center" style="color: var(--color-muted); font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.06em;">
+            NO REVISIONS YET — THIS ARTICLE HAS NOT BEEN EDITED SINCE CREATION.
+        </div>
+    }
+    else
+    {
+        <div class="flex flex-col gap-3">
+            <!-- Current version -->
+            <div class="panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                 style="border-color: color-mix(in oklab, var(--color-accent) 40%, transparent);">
+                <div class="flex flex-col gap-1">
+                    <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-accent); letter-spacing: 0.08em;">CURRENT VERSION</span>
+                    <span style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.95rem; letter-spacing: 0.04em;">
+                        @Model.Article.Title
+                    </span>
+                    <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                        UPDATED @Model.Article.UpdatedAt.ToString("MMM d, yyyy · HH:mm UTC").ToUpper()
+                    </span>
+                </div>
+                <a href="/articles/@Model.Article.Slug"
+                   class="btn-nav" style="font-size: 0.7rem; white-space: nowrap;">VIEW</a>
+            </div>
+
+            @for (int i = 0; i < Model.Revisions.Count; i++)
+            {
+                var rev = Model.Revisions[i];
+                var editorName = (rev.Editor?.MinecraftUsername ?? rev.Editor?.UserName)?.ToUpperInvariant() ?? "UNKNOWN";
+                <div class="panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em;">
+                            REVISION @(Model.Revisions.Count - i)
+                        </span>
+                        <span style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.95rem; letter-spacing: 0.04em;">
+                            @rev.Title
+                        </span>
+                        <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                            SAVED BY @editorName · @rev.EditedAt.ToString("MMM d, yyyy · HH:mm UTC").ToUpper()
+                        </span>
+                    </div>
+                    <a href="/articles/revision/@rev.Id"
+                       class="btn-nav" style="font-size: 0.7rem; white-space: nowrap;">VIEW / RESTORE</a>
+                </div>
+            }
+        </div>
+    }
+
+</div>

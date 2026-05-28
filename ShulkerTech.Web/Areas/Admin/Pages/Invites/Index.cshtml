@@ -81,6 +81,14 @@
                             <span>expires <time class="local-datetime" datetime="@code.ExpiresAt.Value.ToUniversalTime().ToString("O")">@code.ExpiresAt.Value.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") UTC</time></span>
                         }
                         <span>created <time class="local-datetime" datetime="@code.CreatedAt.ToUniversalTime().ToString("O")">@code.CreatedAt.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") UTC</time></span>
+                        @if (code.RedeemedBy != null)
+                        {
+                            <span>redeemed by <strong style="color: var(--color-crystal);">@(code.RedeemedBy.MinecraftUsername ?? code.RedeemedBy.UserName)</strong>
+                            @if (code.RedeemedAt.HasValue)
+                            {
+                                <text> on <time class="local-datetime" datetime="@code.RedeemedAt.Value.ToUniversalTime().ToString("O")">@code.RedeemedAt.Value.ToUniversalTime().ToString("yyyy-MM-dd") UTC</time></text>
+                            }</span>
+                        }
                     </div>
                 </div>
                 @if (!code.IsRevoked)

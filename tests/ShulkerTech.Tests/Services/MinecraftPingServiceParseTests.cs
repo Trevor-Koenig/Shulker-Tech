@@ -135,4 +135,130 @@ public class MinecraftPingServiceParseTests
         // Bold + color should produce some HTML output
         result.MotdHtml.Should().NotBeNullOrEmpty();
     }
+
+    // ── Bad / malicious data ───────────────────────────────────────────────────
+
+    [Fact]
+    public void ParseResponse_XssInStringMotd_IsHtmlEncoded()
+    {
+        var json = """{"description":"<script>alert(1)</script>","players":{"online":0,"max":20}}""";
+        var result = Parse(json);
+        result.IsOnline.Should().BeTrue();
+        result.MotdHtml.Should().NotContain("<script>");
+        result.MotdHtml.Should().Contain("&lt;script&gt;");
+    }
+
+    [Fact]
+    public void ParseResponse_XssInComponentMotdText_IsHtmlEncoded()
+    {
+        var json = """
+            {
+              "description":{"text":"<img src=x onerror=alert(1)>"},
+              "players":{"online":0,"max":20}
+            }
+            """;
+        var result = Parse(json);
+        result.IsOnline.Should().BeTrue();
+        result.MotdHtml.Should().NotContain("<img");
+        result.MotdHtml.Should().Contain("&lt;img");
+    }
+
+    [Fact]
+    public void ParseResponse_NullPlayerName_SkipsEntry()
+    {
+        var json = """
+            {
+              "players":{
+                "online":1,"max":20,
+                "sample":[
+                  {"name":null,"id":"00000000-0000-0000-0000-000000000001"},
+                  {"name":"Alex","id":"00000000-0000-0000-0000-000000000002"}
+                ]
+              }
+            }
+            """;
+        var result = Parse(json);
+        result.OnlinePlayers.Should().ContainSingle().Which.Name.Should().Be("Alex");
+    }
+
+    [Fact]
+    public void ParseResponse_EmptyPlayerName_SkipsEntry()
+    {
+        var json = """
+            {
+              "players":{
+                "online":1,"max":20,
+                "sample":[
+                  {"name":"   ","id":"00000000-0000-0000-0000-000000000001"},
+                  {"name":"Alex","id":"00000000-0000-0000-0000-000000000002"}
+                ]
+              }
+            }
+            """;
+        var result = Parse(json);
+        result.OnlinePlayers.Should().ContainSingle().Which.Name.Should().Be("Alex");
+    }
+
+    [Fact]
+    public void ParseResponse_VeryLargePlayerCount_DoesNotCrash()
+    {
+        var json = """{"players":{"online":2147483647,"max":2147483647}}""";
+        var result = Parse(json);
+        result.IsOnline.Should().BeTrue();
+        result.PlayersOnline.Should().Be(int.MaxValue);
+    }
+
+    [Fact]
+    public void ParseResponse_PlayerCountAsString_TreatsAsZero()
+    {
+        // Some modded servers send counts as strings rather than numbers
+        var json = """{"players":{"online":"many","max":"lots"}}""";
+        var result = Parse(json);
+        result.IsOnline.Should().BeTrue();
+        result.PlayersOnline.Should().Be(0);
+        result.PlayersMax.Should().Be(0);
+    }
+
+    [Fact]
+    public void ParseResponse_EmptyString_ReturnsOffline()
+    {
+        var result = Parse("");
+        result.IsOnline.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ParseResponse_NullJsonLiteral_ReturnsOffline()
+    {
+        var result = Parse("null");
+        result.IsOnline.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ParseResponse_LegacyMotdWithColorCodes_RendersHtmlSpans()
+    {
+        var json = """{"description":"§aGreen §lBold §rReset","players":{"online":0,"max":20}}""";
+        var result = Parse(json);
+        result.IsOnline.Should().BeTrue();
+        result.MotdHtml.Should().Contain("<span");
+    }
+
+    [Fact]
+    public void ParseResponse_NestedExtraComponents_RendersWithoutCrash()
+    {
+        var json = """
+            {
+              "description":{
+                "text":"Root",
+                "extra":[
+                  {"text":"Child","color":"aqua"},
+                  "plain string extra"
+                ]
+              },
+              "players":{"online":0,"max":20}
+            }
+            """;
+        var result = Parse(json);
+        result.IsOnline.Should().BeTrue();
+        result.MotdHtml.Should().NotBeNull();
+    }
 }

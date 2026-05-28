@@ -5,6 +5,17 @@ RUN curl -sLo /usr/local/bin/tailwindcss \
     https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64 \
     && chmod +x /usr/local/bin/tailwindcss
 
+# Install PostgreSQL client tools (pg_dump for backups, psql for restore)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gnupg lsb-release \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+       | gpg --dearmor -o /usr/share/keyrings/pgdg.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+       > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client-18 postgresql-client-common \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /workspace
 
 # Source is mounted at runtime via docker-compose.override.yml volume.

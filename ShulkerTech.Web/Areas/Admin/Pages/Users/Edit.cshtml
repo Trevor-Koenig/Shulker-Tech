@@ -46,10 +46,6 @@
                 <dd style="color: var(--color-crystal);">@Model.Member.CreatedAt.ToString("yyyy-MM-dd")</dd>
             </div>
             <div class="flex gap-4">
-                <dt style="color: var(--color-muted); min-width: 8rem;">Owner</dt>
-                <dd style="color: var(--color-crystal);">@(Model.Member.IsAdmin ? "Yes" : "No")</dd>
-            </div>
-            <div class="flex gap-4">
                 <dt style="color: var(--color-muted); min-width: 8rem;">Status</dt>
                 <dd style="color: @(Model.IsDeactivated ? "var(--color-rune)" : "var(--color-arcane)");">
                     @(Model.IsDeactivated ? "DEACTIVATED" : "ACTIVE")
@@ -84,14 +80,24 @@
             <p class="text-xs mb-4" style="font-family: var(--font-mono); color: var(--color-muted); line-height: 1.6;">
                 Deactivating this account will immediately prevent the user from signing in.
             </p>
-            <form method="post" asp-page-handler="Deactivate" asp-route-id="@Model.Member.Id">
-                <button type="submit" class="px-4 py-2 rounded text-xs"
-                        style="font-family: var(--font-display); letter-spacing: 0.06em; cursor: pointer;
-                               color: var(--color-rune); border: 1px solid color-mix(in oklab, var(--color-rune) 40%, transparent);
-                               background: color-mix(in oklab, var(--color-rune) 8%, transparent);">
-                    DEACTIVATE ACCOUNT
-                </button>
-            </form>
+            <div class="flex flex-wrap gap-3">
+                <form method="post" asp-page-handler="Deactivate" asp-route-id="@Model.Member.Id">
+                    <button type="submit" class="px-4 py-2 rounded text-xs"
+                            style="font-family: var(--font-display); letter-spacing: 0.06em; cursor: pointer;
+                                   color: var(--color-rune); border: 1px solid color-mix(in oklab, var(--color-rune) 40%, transparent);
+                                   background: color-mix(in oklab, var(--color-rune) 8%, transparent);">
+                        DEACTIVATE ACCOUNT
+                    </button>
+                </form>
+                <form method="post" asp-page-handler="ForcePasswordReset" asp-route-id="@Model.Member.Id">
+                    <button type="submit" class="px-4 py-2 rounded text-xs"
+                            style="font-family: var(--font-display); letter-spacing: 0.06em; cursor: pointer;
+                                   color: var(--color-accent); border: 1px solid color-mix(in oklab, var(--color-accent) 40%, transparent);
+                                   background: color-mix(in oklab, var(--color-accent) 8%, transparent);">
+                        FORCE PASSWORD RESET
+                    </button>
+                </form>
+            </div>
         }
     </div>
 

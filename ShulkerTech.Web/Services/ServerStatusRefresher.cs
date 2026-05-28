@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
@@ -13,6 +14,10 @@ public class ServerStatusRefresher(
     ILogger<ServerStatusRefresher> logger) : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(30);
+
+    // Tracks how many pings in a row have failed per server.
+    // A single transient failure is suppressed; two consecutive failures confirm a real outage.
+    private readonly ConcurrentDictionary<int, int> _consecutiveFailures = new();
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
@@ -36,32 +41,71 @@ public class ServerStatusRefresher(
 
             var now = DateTime.UtcNow;
 
-            var tasks = servers.Select(async s =>
+            // Phase 1: ping all servers in parallel (pure I/O, no shared state written)
+            var pingResults = await Task.WhenAll(servers.Select(async s =>
             {
                 var result = await ping.PingAsync(s.Host!, s.Port, ct);
+                return (Server: s, Result: result);
+            }));
 
-                cache.Set(new CachedServerStatus(
-                    s.Id, s.Name, s.Host, s.Port,
-                    result.IsOnline, result.PlayersOnline, result.PlayersMax,
-                    result.MotdHtml, result.FaviconDataUrl,
-                    now,
-                    result.OnlinePlayers ?? []));
-
-                // Persist this ping to the log table
-                db.ServerPingLogs.Add(new ServerPingLog
+            // Phase 2: apply results sequentially (DbContext is not thread-safe)
+            foreach (var (s, result) in pingResults)
+            {
+                if (result.IsOnline)
                 {
-                    ServerId = s.Id,
-                    Timestamp = now,
-                    IsOnline = result.IsOnline,
-                    PlayersOnline = result.PlayersOnline,
-                    PlayersMax = result.PlayersMax,
-                });
-            });
+                    _consecutiveFailures.TryRemove(s.Id, out _);
 
-            await Task.WhenAll(tasks);
+                    cache.Set(new CachedServerStatus(s.Id, s.Name, s.Host, s.Port,
+                        true, result.PlayersOnline, result.PlayersMax,
+                        result.MotdHtml, result.FaviconDataUrl, now,
+                        result.OnlinePlayers ?? []));
+
+                    db.ServerPingLogs.Add(new ServerPingLog
+                    {
+                        ServerId = s.Id, Timestamp = now,
+                        IsOnline = true, PlayersOnline = result.PlayersOnline, PlayersMax = result.PlayersMax,
+                    });
+
+                    await SyncSessionsAsync(db, s.Id, result.OnlinePlayers ?? [], now, ct);
+                }
+                else
+                {
+                    var failures = _consecutiveFailures.AddOrUpdate(s.Id, 1, (_, n) => n + 1);
+                    var existing = cache.TryGet(s.Id);
+
+                    if (failures == 1 && existing?.IsOnline == true)
+                    {
+                        // First failure on a server that was previously online — could be a
+                        // transient blip. Preserve the last known good state and skip the log.
+                        cache.Set(existing with { LastChecked = now });
+                    }
+                    else
+                    {
+                        // Confirmed outage (2+ failures), new server with no cached state yet,
+                        // or server was already shown as offline. Show as offline in the UI.
+                        cache.Set(new CachedServerStatus(s.Id, s.Name, s.Host, s.Port,
+                            false, 0, 0, null, null, now, []));
+
+                        // Only write a log entry when transitioning to offline (not for every
+                        // repeated offline ping after the outage is already recorded).
+                        if (existing?.IsOnline != false)
+                        {
+                            db.ServerPingLogs.Add(new ServerPingLog
+                            {
+                                ServerId = s.Id, Timestamp = now,
+                                IsOnline = false, PlayersOnline = 0, PlayersMax = 0,
+                            });
+                        }
+
+                        // Close all open sessions — server is confirmed down
+                        await CloseAllSessionsAsync(db, s.Id, now, ct);
+                    }
+                }
+            }
+
             await db.SaveChangesAsync(ct);
 
-            // Compute and cache stats for each server (after logs are persisted)
+            // Phase 3: recompute stats (after logs are persisted)
             foreach (var s in servers)
             {
                 try
@@ -90,6 +134,71 @@ public class ServerStatusRefresher(
         }
     }
 
+    private static async Task SyncSessionsAsync(
+        ApplicationDbContext db,
+        int serverId,
+        IReadOnlyList<OnlinePlayer> pingPlayers,
+        DateTime now,
+        CancellationToken ct)
+    {
+        // Collect UUIDs reported by this ping (normalised to lowercase, no dashes)
+        var pingUuids = pingPlayers
+            .Where(p => !string.IsNullOrWhiteSpace(p.Uuid))
+            .Select(p => NormaliseUuid(p.Uuid!))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Load all registered users whose UUID appears in the ping sample
+        var matchedUsers = pingUuids.Count > 0
+            ? await db.Users
+                .Where(u => u.MinecraftUuid != null && pingUuids.Contains(u.MinecraftUuid))
+                .Select(u => new { u.Id, u.MinecraftUuid })
+                .ToListAsync(ct)
+            : [];
+
+        var matchedUserIds = matchedUsers.Select(u => u.Id).ToHashSet();
+
+        // Load open sessions for this server
+        var openSessions = await db.PlayerSessions
+            .Where(s => s.ServerId == serverId && s.LeftAt == null)
+            .ToListAsync(ct);
+
+        var openUserIds = openSessions.Select(s => s.UserId).ToHashSet();
+
+        // Open a new session for each matched user who isn't already in an open session
+        foreach (var user in matchedUsers)
+        {
+            if (!openUserIds.Contains(user.Id))
+                db.PlayerSessions.Add(new PlayerSession { UserId = user.Id, ServerId = serverId, JoinedAt = now });
+        }
+
+        // Close sessions for users no longer in the ping sample
+        foreach (var session in openSessions)
+        {
+            if (!matchedUserIds.Contains(session.UserId))
+            {
+                session.LeftAt = now;
+                session.DurationSeconds = (long)(now - session.JoinedAt).TotalSeconds;
+            }
+        }
+    }
+
+    private static async Task CloseAllSessionsAsync(
+        ApplicationDbContext db, int serverId, DateTime now, CancellationToken ct)
+    {
+        var openSessions = await db.PlayerSessions
+            .Where(s => s.ServerId == serverId && s.LeftAt == null)
+            .ToListAsync(ct);
+
+        foreach (var s in openSessions)
+        {
+            s.LeftAt = now;
+            s.DurationSeconds = (long)(now - s.JoinedAt).TotalSeconds;
+        }
+    }
+
+    private static string NormaliseUuid(string uuid) =>
+        uuid.Replace("-", "").ToLowerInvariant();
+
     private static async Task<CachedServerStats> ComputeStatsAsync(
         ApplicationDbContext db, int serverId, DateTime now, CancellationToken ct)
     {
@@ -99,6 +208,7 @@ public class ServerStatusRefresher(
         // Single query for the 7d window (covers 24h too)
         var logs7d = await db.ServerPingLogs
             .Where(l => l.ServerId == serverId && l.Timestamp >= since7d)
+            .OrderBy(l => l.Timestamp)
             .Select(l => new { l.Timestamp, l.IsOnline, l.PlayersOnline })
             .ToListAsync(ct);
 
@@ -119,26 +229,28 @@ public class ServerStatusRefresher(
         var onlineLogs7d = logs7d.Where(l => l.IsOnline).ToList();
         double avg7d = onlineLogs7d.Count > 0 ? onlineLogs7d.Average(l => l.PlayersOnline) : 0;
 
-        // Current uptime streak — time since the last offline ping
-        var currentlyOnline = logs24h.OrderByDescending(l => l.Timestamp).FirstOrDefault()?.IsOnline ?? false;
+        // Current uptime streak — walk backwards through the 7-day window to find the start
+        // of the current unbroken online run. Isolated single offline pings (transient failures)
+        // are treated as noise so they don't reset a real streak.
+        var currentlyOnline = logs7d.Count > 0 && logs7d[^1].IsOnline;
         TimeSpan? streak = null;
         if (currentlyOnline)
         {
-            var lastOffline = await db.ServerPingLogs
-                .Where(l => l.ServerId == serverId && !l.IsOnline)
-                .MaxAsync(l => (DateTime?)l.Timestamp, ct);
-
-            if (lastOffline.HasValue)
+            var streakStart = FindStreakStart(logs7d.Select(l => (l.Timestamp, l.IsOnline)));
+            if (streakStart.HasValue)
             {
-                streak = now - lastOffline.Value;
-            }
-            else
-            {
-                // Never recorded offline — streak from the very first log
-                var firstLog = await db.ServerPingLogs
-                    .Where(l => l.ServerId == serverId)
-                    .MinAsync(l => (DateTime?)l.Timestamp, ct);
-                streak = firstLog.HasValue ? now - firstLog.Value : TimeSpan.Zero;
+                // If the streak runs all the way to the edge of our 7-day window, the server
+                // may have been up even longer — extend to its very first log entry.
+                var windowEdge = logs7d[0].Timestamp;
+                if (streakStart.Value <= windowEdge.AddMinutes(1))
+                {
+                    var firstEver = await db.ServerPingLogs
+                        .Where(l => l.ServerId == serverId)
+                        .MinAsync(l => (DateTime?)l.Timestamp, ct);
+                    if (firstEver.HasValue && firstEver.Value < streakStart.Value)
+                        streakStart = firstEver.Value;
+                }
+                streak = now - streakStart.Value;
             }
         }
 
@@ -161,5 +273,39 @@ public class ServerStatusRefresher(
         }).ToList();
 
         return new CachedServerStats(serverId, uptime24h, uptime7d, peak, avg7d, streak, history);
+    }
+
+    /// <summary>
+    /// Finds the start of the current unbroken online run by walking backwards through logs.
+    /// A single isolated offline ping surrounded by online pings is treated as noise.
+    /// Two or more consecutive offline pings mark the end of the streak.
+    /// </summary>
+    /// <param name="logsAscending">Ping logs ordered oldest→newest.</param>
+    internal static DateTime? FindStreakStart(IEnumerable<(DateTime Timestamp, bool IsOnline)> logsAscending)
+    {
+        // Reverse so we walk newest → oldest
+        var logsDesc = logsAscending.Reverse().ToList();
+        if (logsDesc.Count == 0 || !logsDesc[0].IsOnline)
+            return null;
+
+        DateTime? streakStart = null;
+        int offlineRun = 0;
+
+        foreach (var (ts, isOnline) in logsDesc)
+        {
+            if (isOnline)
+            {
+                offlineRun = 0;
+                streakStart = ts;
+            }
+            else
+            {
+                offlineRun++;
+                if (offlineRun >= 2)
+                    break; // real outage found — streak starts at whatever streakStart is
+            }
+        }
+
+        return streakStart;
     }
 }

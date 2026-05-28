@@ -1,7 +1,14 @@
 @page
+@using ShulkerTech.Core.Models
 @model IndexModel
 @{
     ViewData["Title"] = "Admin Dashboard";
+
+    bool Can(string resource) => Model.AccessibleResources.Contains(resource);
+
+    // Locked cards lose the href (Razor drops null attributes), get pointer-events: none,
+    // and their footer label flips from "OPEN →" to "NO ACCESS".
+    const string LockedStyle = "opacity: 0.4; pointer-events: none; cursor: default;";
 }
 
 <div class="px-6 lg:px-10 py-10">
@@ -54,61 +61,40 @@
     @* Nav cards *@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-        <a asp-page="/Users/Index" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
-            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; USERS</span>
-            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Manage accounts, assign roles, and review members.
-            </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
-        </a>
+        @{
+            // Each card: (label, description, url, resource)
+            var cards = new (string Label, string Desc, string Url, string Resource)[]
+            {
+                ("&#9670; USERS",             "Manage accounts, assign roles, and review members.",                                        "/Admin/Users",             SiteResource.AdminUsers),
+                ("&#9670; ROLES &amp; PERMISSIONS", "Create and delete roles, then control which actions each role can perform.",           "/Admin/Roles",             SiteResource.AdminRoles),
+                ("&#9670; INVITES",            "Generate and revoke invite codes to control who can register.",                             "/Admin/Invites",           SiteResource.AdminInvites),
+                ("&#9670; GAME SERVERS",       "Manage game servers and API keys for playtime tracking.",                                   "/Admin/Servers",           SiteResource.AdminServers),
+                ("&#9670; MAP SERVERS",        "Configure and toggle the live map server integrations.",                                    "/Admin/Maps",              SiteResource.AdminMaps),
+                ("&#9670; WIKI",               "Configure who can view, create, and edit wiki articles.",                                   "/Admin/Wiki/Settings",     SiteResource.AdminWikiSettings),
+                ("&#9670; WIKI TAGS",          "Create, edit, and delete tags used to categorise wiki articles.",                           "/Admin/Wiki/Tags",         SiteResource.AdminWikiTags),
+                ("&#9670; ARTICLE TEMPLATES",  "Manage Markdown templates that members can pick when creating new articles.",               "/Admin/Wiki/Templates",    SiteResource.AdminWikiTemplates),
+                ("&#9670; SITE",               "Edit the homepage hero tagline and about section card text.",                               "/Admin/Site/Settings",     SiteResource.AdminSiteSettings),
+                ("&#9670; SECURITY",           "Configure which roles are required to use two-factor authentication.",                      "/Admin/Security/Settings", SiteResource.AdminSecurity),
+                ("&#9670; DATABASE EXPORT",    "Download a full gzip-compressed SQL dump of the database.",                                 "/Admin/Site/DbExport",     SiteResource.AdminDbExport),
+            };
+        }
 
-        <a asp-page="/Invites/Index" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
-            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; INVITES</span>
-            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Generate and revoke invite codes to control who can register.
-            </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
-        </a>
-
-        <a asp-page="/Servers/Index" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
-            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; GAME SERVERS</span>
-            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Manage game servers and API keys for playtime tracking.
-            </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
-        </a>
-
-        <a asp-page="/Maps/Index" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
-            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; MAP SERVERS</span>
-            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Configure and toggle the live map server integrations.
-            </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
-        </a>
-
-        <a asp-page="/Wiki/Settings" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
-            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; WIKI</span>
-            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Configure who can view, create, and edit wiki articles.
-            </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
-        </a>
-
-        <a asp-page="/Site/Settings" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
-            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; SITE</span>
-            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Edit the homepage hero tagline and about section card text.
-            </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
-        </a>
-
-        <a asp-page="/Security/Settings" class="panel p-6 flex flex-col gap-3 group" style="text-decoration: none;">
-            <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">&#9670; SECURITY</span>
-            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Configure which roles are required to use two-factor authentication.
-            </p>
-            <span class="text-xs mt-auto" style="font-family: var(--font-display); color: var(--color-accent); letter-spacing: 0.08em;">OPEN →</span>
-        </a>
+        @foreach (var (label, desc, url, resource) in cards)
+        {
+            bool accessible = Can(resource);
+            <a href="@(accessible ? url : null)"
+               class="panel p-6 flex flex-col gap-3 @(accessible ? "group" : "")"
+               style="text-decoration: none; @(!accessible ? LockedStyle : "")"
+               aria-disabled="@(!accessible ? "true" : null)"
+               tabindex="@(!accessible ? "-1" : null)">
+                <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-rune); letter-spacing: 0.1em;">@Html.Raw(label)</span>
+                <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">@desc</p>
+                <span class="text-xs mt-auto" style="font-family: var(--font-display); letter-spacing: 0.08em;
+                    color: @(accessible ? "var(--color-accent)" : "var(--color-muted)");">
+                    @(accessible ? "OPEN →" : "NO ACCESS")
+                </span>
+            </a>
+        }
 
     </div>
 </div>

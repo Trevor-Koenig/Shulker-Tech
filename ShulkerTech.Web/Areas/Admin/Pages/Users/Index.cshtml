@@ -28,10 +28,6 @@
                         {
                             <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-rune); border: 1px solid color-mix(in oklab, var(--color-rune) 40%, transparent);">DEACTIVATED</span>
                         }
-                        @if (row.User.IsAdmin)
-                        {
-                            <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-accent); border: 1px solid var(--color-accent);">OWNER</span>
-                        }
                         @foreach (var role in row.Roles)
                         {
                             <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: var(--color-arcane); border: 1px solid color-mix(in oklab, var(--color-arcane) 40%, transparent);">

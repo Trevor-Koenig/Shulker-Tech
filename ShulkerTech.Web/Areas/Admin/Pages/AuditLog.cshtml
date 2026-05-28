@@ -1,0 +1,132 @@
+@page
+@model AuditLogModel
+@using ShulkerTech.Core.Models
+@{
+    ViewData["Title"] = "Audit Log";
+
+    string FilterLink(string? action) =>
+        Url.Page("/AuditLog", new { action, page = 1 }) ?? "#";
+
+    string FilterStyle(string? action)
+    {
+        var active = Model.ActionFilter == action;
+        const string Base = "px-3 py-1 rounded text-xs whitespace-nowrap;";
+        return active
+            ? Base + "font-family:var(--font-display);letter-spacing:0.05em;color:var(--color-accent);border:1px solid color-mix(in oklab,var(--color-accent) 50%,transparent);background:color-mix(in oklab,var(--color-accent) 10%,transparent);"
+            : Base + "font-family:var(--font-display);letter-spacing:0.05em;color:var(--color-muted);border:1px solid color-mix(in oklab,var(--color-accent) 15%,transparent);";
+    }
+}
+
+<div class="px-6 lg:px-10 py-10">
+
+    <div class="mb-8">
+        <p class="text-xs tracking-widest mt-4 mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; ADMIN</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            AUDIT LOG
+        </h1>
+        <p class="text-sm mt-2" style="color: var(--color-muted); font-family: var(--font-mono);">
+            Record of article create, edit, and delete actions.
+        </p>
+    </div>
+
+    @* Action filter *@
+    <div class="flex flex-wrap gap-2 mb-6">
+        <a href="@FilterLink(null)" style="@FilterStyle(null)">ALL</a>
+        <a href="@FilterLink(AuditAction.ArticleCreated)" style="@FilterStyle(AuditAction.ArticleCreated)">CREATED</a>
+        <a href="@FilterLink(AuditAction.ArticleUpdated)" style="@FilterStyle(AuditAction.ArticleUpdated)">EDITED</a>
+        <a href="@FilterLink(AuditAction.ArticleDeleted)" style="@FilterStyle(AuditAction.ArticleDeleted)">DELETED</a>
+    </div>
+
+    @* Entry table *@
+    @if (Model.Entries.Count == 0)
+    {
+        <div class="panel p-8 text-center">
+            <p style="color: var(--color-muted); font-family: var(--font-mono); font-size: 0.85rem;">No entries yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="panel" style="overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 15%, transparent);">
+                        <th class="text-left p-3 text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em; font-weight: normal;">ACTION</th>
+                        <th class="text-left p-3 text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em; font-weight: normal;">ARTICLE</th>
+                        <th class="text-left p-3 text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em; font-weight: normal;">BY</th>
+                        <th class="text-left p-3 text-xs" style="font-family: var(--font-mono); color: var(--color-muted); letter-spacing: 0.08em; font-weight: normal;">WHEN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Model.Entries)
+                    {
+                        <tr style="border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 8%, transparent);">
+                            <td class="p-3">
+                                <span class="text-xs px-2 py-0.5 rounded" style="font-family: var(--font-mono); color: @AuditLogModel.ActionColor(entry.Action); border: 1px solid color-mix(in oklab, @AuditLogModel.ActionColor(entry.Action) 30%, transparent);">
+                                    @AuditLogModel.ActionLabel(entry.Action)
+                                </span>
+                            </td>
+                            <td class="p-3">
+                                @if (entry.ArticleId.HasValue && entry.Action != AuditAction.ArticleDeleted)
+                                {
+                                    <a href="/articles/@entry.ArticleId" class="text-sm"
+                                       style="color: var(--color-crystal); text-decoration: none; font-family: var(--font-mono);"
+                                       onmouseover="this.style.color='var(--color-accent)'"
+                                       onmouseout="this.style.color='var(--color-crystal)'">
+                                        @(entry.ArticleTitle ?? $"#{entry.ArticleId}")
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+                                        @(entry.ArticleTitle ?? $"#{entry.ArticleId}")
+                                    </span>
+                                }
+                            </td>
+                            <td class="p-3">
+                                <span class="text-sm" style="color: var(--color-crystal); font-family: var(--font-mono);">
+                                    @(entry.Actor?.MinecraftUsername ?? entry.Actor?.UserName ?? entry.ActorId)
+                                </span>
+                            </td>
+                            <td class="p-3">
+                                <time class="text-xs local-datetime" datetime="@entry.OccurredAt.ToUniversalTime().ToString("O")"
+                                      style="color: var(--color-muted); font-family: var(--font-mono);">
+                                    @entry.OccurredAt.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") UTC
+                                </time>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @* Pagination *@
+        @if (Model.TotalPages > 1)
+        {
+            <div class="flex gap-2 mt-4 justify-center flex-wrap">
+                @for (var p = 1; p <= Model.TotalPages; p++)
+                {
+                    var pNum = p;
+                    var isActive = pNum == Model.PageNumber;
+                    <a href="@Url.Page("/AuditLog", new { page = pNum, action = Model.ActionFilter })"
+                       style="padding: 0.25rem 0.6rem; border-radius: 0.2rem; font-family: var(--font-mono); font-size: 0.75rem; text-decoration: none;
+                              @(isActive ? "color: var(--color-accent); background: color-mix(in oklab, var(--color-accent) 12%, transparent);" : "color: var(--color-muted);")">
+                        @pNum
+                    </a>
+                }
+            </div>
+        }
+    }
+
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('time.local-datetime').forEach(function (el) {
+    var d = new Date(el.getAttribute('datetime'));
+    el.textContent = d.toLocaleString(undefined, {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+    });
+});
+</script>
+}

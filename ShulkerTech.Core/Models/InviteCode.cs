@@ -11,6 +11,11 @@ public class InviteCode
     public DateTime? ExpiresAt { get; set; }
     public bool IsRevoked { get; set; } = false;
 
+    /// <summary>ID of the user who most recently redeemed this code.</summary>
+    public string? RedeemedById { get; set; }
+    public ApplicationUser? RedeemedBy { get; set; }
+    public DateTime? RedeemedAt { get; set; }
+
     public bool IsValid =>
         !IsRevoked &&
         UseCount < MaxUses &&

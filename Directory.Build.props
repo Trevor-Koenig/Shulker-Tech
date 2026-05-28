@@ -3,4 +3,10 @@
   <PropertyGroup>
     <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
   </PropertyGroup>
+
+  <!-- Pin transitive NuGet.* packages to a version that resolves GHSA-g4vj-cjjj-v7hg (fixed in 6.13.2) -->
+  <ItemGroup>
+    <PackageReference Include="NuGet.Packaging" Version="6.14.3" />
+    <PackageReference Include="NuGet.Protocol" Version="6.14.3" />
+  </ItemGroup>
 </Project>

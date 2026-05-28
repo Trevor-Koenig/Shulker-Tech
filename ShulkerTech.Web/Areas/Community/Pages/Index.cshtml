@@ -1,0 +1,173 @@
+@page
+@model ShulkerTech.Web.Areas.Community.Pages.IndexModel
+@{
+    ViewData["Title"] = "Community";
+    ViewData["Description"] = "Shulker Tech community — members, playtime, and more.";
+}
+
+<div style="max-width: 1100px; margin: 0 auto; padding: 2rem 1rem;">
+
+    <!-- Page header -->
+    <div class="mb-8">
+        <div class="rune-divider mb-3">
+            <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">COMMUNITY</span>
+        </div>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.06em; color: var(--color-crystal);">THE PLAYERS</h1>
+        <p style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-muted); margin-top: 0.4rem; letter-spacing: 0.05em;">
+            @Model.TotalMembers MEMBER@(Model.TotalMembers != 1 ? "S" : "") · SHULKER TECH
+        </p>
+    </div>
+
+    @* ── MODULE: Stat Tiles ───────────────────────────────────────────────── *@
+    @if (Model.IsModuleEnabled(IndexModel.Modules.StatTiles))
+    {
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;"
+             data-module="stat-tiles">
+            @* Members *@
+            <div class="panel p-5 text-center">
+                <p style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-crystal); line-height: 1;">@Model.TotalMembers</p>
+                <p style="font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.12em; color: var(--color-muted); margin-top: 0.4rem;">MEMBERS</p>
+            </div>
+            @* Online now *@
+            <div class="panel p-5 text-center">
+                <p style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: @(Model.CurrentlyOnline > 0 ? "var(--color-plasma)" : "var(--color-crystal)"); line-height: 1;">@Model.CurrentlyOnline</p>
+                <p style="font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.12em; color: var(--color-muted); margin-top: 0.4rem;">ONLINE NOW</p>
+            </div>
+            @* Total playtime *@
+            <div class="panel p-5 text-center">
+                <p style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-crystal); line-height: 1;">@IndexModel.FormatPlaytime(Model.TotalPlaytimeAllSeconds).ToUpper()</p>
+                <p style="font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.12em; color: var(--color-muted); margin-top: 0.4rem;">TOTAL PLAYTIME</p>
+            </div>
+            @* Wiki articles *@
+            <div class="panel p-5 text-center">
+                <p style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--color-crystal); line-height: 1;">@Model.TotalArticles</p>
+                <p style="font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.12em; color: var(--color-muted); margin-top: 0.4rem;">WIKI ARTICLES</p>
+            </div>
+        </div>
+    }
+
+    @* ── MODULE: Who's Online ─────────────────────────────────────────────── *@
+    @if (Model.IsModuleEnabled(IndexModel.Modules.WhoIsOnline))
+    {
+        <div class="panel mb-6" data-module="who-is-online">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 12%, transparent); display: flex; align-items: center; gap: 0.75rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: @(Model.OnlinePlayers.Count > 0 ? "var(--color-plasma)" : "var(--color-muted)"); display: inline-block; @(Model.OnlinePlayers.Count > 0 ? "box-shadow: 0 0 6px var(--color-plasma);" : "")"></span>
+                <p style="font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.14em; color: var(--color-accent);">WHO'S ONLINE</p>
+            </div>
+            @if (Model.OnlinePlayers.Count == 0)
+            {
+                <div style="padding: 2rem 1.5rem; text-align: center;">
+                    <p style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-muted);">Server is quiet — be the first to log in.</p>
+                </div>
+            }
+            else
+            {
+                <div style="padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem;">
+                    @foreach (var player in Model.OnlinePlayers)
+                    {
+                        var name = (player.MinecraftUsername ?? player.UserName ?? "Unknown").ToUpperInvariant();
+                        var avatarSrc = IndexModel.AvatarUrl(player.MinecraftUuid);
+                        <a href="/players/@(player.MinecraftUsername ?? player.UserName)" style="text-decoration: none; display: flex; align-items: center; gap: 0.6rem;">
+                            @if (!string.IsNullOrEmpty(avatarSrc))
+                            {
+                                <img src="@avatarSrc" alt="@name" width="32" height="32"
+                                     style="image-rendering: pixelated; border-radius: 3px;" loading="lazy" />
+                            }
+                            <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-plasma);">@name</span>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @* ── MODULE: Playtime Leaderboard ─────────────────────────────────────── *@
+    @if (Model.IsModuleEnabled(IndexModel.Modules.PlaytimeLeaderboard))
+    {
+        <div class="panel mb-6" data-module="playtime-leaderboard">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 12%, transparent);">
+                <p style="font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.14em; color: var(--color-accent);">PLAYTIME LEADERBOARD</p>
+            </div>
+            @if (Model.PlaytimeLeaderboard.Count == 0)
+            {
+                <div style="padding: 2rem 1.5rem; text-align: center;">
+                    <p style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-muted);">No playtime recorded yet.</p>
+                </div>
+            }
+            else
+            {
+                <div style="padding: 0.5rem 0;">
+                    @for (int i = 0; i < Model.PlaytimeLeaderboard.Count; i++)
+                    {
+                        var entry = Model.PlaytimeLeaderboard[i];
+                        var rank  = i + 1;
+                        var name  = (entry.MinecraftUsername ?? "Unknown").ToUpperInvariant();
+                        var avatarSrc = IndexModel.AvatarUrl(entry.MinecraftUuid);
+                        var rankColor = rank == 1 ? "var(--color-plasma)" : rank == 2 ? "var(--color-crystal)" : rank == 3 ? "#f97316" : "var(--color-muted)";
+                        <a href="/players/@(entry.MinecraftUsername ?? entry.UserId)"
+                           style="text-decoration: none; display: flex; align-items: center; gap: 1rem; padding: 0.65rem 1.5rem; border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 6%, transparent);"
+                           onmouseover="this.style.background='color-mix(in oklab, var(--color-accent) 4%, transparent)'"
+                           onmouseout="this.style.background=''">
+                            <span style="font-family: var(--font-display); font-size: 0.85rem; font-weight: 900; color: @rankColor; width: 1.5rem; text-align: right; flex-shrink: 0;">#@rank</span>
+                            @if (!string.IsNullOrEmpty(avatarSrc))
+                            {
+                                <img src="@avatarSrc" alt="@name" width="28" height="28"
+                                     style="image-rendering: pixelated; border-radius: 3px; flex-shrink: 0;" loading="lazy" />
+                            }
+                            <span style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-crystal); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@name</span>
+                            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted); flex-shrink: 0;">@IndexModel.FormatPlaytime(entry.TotalSeconds).ToUpper()</span>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @* ── MODULE: Member Roster ────────────────────────────────────────────── *@
+    @if (Model.IsModuleEnabled(IndexModel.Modules.MemberRoster))
+    {
+        <div class="panel" data-module="member-roster">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 12%, transparent); display: flex; align-items: center; justify-content: space-between;">
+                <p style="font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.14em; color: var(--color-accent);">MEMBERS</p>
+                <p style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--color-muted);">NEWEST FIRST</p>
+            </div>
+            @if (Model.Members.Count == 0)
+            {
+                <div style="padding: 2rem 1.5rem; text-align: center;">
+                    <p style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-muted);">No members yet.</p>
+                </div>
+            }
+            else
+            {
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0; border-top: none;">
+                    @foreach (var member in Model.Members)
+                    {
+                        var name = (member.MinecraftUsername ?? member.UserName ?? "Unknown").ToUpperInvariant();
+                        var avatarSrc = IndexModel.AvatarUrl(member.MinecraftUuid);
+                        <a href="/players/@(member.MinecraftUsername ?? member.UserName)"
+                           style="text-decoration: none; display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1.25rem; border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 6%, transparent); border-right: 1px solid color-mix(in oklab, var(--color-accent) 6%, transparent);"
+                           onmouseover="this.style.background='color-mix(in oklab, var(--color-accent) 4%, transparent)'"
+                           onmouseout="this.style.background=''">
+                            @if (!string.IsNullOrEmpty(avatarSrc))
+                            {
+                                <img src="@avatarSrc" alt="@name" width="32" height="32"
+                                     style="image-rendering: pixelated; border-radius: 3px; flex-shrink: 0;" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div style="width: 32px; height: 32px; border-radius: 3px; background: color-mix(in oklab, var(--color-accent) 10%, transparent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span style="font-family: var(--font-display); font-size: 0.85rem; color: var(--color-accent);">?</span>
+                                </div>
+                            }
+                            <div style="min-width: 0;">
+                                <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-crystal); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@name</p>
+                                <p style="font-family: var(--font-mono); font-size: 0.62rem; color: var(--color-muted); margin-top: 0.15rem;">@member.CreatedAt.ToString("MMM yyyy").ToUpper()</p>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+</div>

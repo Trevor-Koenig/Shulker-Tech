@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -5,22 +6,51 @@ using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
 using ShulkerTech.Web.Markdown;
+using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages.Articles;
 
 public class ViewModel(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
-    WikiMarkdownService wikiMarkdown) : PageModel
+    WikiMarkdownService wikiMarkdown,
+    PermissionService permissions) : PageModel
 {
+    public record TocEntry(int Level, string Id, string Text);
+
     public Article Article { get; set; } = null!;
     public string ContentHtml { get; set; } = "";
+    public List<TocEntry> TocEntries { get; set; } = [];
     public bool CanEdit { get; set; }
+    public bool IsFavorited { get; set; }
+
+    // Ratings
+    public double AvgUsefulness { get; set; }
+    public double AvgCoolness { get; set; }
+    public int RatingCount { get; set; }
+    public byte? UserUsefulness { get; set; }
+    public byte? UserCoolness { get; set; }
+
+    private static readonly Regex HeadingPattern =
+        new(@"<h([23])\s[^>]*id=""([^""]+)""[^>]*>(.*?)</h\1>",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
+
+    private static readonly Regex HtmlTagPattern =
+        new(@"<[^>]+>", RegexOptions.Compiled);
+
+    private static List<TocEntry> ExtractTocEntries(string html) =>
+        HeadingPattern.Matches(html)
+            .Select(m => new TocEntry(
+                int.Parse(m.Groups[1].Value),
+                m.Groups[2].Value,
+                HtmlTagPattern.Replace(m.Groups[3].Value, "").Trim()))
+            .ToList();
 
     public async Task<IActionResult> OnGetAsync(string slug)
     {
         var article = await db.Articles
             .Include(a => a.Author)
+            .Include(a => a.Tags)
             .FirstOrDefaultAsync(a => a.Slug == slug);
 
         if (article == null) return NotFound();
@@ -36,32 +66,129 @@ public class ViewModel(
                 userRoles = await userManager.GetRolesAsync(viewer);
         }
 
-        var editRole = article.EditRole ?? settings.EditAnyRole;
+        var canEditAny = await permissions.HasAsync(viewer, userRoles, SiteResource.WikiEditAny);
 
-        // Unpublished: author, admin, or anyone who satisfies the edit role
         if (!article.IsPublished)
         {
-            var canSeeUnpublished = viewer != null &&
-                (viewer.Id == article.AuthorId ||
-                 viewer.IsAdmin ||
-                 WikiSettings.UserSatisfies(editRole, userRoles, viewer.IsAdmin));
+            bool canSeeUnpublished = false;
+            if (viewer != null)
+            {
+                if (viewer.Id == article.AuthorId || canEditAny)
+                    canSeeUnpublished = true;
+                else if (article.EditRole != null)
+                    canSeeUnpublished = WikiSettings.UserSatisfies(article.EditRole, userRoles, false);
+            }
             if (!canSeeUnpublished)
                 return NotFound();
         }
 
-        // ViewRole check
         var viewRole = article.ViewRole ?? settings.DefaultViewRole;
-        if (!WikiSettings.UserSatisfies(viewRole, userRoles, viewer?.IsAdmin == true))
+        if (!WikiSettings.UserSatisfies(viewRole, userRoles, canEditAny))
             return NotFound();
 
         Article = article;
         ContentHtml = wikiMarkdown.ToHtml(article.Content);
+        TocEntries = ExtractTocEntries(ContentHtml);
 
-        // CanEdit: author, or satisfies article EditRole / global EditAnyRole
-        CanEdit = viewer != null &&
-                  (viewer.Id == article.AuthorId ||
-                   WikiSettings.UserSatisfies(editRole, userRoles, viewer.IsAdmin));
+        // Derive description from sanitized ContentHtml (Markdig already stripped raw HTML via DisableHtml)
+        var plainText = HtmlTagPattern.Replace(ContentHtml, " ");
+        plainText = System.Text.RegularExpressions.Regex.Replace(plainText, @"\s+", " ").Trim();
+        ViewData["Description"] = plainText.Length > 160 ? plainText[..157] + "…" : plainText;
+        ViewData["OgType"] = "article";
+        ViewData["ArticlePublishedTime"] = article.CreatedAt.ToString("O");
+        ViewData["ArticleModifiedTime"] = article.UpdatedAt.ToString("O");
+
+        if (viewer != null)
+        {
+            if (article.EditRole != null)
+                CanEdit = WikiSettings.UserSatisfies(article.EditRole, userRoles, canEditAny);
+            else
+            {
+                var isAuthor = viewer.Id == article.AuthorId;
+                var editOwn = isAuthor && await permissions.HasAsync(viewer, userRoles, SiteResource.WikiEditOwn);
+                var editAny = await permissions.HasAsync(viewer, userRoles, SiteResource.WikiEditAny);
+                CanEdit = editOwn || editAny;
+            }
+        }
+
+        if (viewer != null)
+            IsFavorited = await db.ArticleFavorites
+                .AnyAsync(f => f.UserId == viewer.Id && f.ArticleId == article.Id);
+
+        // Load ratings
+        var ratings = await db.ArticleRatings
+            .Where(r => r.ArticleId == article.Id)
+            .ToListAsync();
+
+        RatingCount = ratings.Count;
+        if (RatingCount > 0)
+        {
+            AvgUsefulness = ratings.Average(r => (double)r.Usefulness);
+            AvgCoolness   = ratings.Average(r => (double)r.Coolness);
+        }
+
+        if (viewer != null)
+        {
+            var mine = ratings.FirstOrDefault(r => r.UserId == viewer.Id);
+            UserUsefulness = mine?.Usefulness;
+            UserCoolness   = mine?.Coolness;
+        }
 
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostFavoriteAsync(string slug)
+    {
+        var viewer = await userManager.GetUserAsync(User);
+        if (viewer == null) return Challenge();
+
+        var article = await db.Articles.FirstOrDefaultAsync(a => a.Slug == slug);
+        if (article == null) return NotFound();
+
+        var existing = await db.ArticleFavorites
+            .FirstOrDefaultAsync(f => f.UserId == viewer.Id && f.ArticleId == article.Id);
+
+        if (existing != null)
+            db.ArticleFavorites.Remove(existing);
+        else
+            db.ArticleFavorites.Add(new ArticleFavorite { UserId = viewer.Id, ArticleId = article.Id });
+
+        await db.SaveChangesAsync();
+        return Redirect($"/articles/{article.Slug}");
+    }
+
+    public async Task<IActionResult> OnPostRateAsync(string slug, byte usefulness, byte coolness)
+    {
+        if (usefulness < 1 || usefulness > 5 || coolness < 1 || coolness > 5)
+            return BadRequest();
+
+        var viewer = await userManager.GetUserAsync(User);
+        if (viewer == null) return Challenge();
+
+        var article = await db.Articles.FirstOrDefaultAsync(a => a.Slug == slug);
+        if (article == null) return NotFound();
+
+        var existing = await db.ArticleRatings
+            .FirstOrDefaultAsync(r => r.UserId == viewer.Id && r.ArticleId == article.Id);
+
+        if (existing != null)
+        {
+            existing.Usefulness = usefulness;
+            existing.Coolness   = coolness;
+            existing.UpdatedAt  = DateTime.UtcNow;
+        }
+        else
+        {
+            db.ArticleRatings.Add(new ArticleRating
+            {
+                UserId    = viewer.Id,
+                ArticleId = article.Id,
+                Usefulness = usefulness,
+                Coolness   = coolness,
+            });
+        }
+
+        await db.SaveChangesAsync();
+        return Redirect($"/articles/{article.Slug}#rating-widget");
     }
 }

@@ -147,24 +147,28 @@ public class WikiArticleCreateTests(ShulkerTechWebApplicationFactory factory)
     }
 
     [Fact]
-    public async Task Post_WhitespaceCategory_StoredAsNull()
+    public async Task Post_WithTagIds_SavesTagsToArticle()
     {
         using var scope = factory.Services.CreateScope();
         var user = await TestDbHelper.CreateUserAsync(scope.ServiceProvider, role: "Member");
-        var title = $"Category Article {Guid.NewGuid():N}";
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var title = $"Tagged Article {Guid.NewGuid():N}";
 
+        // Tag IDs 1 (Getting Started) and 3 (Survival) are seeded
         var form = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["Input.Title"] = title,
             ["Input.Content"] = "Some content here.",
-            ["Input.Category"] = "   ",
+            ["Input.TagIds"] = "1,3",
             ["Input.IsPublished"] = "true",
         });
         await CreateClient(user.Id).PostAsync("/Wiki/articles/create", form);
 
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var article = await db.Articles.FirstOrDefaultAsync(a => a.Title == title);
+        var article = await db.Articles
+            .Include(a => a.Tags)
+            .FirstOrDefaultAsync(a => a.Title == title);
         article.Should().NotBeNull();
-        article!.Category.Should().BeNull();
+        article!.Tags.Should().HaveCount(2);
+        article.Tags.Select(t => t.Name).Should().BeEquivalentTo(new[] { "Getting Started", "Survival" });
     }
 }

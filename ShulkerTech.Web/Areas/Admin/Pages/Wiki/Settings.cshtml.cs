@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -7,9 +6,7 @@ using ShulkerTech.Core.Models;
 
 namespace ShulkerTech.Web.Areas.Admin.Pages.Wiki;
 
-public class SettingsModel(
-    ApplicationDbContext db,
-    RoleManager<IdentityRole> roleManager) : PageModel
+public class SettingsModel(ApplicationDbContext db) : PageModel
 {
     [BindProperty]
     public InputModel Input { get; set; } = new();
@@ -17,30 +14,22 @@ public class SettingsModel(
     [TempData]
     public string? StatusMessage { get; set; }
 
-    public IList<string> AllRoles { get; set; } = [];
-
     public class InputModel
     {
         public string? DefaultViewRole { get; set; }
-        public string CreateRole { get; set; } = "Member";
-        public string EditAnyRole { get; set; } = "Moderator";
     }
 
     public async Task OnGetAsync()
     {
         var settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
-        AllRoles = roleManager.Roles.Select(r => r.Name!).OrderBy(r => r).ToList();
         Input = new InputModel
         {
             DefaultViewRole = settings.DefaultViewRole,
-            CreateRole = settings.CreateRole,
-            EditAnyRole = settings.EditAnyRole,
         };
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        AllRoles = roleManager.Roles.Select(r => r.Name!).OrderBy(r => r).ToList();
         if (!ModelState.IsValid) return Page();
 
         var settings = await db.WikiSettings.FirstOrDefaultAsync();
@@ -51,8 +40,6 @@ public class SettingsModel(
         }
 
         settings.DefaultViewRole = string.IsNullOrEmpty(Input.DefaultViewRole) ? null : Input.DefaultViewRole;
-        settings.CreateRole = Input.CreateRole;
-        settings.EditAnyRole = Input.EditAnyRole;
 
         await db.SaveChangesAsync();
         StatusMessage = "Wiki settings saved.";

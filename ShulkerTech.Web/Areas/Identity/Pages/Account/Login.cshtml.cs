@@ -57,7 +57,7 @@ public class LoginModel(
         if (!ModelState.IsValid)
             return Page();
 
-        var result = await signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        var result = await signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
         if (result.Succeeded)
         {
             logger.LogInformation("User logged in.");
@@ -68,6 +68,9 @@ public class LoginModel(
         if (result.IsLockedOut)
         {
             logger.LogWarning("User account locked out.");
+            var lockedUser = await userManager.FindByEmailAsync(Input.Email);
+            if (lockedUser?.MustChangePassword == true)
+                return RedirectToPage("./Lockout", new { mustReset = true });
             return RedirectToPage("./Lockout");
         }
         if (result.IsNotAllowed)

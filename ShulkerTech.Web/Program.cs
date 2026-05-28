@@ -1,5 +1,7 @@
+using System.Threading.RateLimiting;
 using Markdig;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using ShulkerTech.Web.Markdown;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -37,13 +39,60 @@ builder.Services.AddSingleton<ServerStatusCache>();
 builder.Services.AddSingleton<ServerStatsCache>();
 builder.Services.AddHostedService<ServerStatusRefresher>();
 builder.Services.AddHostedService<DatabaseBackupService>();
+builder.Services.AddScoped<IDatabaseExporter, PgDumpExporter>();
+builder.Services.AddScoped<PermissionService>();
+builder.Services.AddScoped<AuditLogService>();
+builder.Services.Configure<HostOptions>(opts =>
+    opts.ShutdownTimeout = TimeSpan.FromMinutes(5));
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<WikiDocumentStore>();
 
-// Markdown pipeline — advanced extensions enabled, raw HTML stripped for safety
+builder.Services.AddRateLimiter(opts =>
+{
+    opts.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    static RateLimitPartition<string> Fixed(string key, int permits, int windowSeconds) =>
+        RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = permits,
+            Window = TimeSpan.FromSeconds(windowSeconds),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0,
+        });
+
+    // Named policy for the upload API controller (applied via [EnableRateLimiting])
+    opts.AddPolicy("upload", ctx =>
+        Fixed(ctx.Connection.RemoteIpAddress?.ToString() ?? "anon", 20, 60));
+
+    // Global limiter covers auth pages (Razor Pages can't use [EnableRateLimiting] directly)
+    opts.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
+    {
+        var ip   = ctx.Connection.RemoteIpAddress?.ToString() ?? "anon";
+        var path = ctx.Request.Path.Value ?? "";
+
+        if (path.StartsWith("/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+            return Fixed($"login:{ip}", 10, 60);
+
+        if (path.StartsWith("/Identity/Account/Register", StringComparison.OrdinalIgnoreCase))
+            return Fixed($"register:{ip}", 5, 300);
+
+        if (path.StartsWith("/Identity/Account/ForgotPassword", StringComparison.OrdinalIgnoreCase))
+            return Fixed($"pwreset:{ip}", 5, 300);
+
+        return RateLimitPartition.GetNoLimiter("none");
+    });
+});
+
+// Markdown pipeline — advanced extensions enabled, raw HTML stripped for safety.
+// UseAutoIdentifiers(GitHub) is called after UseAdvancedExtensions so the GitHub-style
+// ID generator (lowercase + hyphenated) overrides the default, making heading anchors
+// like #my-heading predictable for both the TOC and user-written links.
 builder.Services.AddSingleton(new MarkdownPipelineBuilder()
     .UseAdvancedExtensions()
+    .UseAutoIdentifiers(Markdig.Extensions.AutoIdentifiers.AutoIdentifierOptions.GitHub)
+    .Use<ShulkerTech.Web.Markdown.BluemapExtension>()
     .DisableHtml()
     .Build());
 builder.Services.AddSingleton<WikiMarkdownService>();
@@ -84,6 +133,24 @@ if (!app.Environment.IsEnvironment("Testing"))
         if (!await roleManager.RoleExistsAsync(role))
             await roleManager.CreateAsync(new IdentityRole(role));
     }
+
+    // Ensure Admin role has every non-public permission. Runs on each startup so that
+    // newly-added resources are granted automatically without wiping existing grants.
+    var existingAdminResources = await db.SitePermissions
+        .Where(p => p.RoleName == "Admin")
+        .Select(p => p.Resource)
+        .ToHashSetAsync();
+
+    var missingAdminPerms = SiteResource.All
+        .Where(r => !r.IsPublicByDefault && !existingAdminResources.Contains(r.Key))
+        .Select(r => new SitePermission { RoleName = "Admin", Resource = r.Key })
+        .ToList();
+
+    if (missingAdminPerms.Count > 0)
+    {
+        db.SitePermissions.AddRange(missingAdminPerms);
+        await db.SaveChangesAsync();
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -95,6 +162,8 @@ else
     app.UseExceptionHandler("/Error");
     // HSTS and HTTPS redirection are handled by the reverse proxy, not the app.
 }
+app.UseMiddleware<SecurityHeadersMiddleware>();
+app.UseRateLimiter();
 app.UseCookiePolicy();
 app.UseMiddleware<FirstRunMiddleware>();
 app.UseStatusCodePagesWithReExecute("/404");
@@ -102,13 +171,16 @@ app.UseMiddleware<SubdomainRoutingMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<AdminGuardMiddleware>();
 app.UseMiddleware<Require2FAMiddleware>();
+app.UseMiddleware<PageGuardMiddleware>();
 app.UseRouting();
 app.UseAuthorization();
 
+app.UseStaticFiles(); // serves runtime-uploaded files (e.g. wwwroot/uploads/wiki/) not in the build manifest
 app.MapStaticAssets();
 app.MapRazorPages().WithStaticAssets();
 app.MapControllers();
 app.MapHub<ServerStatusHub>("/hubs/server-status");
+app.MapHub<WikiEditHub>("/hubs/wiki-edit");
 
 app.Run();
 

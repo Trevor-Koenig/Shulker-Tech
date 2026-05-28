@@ -1,0 +1,24 @@
+@page "/robots.txt"
+@{
+    Layout = null;
+    Response.ContentType = "text/plain";
+
+    var _scheme = HttpContext.Request.Scheme;
+    var _host   = HttpContext.Request.Host.Host;
+    var _firstSegment = _host.Split('.')[0];
+    string[] _knownSubdomains = ["wiki", "admin"];
+    var _rootHost = _knownSubdomains.Contains(_firstSegment, StringComparer.OrdinalIgnoreCase)
+        ? _host[(_firstSegment.Length + 1)..]
+        : _host;
+    var _port = HttpContext.Request.Host.Port;
+    var _portSuffix = _port.HasValue ? $":{_port}" : string.Empty;
+    var _siteBase = $"{_scheme}://{_rootHost}{_portSuffix}";
+}
+User-agent: *
+Disallow: /Admin/
+Disallow: /setup
+Disallow: /Identity/
+Disallow: /api/
+Allow: /
+
+Sitemap: @(_siteBase)/sitemap.xml

@@ -5,19 +5,6 @@
 
 @if (SignInManager.IsSignedIn(User))
 {
-    var _currentUser = await UserManager.GetUserAsync(User);
-    if (_currentUser?.IsAdmin == true)
-    {
-        var _host = Context.Request.Host.Host;
-        var _firstSegment = _host.Split('.')[0];
-        string[] _knownSubdomains = ["wiki", "admin"];
-        var _rootHost = _knownSubdomains.Contains(_firstSegment, StringComparer.OrdinalIgnoreCase)
-            ? _host[(_firstSegment.Length + 1)..]
-            : _host;
-        var _port = Context.Request.Host.Port;
-        var _adminBase = $"{Context.Request.Scheme}://admin.{_rootHost}{(_port.HasValue ? $":{_port}" : "")}";
-    }
-
     <!-- Desktop: separator then settings dropdown -->
     <li aria-hidden="true" class="nav-separator hidden sm:flex"></li>
     <li class="hidden sm:flex" style="position: relative;">

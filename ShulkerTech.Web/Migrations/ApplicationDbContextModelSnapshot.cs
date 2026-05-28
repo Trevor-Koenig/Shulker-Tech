@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using NpgsqlTypes;
 using ShulkerTech.Core.Data;
 
 #nullable disable
@@ -21,6 +22,21 @@ namespace ShulkerTech.Web.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ArticleTags", b =>
+                {
+                    b.Property<int>("ArticlesId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TagsId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ArticlesId", "TagsId");
+
+                    b.HasIndex("TagsId");
+
+                    b.ToTable("ArticleTags");
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -176,9 +192,6 @@ namespace ShulkerTech.Web.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsAdmin")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -190,6 +203,9 @@ namespace ShulkerTech.Web.Migrations
 
                     b.Property<string>("MinecraftUuid")
                         .HasColumnType("text");
+
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -242,9 +258,6 @@ namespace ShulkerTech.Web.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Category")
-                        .HasColumnType("text");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
@@ -260,6 +273,11 @@ namespace ShulkerTech.Web.Migrations
 
                     b.Property<string>("MapUrl")
                         .HasColumnType("text");
+
+                    b.Property<NpgsqlTsVector>("SearchVector")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("tsvector")
+                        .HasComputedColumnSql("to_tsvector('english', coalesce(\"Title\", '') || ' ' || coalesce(\"Content\", ''))", true);
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -279,10 +297,174 @@ namespace ShulkerTech.Web.Migrations
 
                     b.HasIndex("AuthorId");
 
+                    b.HasIndex("SearchVector");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
+
                     b.HasIndex("Slug")
                         .IsUnique();
 
                     b.ToTable("Articles");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.ArticleFavorite", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "ArticleId");
+
+                    b.HasIndex("ArticleId");
+
+                    b.ToTable("ArticleFavorites");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.ArticleRating", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("integer");
+
+                    b.Property<byte>("Coolness")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte>("Usefulness")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ArticleId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ArticleRatings");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.ArticleRevision", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("EditedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EditorId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MapUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EditorId");
+
+                    b.HasIndex("ArticleId", "EditedAt");
+
+                    b.ToTable("ArticleRevisions");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.ArticleTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ArticleTemplates");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.AuditLogEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ActorId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ArticleId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ArticleTitle")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorId");
+
+                    b.HasIndex("OccurredAt");
+
+                    b.ToTable("AuditLog");
                 });
 
             modelBuilder.Entity("ShulkerTech.Core.Models.InviteCode", b =>
@@ -312,10 +494,18 @@ namespace ShulkerTech.Web.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("RedeemedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RedeemedById")
+                        .HasColumnType("text");
+
                     b.Property<int>("UseCount")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RedeemedById");
 
                     b.ToTable("InviteCodes");
                 });
@@ -427,6 +617,9 @@ namespace ShulkerTech.Web.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("GuestRole")
+                        .HasColumnType("text");
+
                     b.Property<string>("RequireTwoFactorRoles")
                         .IsRequired()
                         .HasColumnType("text");
@@ -471,6 +664,68 @@ namespace ShulkerTech.Web.Migrations
                     b.HasIndex("ServerId", "Timestamp");
 
                     b.ToTable("ServerPingLogs");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.SitePermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Resource")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleName", "Resource")
+                        .IsUnique();
+
+                    b.ToTable("SitePermissions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Resource = "wiki.create",
+                            RoleName = "Member"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Resource = "wiki.edit_own",
+                            RoleName = "Member"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Resource = "wiki.create",
+                            RoleName = "Moderator"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Resource = "wiki.edit_own",
+                            RoleName = "Moderator"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Resource = "wiki.edit_any",
+                            RoleName = "Moderator"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Resource = "wiki.delete",
+                            RoleName = "Moderator"
+                        });
                 });
 
             modelBuilder.Entity("ShulkerTech.Core.Models.SiteSettings", b =>
@@ -527,6 +782,139 @@ namespace ShulkerTech.Web.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ShulkerTech.Core.Models.Tag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Tags");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Color = "var(--color-plasma)",
+                            Icon = "🗺️",
+                            Name = "Getting Started",
+                            Slug = "getting-started"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Color = "var(--color-crystal)",
+                            Icon = "📋",
+                            Name = "Server Info",
+                            Slug = "server-info"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Color = "var(--color-rune)",
+                            Icon = "⛏️",
+                            Name = "Survival",
+                            Slug = "survival"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Color = "var(--color-redstone)",
+                            Icon = "⚡",
+                            Name = "Redstone",
+                            Slug = "redstone"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Color = "#f97316",
+                            Icon = "🥕",
+                            Name = "Farms",
+                            Slug = "farms"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Color = "#a78bfa",
+                            Icon = "🏗️",
+                            Name = "Building",
+                            Slug = "building"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Color = "#ec4899",
+                            Icon = "🎉",
+                            Name = "Events",
+                            Slug = "events"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Color = "#22d3ee",
+                            Icon = "👥",
+                            Name = "Community",
+                            Slug = "community"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Color = "#facc15",
+                            Icon = "📜",
+                            Name = "Rules",
+                            Slug = "rules"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Color = "#84cc16",
+                            Icon = "📖",
+                            Name = "Lore",
+                            Slug = "lore"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Color = "#fbbf24",
+                            Icon = "💰",
+                            Name = "Economy",
+                            Slug = "economy"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Color = "#ef4444",
+                            Icon = "⚔️",
+                            Name = "PvP",
+                            Slug = "pvp"
+                        });
+                });
+
             modelBuilder.Entity("ShulkerTech.Core.Models.WikiSettings", b =>
                 {
                     b.Property<int>("Id")
@@ -535,15 +923,7 @@ namespace ShulkerTech.Web.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CreateRole")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("DefaultViewRole")
-                        .HasColumnType("text");
-
-                    b.Property<string>("EditAnyRole")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -553,10 +933,23 @@ namespace ShulkerTech.Web.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 1,
-                            CreateRole = "Member",
-                            EditAnyRole = "Moderator"
+                            Id = 1
                         });
+                });
+
+            modelBuilder.Entity("ArticleTags", b =>
+                {
+                    b.HasOne("ShulkerTech.Core.Models.Article", null)
+                        .WithMany()
+                        .HasForeignKey("ArticlesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShulkerTech.Core.Models.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("TagsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -621,6 +1014,84 @@ namespace ShulkerTech.Web.Migrations
                     b.Navigation("Author");
                 });
 
+            modelBuilder.Entity("ShulkerTech.Core.Models.ArticleFavorite", b =>
+                {
+                    b.HasOne("ShulkerTech.Core.Models.Article", "Article")
+                        .WithMany("Favorites")
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShulkerTech.Core.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.ArticleRating", b =>
+                {
+                    b.HasOne("ShulkerTech.Core.Models.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShulkerTech.Core.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.ArticleRevision", b =>
+                {
+                    b.HasOne("ShulkerTech.Core.Models.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShulkerTech.Core.Models.ApplicationUser", "Editor")
+                        .WithMany()
+                        .HasForeignKey("EditorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("Editor");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.AuditLogEntry", b =>
+                {
+                    b.HasOne("ShulkerTech.Core.Models.ApplicationUser", "Actor")
+                        .WithMany()
+                        .HasForeignKey("ActorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Actor");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.InviteCode", b =>
+                {
+                    b.HasOne("ShulkerTech.Core.Models.ApplicationUser", "RedeemedBy")
+                        .WithMany()
+                        .HasForeignKey("RedeemedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("RedeemedBy");
+                });
+
             modelBuilder.Entity("ShulkerTech.Core.Models.PlayerSession", b =>
                 {
                     b.HasOne("ShulkerTech.Core.Models.MinecraftServer", "Server")
@@ -649,6 +1120,11 @@ namespace ShulkerTech.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Server");
+                });
+
+            modelBuilder.Entity("ShulkerTech.Core.Models.Article", b =>
+                {
+                    b.Navigation("Favorites");
                 });
 
             modelBuilder.Entity("ShulkerTech.Core.Models.MinecraftServer", b =>

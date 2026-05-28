@@ -1,3 +1,5 @@
+using NpgsqlTypes;
+
 namespace ShulkerTech.Core.Models;
 
 public class Article
@@ -8,11 +10,9 @@ public class Article
     /// <summary>Markdown source content. Rendered to HTML at display time via Markdig.</summary>
     public string Content { get; set; } = "";
     public bool IsPublished { get; set; }
-    /// <summary>Optional category for grouping on the wiki index.</summary>
-    public string? Category { get; set; }
     /// <summary>Minimum role to view. Null = inherit WikiSettings.DefaultViewRole.</summary>
     public string? ViewRole { get; set; }
-    /// <summary>Minimum role to edit (non-author). Null = inherit WikiSettings.EditAnyRole.</summary>
+    /// <summary>Minimum role to edit (non-author). Null = determined by WikiEditOwn/WikiEditAny RBAC grants.</summary>
     public string? EditRole { get; set; }
     public required string AuthorId { get; set; }
     public ApplicationUser Author { get; set; } = null!;
@@ -20,4 +20,10 @@ public class Article
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     /// <summary>Optional BlueMap deep-link URL to show a live map panel for this article's location.</summary>
     public string? MapUrl { get; set; }
+
+    public ICollection<Tag> Tags { get; set; } = [];
+    public ICollection<ArticleFavorite> Favorites { get; set; } = [];
+
+    /// <summary>PostgreSQL full-text search vector generated from Title + Content. Do not set manually.</summary>
+    public NpgsqlTsVector? SearchVector { get; set; }
 }

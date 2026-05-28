@@ -8,12 +8,6 @@ public class WikiSettings
     /// <summary>Default minimum role to view any article whose ViewRole is null. Null = public.</summary>
     public string? DefaultViewRole { get; set; } = null;
 
-    /// <summary>Minimum role required to create new articles.</summary>
-    public string CreateRole { get; set; } = "Member";
-
-    /// <summary>Minimum role required to edit articles the user did not write.</summary>
-    public string EditAnyRole { get; set; } = "Moderator";
-
     // ── Role hierarchy ────────────────────────────────────────────────────────
 
     /// <summary>Ordered role names from lowest to highest privilege.</summary>

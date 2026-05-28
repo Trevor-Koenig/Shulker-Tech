@@ -33,6 +33,28 @@
                   style="color: var(--color-redstone); font-family: var(--font-mono);"></span>
         </div>
 
+        <!-- Template picker -->
+        @if (Model.Templates.Count > 0)
+        {
+            <div class="flex flex-col gap-2">
+                <div style="display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;">
+                    <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">TEMPLATE</label>
+                    <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted); opacity: 0.6;">Click to load · ★ = default</span>
+                </div>
+                <div class="flex flex-wrap gap-2" id="template-btns">
+                    @foreach (var tmpl in Model.Templates)
+                    {
+                        <button type="button"
+                                class="btn-nav template-load-btn"
+                                data-template-id="@tmpl.Id"
+                                style="font-size: 0.78rem; @(tmpl.IsDefault ? "color: var(--color-plasma); border-color: var(--color-plasma);" : "")">
+                            @(tmpl.IsDefault ? "★ " : "")@tmpl.Name
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+
         <!-- Content -->
         <div class="flex flex-col gap-2">
             <div class="flex items-center justify-between">
@@ -50,28 +72,22 @@
                   style="color: var(--color-redstone); font-family: var(--font-mono);"></span>
         </div>
 
-        <!-- Category -->
+        <!-- Tags -->
         <div class="flex flex-col gap-2">
-            <label asp-for="Input.Category" class="text-xs"
-                   style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">CATEGORY <span style="opacity: 0.5; font-size: 0.65rem;">(OPTIONAL)</span></label>
-            <input asp-for="Input.Category" autocomplete="off" list="category-suggestions"
-                   class="panel px-4 py-2.5 w-full bg-transparent outline-none"
-                   style="font-family: var(--font-mono); color: var(--color-crystal); font-size: 0.875rem; letter-spacing: 0.04em;"
-                   placeholder="e.g. Survival, Redstone, Server Info…" />
-            <datalist id="category-suggestions">
-                <option value="Getting Started" />
-                <option value="Server Info" />
-                <option value="Survival" />
-                <option value="Redstone" />
-                <option value="Farms" />
-                <option value="Building" />
-                <option value="Events" />
-                <option value="Community" />
-                <option value="Rules" />
-                <option value="Lore" />
-                <option value="Economy" />
-                <option value="PvP" />
-            </datalist>
+            <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">
+                TAGS <span style="opacity: 0.5; font-size: 0.65rem;">(OPTIONAL — CLICK TO SELECT)</span>
+            </label>
+            <input type="hidden" asp-for="Input.TagIds" id="tag-ids-input" />
+            <div class="flex flex-wrap gap-2">
+                @foreach (var tag in Model.AllTags)
+                {
+                    <button type="button" class="tag-pill"
+                            data-tag-id="@tag.Id"
+                            style="--tag-color: @tag.Color;">
+                        @if (!string.IsNullOrEmpty(tag.Icon)) { @tag.Icon } @tag.Name
+                    </button>
+                }
+            </div>
         </div>
 
         <!-- BlueMap URL -->
@@ -114,7 +130,7 @@
                 <select asp-for="Input.EditRole"
                         class="panel px-3 py-2 bg-transparent outline-none text-sm"
                         style="color: var(--color-crystal); font-family: var(--font-mono);">
-                    <option value="">Default (@Model.Settings.EditAnyRole)</option>
+                    <option value="">Default (Permissions-based)</option>
                     @foreach (var role in ShulkerTech.Core.Models.WikiSettings.RoleHierarchy)
                     {
                         <option value="@role" selected="@(Model.Input.EditRole == role)">@role only</option>
@@ -148,6 +164,25 @@
 @section Scripts {
     <script src="~/js/easymde.min.js"></script>
     <script>
+        // Tag picker
+        (function () {
+            var input = document.getElementById('tag-ids-input');
+            var selected = new Set();
+            document.querySelectorAll('[data-tag-id]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var id = btn.dataset.tagId;
+                    if (selected.has(id)) {
+                        selected.delete(id);
+                        btn.classList.remove('tag-pill--active');
+                    } else {
+                        selected.add(id);
+                        btn.classList.add('tag-pill--active');
+                    }
+                    input.value = Array.from(selected).join(',');
+                });
+            });
+        })();
+
         document.getElementById('title-input').addEventListener('input', function () {
             var slug = this.value.toLowerCase()
                 .replace(/[^a-z0-9\s]/g, '')
@@ -184,6 +219,33 @@
                 .catch(function () { onError('Network error during upload'); });
             },
             imagePathAbsolute: true,
+            status: ['upload-image', 'lines', 'words', 'cursor'],
         });
+
+        // Template data from server
+        var TEMPLATES = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.Templates.Select(t => new { t.Id, t.Name, t.Content, t.IsDefault }),
+            new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+        async function loadTemplate(tmpl) {
+            var current = easyMDE.value().trim();
+            if (current && !await siteConfirm('Replace current content with the "' + tmpl.name + '" template?')) return;
+            easyMDE.value(tmpl.content);
+            easyMDE.codemirror.focus();
+        }
+
+        // Wire up template buttons
+        document.querySelectorAll('.template-load-btn').forEach(function (btn) {
+            var id = parseInt(btn.dataset.templateId);
+            var tmpl = TEMPLATES.find(function (t) { return t.id === id; });
+            if (!tmpl) return;
+            btn.addEventListener('click', function () { loadTemplate(tmpl); });
+        });
+
+        // Auto-load default template if editor is empty
+        var defaultTmpl = TEMPLATES.find(function (t) { return t.isDefault; });
+        if (defaultTmpl && !easyMDE.value().trim()) {
+            easyMDE.value(defaultTmpl.content);
+        }
     </script>
 }

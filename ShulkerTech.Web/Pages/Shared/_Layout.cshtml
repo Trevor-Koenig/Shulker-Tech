@@ -3,12 +3,13 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery AntiforgeryService
+@inject ShulkerTech.Web.Services.PermissionService _layoutPermissions
 @{
     // Build subdomain URLs from the current request so this works in any environment
     // (dev: shulker.dev:8080, prod: shulkertech.com) without hardcoding domains.
     var _host = Context.Request.Host.Host;
     var _firstSegment = _host.Split('.')[0];
-    string[] _knownSubdomains = ["wiki", "admin"];
+    string[] _knownSubdomains = ["wiki", "admin", "community"];
     var _rootHost = _knownSubdomains.Contains(_firstSegment, StringComparer.OrdinalIgnoreCase)
         ? _host[(_firstSegment.Length + 1)..]
         : _host;
@@ -18,7 +19,12 @@
     var _base = $"{_scheme}://{_rootHost}{_portSuffix}";
     var _wikiBase = $"{_scheme}://wiki.{_rootHost}{_portSuffix}";
     var _adminBase = $"{_scheme}://admin.{_rootHost}{_portSuffix}";
+    var _communityBase = $"{_scheme}://community.{_rootHost}{_portSuffix}";
+    ViewData["CommunityBase"] = _communityBase;
+    ViewData["WikiBase"] = _wikiBase;
     var _layoutCurrentUser = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
+    var _layoutUserRoles = _layoutCurrentUser != null ? await UserManager.GetRolesAsync(_layoutCurrentUser) : (IList<string>)[];
+    var _canSeeAdmin = await _layoutPermissions.CanAccessAsync(_layoutCurrentUser, _layoutUserRoles, ShulkerTech.Core.Models.SiteResource.AdminAccess, isPublicByDefault: false);
 }
 <!DOCTYPE html>
 <html lang="en" class="h-full">
@@ -26,6 +32,48 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] — Shulker Tech</title>
+
+    @{
+        var _metaDesc = ViewData["Description"] as string
+            ?? "A technical Minecraft community — engineered by its players, built to last.";
+        var _canonicalUrl = ViewData["CanonicalUrl"] as string
+            ?? $"{_scheme}://{Context.Request.Host}{Context.Request.Path}";
+        var _ogTitle = $"{ViewData["Title"]} — Shulker Tech";
+        var _ogType = ViewData["OgType"] as string ?? "website";
+    }
+
+    <!-- SEO -->
+    <meta name="description" content="@_metaDesc" />
+    <link rel="canonical" href="@_canonicalUrl" />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Shulker Tech" />
+    <meta property="og:type" content="@_ogType" />
+    <meta property="og:title" content="@_ogTitle" />
+    <meta property="og:description" content="@_metaDesc" />
+    <meta property="og:url" content="@_canonicalUrl" />
+    @if (ViewData["OgImage"] is string _ogImage)
+    {
+        <meta property="og:image" content="@_ogImage" />
+        <meta property="og:image:alt" content="@_ogTitle" />
+    }
+    @if (ViewData["ArticlePublishedTime"] is string _pubTime)
+    {
+        <meta property="article:published_time" content="@_pubTime" />
+    }
+    @if (ViewData["ArticleModifiedTime"] is string _modTime)
+    {
+        <meta property="article:modified_time" content="@_modTime" />
+    }
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="@(ViewData["OgImage"] != null ? "summary_large_image" : "summary")" />
+    <meta name="twitter:title" content="@_ogTitle" />
+    <meta name="twitter:description" content="@_metaDesc" />
+    @if (ViewData["OgImage"] is string _twitterImage)
+    {
+        <meta name="twitter:image" content="@_twitterImage" />
+    }
 
     <!-- Restore theme before paint to avoid flash of wrong accent color -->
     <!-- Reads cookie first so theme persists across subdomains (cookies are domain-scoped, localStorage is origin-scoped) -->
@@ -69,7 +117,8 @@
             <ul class="hidden sm:flex items-center gap-6">
                 <li><a class="nav-link" href="@_base/">Home</a></li>
                 <li><a class="nav-link" href="@_wikiBase/">Wiki</a></li>
-                @if (_layoutCurrentUser?.IsAdmin == true)
+                <li><a class="nav-link" href="@_communityBase/">Community</a></li>
+                @if (_canSeeAdmin)
                 {
                     <li><a class="nav-link" href="@_adminBase/">ADMIN</a></li>
                 }
@@ -81,7 +130,8 @@
         <div id="nav-menu" class="hidden sm:hidden px-4 pb-4 flex flex-col gap-3">
             <a class="nav-link" href="@_base/">Home</a>
             <a class="nav-link" href="@_wikiBase/">Wiki</a>
-            @if (_layoutCurrentUser?.IsAdmin == true)
+            <a class="nav-link" href="@_communityBase/">Community</a>
+            @if (_canSeeAdmin)
             {
                 <a class="nav-link" href="@_adminBase/">ADMIN</a>
             }
@@ -105,6 +155,87 @@
     <!-- Vendored JS — no CDN, no npm -->
     <script src="~/js/htmx.min.js"></script>
     <script src="~/js/signalr.min.js"></script>
+
+    <!-- ── Site confirm modal ── -->
+    <div id="site-confirm-overlay" aria-modal="true" role="dialog" aria-labelledby="site-confirm-msg"
+         style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.65);backdrop-filter:blur(3px);padding:1rem;">
+        <div style="max-width:420px;width:100%;padding:2rem;border:1px solid color-mix(in oklab,var(--color-accent) 30%,transparent);background:var(--color-deep-space);box-shadow:0 0 48px color-mix(in oklab,var(--color-accent) 12%,transparent);">
+            <p style="font-family:var(--font-display);font-size:0.6rem;letter-spacing:0.18em;color:var(--color-rune);margin:0 0 0.85rem;">&#9670; CONFIRM ACTION</p>
+            <p id="site-confirm-msg" style="font-family:var(--font-mono);font-size:0.875rem;color:var(--color-crystal);line-height:1.65;margin:0 0 1.75rem;white-space:pre-wrap;"></p>
+            <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                <button id="site-confirm-cancel" type="button" class="btn-nav" style="font-size:0.8rem;">CANCEL</button>
+                <button id="site-confirm-ok" type="button"
+                        style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:0.08em;padding:0.5rem 1.35rem;border:1px solid var(--color-redstone);color:var(--color-redstone);background:color-mix(in oklab,var(--color-redstone) 10%,transparent);cursor:pointer;transition:background 150ms;">
+                    CONFIRM
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var overlay  = document.getElementById('site-confirm-overlay');
+            var msgEl    = document.getElementById('site-confirm-msg');
+            var cancelBtn = document.getElementById('site-confirm-cancel');
+            var okBtn    = document.getElementById('site-confirm-ok');
+            var _resolve = null;
+
+            okBtn.addEventListener('mouseover', function () {
+                okBtn.style.background = 'color-mix(in oklab,var(--color-redstone) 22%,transparent)';
+            });
+            okBtn.addEventListener('mouseout', function () {
+                okBtn.style.background = 'color-mix(in oklab,var(--color-redstone) 10%,transparent)';
+            });
+
+            function open(message) {
+                return new Promise(function (resolve) {
+                    _resolve = resolve;
+                    msgEl.textContent = message;
+                    overlay.style.display = 'flex';
+                    okBtn.focus();
+                });
+            }
+
+            function close(result) {
+                overlay.style.display = 'none';
+                if (_resolve) { _resolve(result); _resolve = null; }
+            }
+
+            cancelBtn.addEventListener('click', function () { close(false); });
+            okBtn.addEventListener('click',     function () { close(true); });
+
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) close(false);
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (overlay.style.display !== 'flex') return;
+                if (e.key === 'Escape') { e.preventDefault(); close(false); }
+                if (e.key === 'Enter')  { e.preventDefault(); close(true); }
+                if (e.key === 'Tab') {
+                    // Trap focus between cancel and ok buttons
+                    e.preventDefault();
+                    document.activeElement === okBtn ? cancelBtn.focus() : okBtn.focus();
+                }
+            });
+
+            window.siteConfirm = open;
+
+            // Intercept any form submit that carries data-confirm
+            document.addEventListener('submit', function (e) {
+                var form = e.target;
+                var message = form.dataset.confirm;
+                if (!message) return;
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                open(message).then(function (ok) {
+                    if (!ok) return;
+                    delete form.dataset.confirm;
+                    form.submit();
+                });
+            }, true);
+        })();
+    </script>
 
     <script>
         // Settings dropdown

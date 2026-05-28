@@ -111,8 +111,10 @@ public class RegisterModel(
             return Page();
         }
 
-        // Consume the invite code
+        // Consume the invite code and record who redeemed it
         invite.UseCount++;
+        invite.RedeemedById = user.Id;
+        invite.RedeemedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
 
         // Send email confirmation

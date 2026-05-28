@@ -4,43 +4,25 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
+using ShulkerTech.Web.Services;
 
 namespace ShulkerTech.Web.Areas.Wiki.Pages;
 
 public class IndexModel(
     ApplicationDbContext db,
-    UserManager<ApplicationUser> userManager) : PageModel
+    UserManager<ApplicationUser> userManager,
+    PermissionService permissions) : PageModel
 {
     public List<Article> Articles { get; set; } = [];
-    public List<CategoryGroup> Categories { get; set; } = [];
+    public List<Article> UserFavorites { get; set; } = [];
+    public List<TagGroup> Tags { get; set; } = [];
     public int PublishedCount { get; set; }
     public int DraftCount { get; set; }
     public int ContributorCount { get; set; }
     public DateTime? LastUpdated { get; set; }
+    public string? SearchQuery { get; set; }
 
-    public record CategoryGroup(string Name, int ArticleCount, string Icon, string AccentColor);
-
-    // Maps well-known category names to icon glyphs and accent CSS colors.
-    private static readonly Dictionary<string, (string Icon, string Color)> KnownCategories =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Getting Started"]  = ("◈", "var(--color-plasma)"),
-            ["Server Info"]      = ("⬡", "var(--color-plasma)"),
-            ["Survival"]         = ("◉", "var(--color-rune)"),
-            ["Redstone"]         = ("◆", "var(--color-redstone)"),
-            ["Farms"]            = ("◆", "var(--color-redstone)"),
-            ["Building"]         = ("⎔", "var(--color-arcane)"),
-            ["Architecture"]     = ("⎔", "var(--color-arcane)"),
-            ["Events"]           = ("◍", "var(--color-rune)"),
-            ["Community"]        = ("⊕", "var(--color-plasma)"),
-            ["Rules"]            = ("▣", "var(--color-muted)"),
-            ["Lore"]             = ("◈", "var(--color-arcane)"),
-            ["Economy"]          = ("◉", "var(--color-plasma)"),
-            ["Shops"]            = ("◉", "var(--color-plasma)"),
-            ["PvP"]              = ("◆", "var(--color-redstone)"),
-            ["Combat"]           = ("◆", "var(--color-redstone)"),
-            ["Resources"]        = ("⎔", "var(--color-plasma)"),
-        };
+    public record TagGroup(int Id, string Name, string Slug, string Icon, string Color, int ArticleCount);
 
     /// <summary>Strips Markdown syntax and collapses whitespace for use in search data attributes.</summary>
     public static string StripMarkdown(string markdown)
@@ -55,7 +37,7 @@ public class IndexModel(
         return text.Trim();
     }
 
-    public async Task OnGetAsync()
+    public async Task OnGetAsync(string? q = null)
     {
         var settings = await db.WikiSettings.FirstOrDefaultAsync() ?? new WikiSettings();
 
@@ -69,25 +51,41 @@ public class IndexModel(
                 userRoles = await userManager.GetRolesAsync(currentUser);
         }
 
-        var all = await db.Articles
-            .Include(a => a.Author)
-            .OrderByDescending(a => a.UpdatedAt)
-            .ToListAsync();
+        SearchQuery = string.IsNullOrWhiteSpace(q) ? null : q.Trim();
 
-        var isAdmin = currentUser?.IsAdmin == true;
+        IQueryable<Article> query = db.Articles
+            .Include(a => a.Author)
+            .Include(a => a.Tags);
+
+        if (SearchQuery != null)
+        {
+            query = query
+                .Where(a => a.IsPublished && a.SearchVector!.Matches(EF.Functions.PlainToTsQuery("english", SearchQuery)))
+                .OrderByDescending(a => a.SearchVector!.Rank(EF.Functions.PlainToTsQuery("english", SearchQuery!)));
+        }
+        else
+        {
+            query = query.OrderByDescending(a => a.UpdatedAt);
+        }
+
+        var all = await query.ToListAsync();
+
+        var canEditAny = currentUser != null &&
+                         await permissions.HasAsync(currentUser, userRoles, SiteResource.WikiEditAny);
 
         Articles = all.Where(a =>
         {
             if (!a.IsPublished)
             {
-                if (isAdmin || (currentUser != null && currentUser.Id == a.AuthorId))
+                if (canEditAny || (currentUser != null && currentUser.Id == a.AuthorId))
                     return true;
-                var editRole = a.EditRole ?? settings.EditAnyRole;
-                return currentUser != null && WikiSettings.UserSatisfies(editRole, userRoles, isAdmin);
+                if (a.EditRole != null)
+                    return currentUser != null && WikiSettings.UserSatisfies(a.EditRole, userRoles, canEditAny);
+                return false;
             }
 
             var viewRole = a.ViewRole ?? settings.DefaultViewRole;
-            return WikiSettings.UserSatisfies(viewRole, userRoles, isAdmin);
+            return WikiSettings.UserSatisfies(viewRole, userRoles, canEditAny);
         }).ToList();
 
         var published = Articles.Where(a => a.IsPublished).ToList();
@@ -97,21 +95,27 @@ public class IndexModel(
         ContributorCount = published.Select(a => a.AuthorId).Distinct().Count();
         LastUpdated      = published.Count > 0 ? published.Max(a => a.UpdatedAt) : null;
 
-        Categories = Articles
-            .Where(a => a.IsPublished && !string.IsNullOrWhiteSpace(a.Category))
-            .GroupBy(a => a.Category!, StringComparer.OrdinalIgnoreCase)
+        if (currentUser != null)
+        {
+            var favoriteIds = await db.ArticleFavorites
+                .Where(f => f.UserId == currentUser.Id)
+                .Select(f => f.ArticleId)
+                .ToListAsync();
+            UserFavorites = published
+                .Where(a => favoriteIds.Contains(a.Id))
+                .ToList();
+        }
+
+        Tags = Articles
+            .Where(a => a.IsPublished)
+            .SelectMany(a => a.Tags)
+            .GroupBy(t => t.Id)
             .Select(g =>
             {
-                var name = g.Key;
-                KnownCategories.TryGetValue(name, out var meta);
-                return new CategoryGroup(
-                    name,
-                    g.Count(),
-                    meta.Icon ?? "◈",
-                    meta.Color ?? "var(--color-accent)"
-                );
+                var tag = g.First();
+                return new TagGroup(tag.Id, tag.Name, tag.Slug, tag.Icon, tag.Color, g.Count());
             })
-            .OrderBy(c => c.Name)
+            .OrderBy(t => t.Name)
             .ToList();
     }
 }

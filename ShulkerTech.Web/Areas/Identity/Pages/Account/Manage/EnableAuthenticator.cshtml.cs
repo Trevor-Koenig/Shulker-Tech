@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using QRCoder;
 using ShulkerTech.Core.Models;
 
 namespace ShulkerTech.Web.Areas.Identity.Pages.Account.Manage;
@@ -18,6 +19,7 @@ public class EnableAuthenticatorModel(
 
     public string? SharedKey { get; set; }
     public string? AuthenticatorUri { get; set; }
+    public string? QrCodeDataUri { get; set; }
 
     [TempData]
     public string[]? RecoveryCodes { get; set; }
@@ -94,6 +96,12 @@ public class EnableAuthenticatorModel(
             urlEncoder.Encode("Shulker Tech"),
             urlEncoder.Encode(email!),
             unformatted);
+
+        using var qrGenerator = new QRCodeGenerator();
+        using var qrData = qrGenerator.CreateQrCode(AuthenticatorUri, QRCodeGenerator.ECCLevel.M);
+        using var qrCode = new PngByteQRCode(qrData);
+        var pngBytes = qrCode.GetGraphic(5);
+        QrCodeDataUri = $"data:image/png;base64,{Convert.ToBase64String(pngBytes)}";
     }
 
     private static string FormatKey(string key)

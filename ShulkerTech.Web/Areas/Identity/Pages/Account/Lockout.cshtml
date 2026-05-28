@@ -17,12 +17,24 @@
 
         <div class="panel p-8 flex flex-col gap-4">
             <div style="font-size: 3rem; color: var(--color-rune);">&#128274;</div>
-            <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
-                This terminal has been locked due to too many failed authentication attempts.
-            </p>
-            <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
-                Please try again later.
-            </p>
+            @if (Model.MustChangePassword)
+            {
+                <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                    Your account requires a password reset. Please check your email for a reset link.
+                </p>
+                <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
+                    Sign-in is disabled until your password has been changed.
+                </p>
+            }
+            else
+            {
+                <p class="text-sm" style="color: var(--color-muted); font-family: var(--font-mono); line-height: 1.6;">
+                    This terminal has been locked due to too many failed authentication attempts.
+                </p>
+                <p class="text-xs" style="color: var(--color-muted); font-family: var(--font-mono);">
+                    Please try again later.
+                </p>
+            }
             <div class="pt-2" style="border-top: 1px solid color-mix(in oklab, var(--color-rune) 15%, transparent);">
                 <a asp-page="./Login"
                    class="text-xs" style="color: var(--color-accent); font-family: var(--font-mono); text-decoration: none;"

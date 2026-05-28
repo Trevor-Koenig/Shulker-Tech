@@ -12,8 +12,9 @@ public class SubdomainRoutingMiddleware(RequestDelegate next)
 {
     public static readonly Dictionary<string, string> SubdomainAreaMap = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["wiki"]  = "Wiki",
-        ["admin"] = "Admin",
+        ["wiki"]      = "Wiki",
+        ["admin"]     = "Admin",
+        ["community"] = "Community",
     };
 
     // Paths that belong to the root app and redirect to the root domain when
@@ -35,6 +36,8 @@ public class SubdomainRoutingMiddleware(RequestDelegate next)
         "/lib",
         "/images",
         "/favicon.ico",
+        "/api",
+        "/uploads",
     ];
 
     // Paths that skip area-prefixing but are served locally (no cross-domain redirect).

@@ -1,0 +1,163 @@
+@page "/Admin/Roles"
+@model IndexModel
+@{
+    ViewData["Title"] = "Roles & Permissions";
+}
+
+<div class="px-6 lg:px-10 py-10">
+
+    <div class="mb-8">
+        <p class="text-xs tracking-widest mb-2" style="font-family: var(--font-mono); color: var(--color-rune);">&#9670; ACCESS CONTROL</p>
+        <h1 style="font-family: var(--font-display); font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; color: var(--color-crystal);">
+            ROLES &amp; PERMISSIONS
+        </h1>
+        <p class="mt-2 text-sm" style="color: var(--color-muted); font-family: var(--font-mono);">
+            Manage roles and control what each role can do on the site. Admins bypass all permission checks.
+        </p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="mb-6 px-4 py-3 panel text-sm" style="color: var(--color-accent); font-family: var(--font-mono);">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <!-- ── Permission Matrix ── -->
+    <div class="mb-10">
+        <div class="rune-divider mb-5">
+            <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">
+                PERMISSION MATRIX
+            </span>
+        </div>
+
+        @if (Model.Roles.Count == 0)
+        {
+            <p style="font-family: var(--font-mono); font-size: 0.875rem; color: var(--color-muted);">No roles defined yet.</p>
+        }
+        else
+        {
+            <div class="panel overflow-x-auto">
+                <table style="width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.8rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 12%, transparent);">
+                            <th style="text-align: left; padding: 0.75rem 1.25rem; color: var(--color-muted); letter-spacing: 0.08em; font-weight: 600; min-width: 200px;">PERMISSION</th>
+                            @foreach (var role in Model.Roles)
+                            {
+                                <th style="text-align: center; padding: 0.75rem 1rem; color: var(--color-crystal); letter-spacing: 0.06em; font-weight: 700; white-space: nowrap;">
+                                    @role.Name
+                                </th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var currentGroup = "";
+                        }
+                        @foreach (var res in Model.Resources)
+                        {
+                            if (res.Group != currentGroup)
+                            {
+                                currentGroup = res.Group;
+                                <tr>
+                                    <td colspan="@(Model.Roles.Count + 1)"
+                                        style="padding: 0.5rem 1.25rem 0.25rem; font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-rune); font-family: var(--font-display);">
+                                        &#9670; @res.Group
+                                    </td>
+                                </tr>
+                            }
+                            <tr style="border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 6%, transparent);">
+                                <td style="padding: 0.625rem 1.25rem;">
+                                    <div style="color: var(--color-crystal); font-weight: 600;">@res.DisplayName</div>
+                                    <div style="color: var(--color-muted); font-size: 0.75rem; margin-top: 0.1rem;">@res.Description</div>
+                                </td>
+                                @foreach (var role in Model.Roles)
+                                {
+                                    var granted = Model.Grants.Any(g => g.RoleName == role.Name && g.Resource == res.Key);
+                                    <td style="text-align: center; padding: 0.625rem 1rem;">
+                                        <form method="post" asp-page-handler="TogglePermission" style="display: inline;">
+                                            <input type="hidden" name="roleName" value="@role.Name" />
+                                            <input type="hidden" name="resource" value="@res.Key" />
+                                            <button type="submit"
+                                                    title="@(granted ? "Revoke" : "Grant")"
+                                                    style="background: none; border: none; cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 0.2rem 0.4rem; border-radius: 4px; transition: opacity 0.15s;
+                                                           @(granted ? "color: var(--color-accent); opacity: 1;" : "color: var(--color-muted); opacity: 0.35;")">
+                                                @(granted ? "✓" : "○")
+                                            </button>
+                                        </form>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="mt-3 text-xs" style="color: var(--color-muted); font-family: var(--font-mono); opacity: 0.7;">
+                Click ✓ / ○ to toggle a permission for that role. Changes take effect immediately.
+            </p>
+        }
+    </div>
+
+    <!-- ── Roles Management ── -->
+    <div class="mb-10">
+        <div class="rune-divider mb-5">
+            <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">
+                ROLES (@Model.Roles.Count)
+            </span>
+        </div>
+
+        @if (Model.Roles.Count == 0)
+        {
+            <p style="font-family: var(--font-mono); font-size: 0.875rem; color: var(--color-muted);">No roles yet.</p>
+        }
+        else
+        {
+            <div class="panel overflow-hidden">
+                @foreach (var role in Model.Roles)
+                {
+                    <div class="flex items-center gap-4 px-5 py-3"
+                         style="border-bottom: 1px solid color-mix(in oklab, var(--color-accent) 8%, transparent);">
+
+                        <span style="font-family: var(--font-display); color: var(--color-crystal); font-weight: 700; letter-spacing: 0.06em; flex: 1;">
+                            @role.Name
+                        </span>
+
+                        <span class="text-xs" style="font-family: var(--font-mono); color: var(--color-muted);">
+                            @Model.Grants.Count(g => g.RoleName == role.Name) permission(s)
+                        </span>
+
+                        <form method="post" asp-page-handler="DeleteRole"
+                              data-confirm="Delete this role? Users assigned to it will lose all associated permissions.">
+                            <input type="hidden" name="roleName" value="@role.Name" />
+                            <button type="submit" class="btn-nav"
+                                    style="font-size: 0.75rem; color: var(--color-redstone); border-color: var(--color-redstone);">
+                                DELETE
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- ── Create New Role ── -->
+    <div>
+        <div class="rune-divider mb-5">
+            <span style="font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 0.15em; color: var(--color-redstone);">
+                CREATE NEW ROLE
+            </span>
+        </div>
+
+        <form method="post" asp-page-handler="CreateRole" class="flex flex-wrap items-end gap-3">
+            <div class="flex flex-col gap-1">
+                <label class="text-xs" style="font-family: var(--font-display); color: var(--color-muted); letter-spacing: 0.1em;">ROLE NAME</label>
+                <input type="text" name="roleName" required autocomplete="off"
+                       class="panel px-4 py-2.5 bg-transparent outline-none"
+                       style="font-family: var(--font-display); color: var(--color-crystal); font-size: 0.9rem; letter-spacing: 0.04em; min-width: 220px;"
+                       placeholder="e.g. Builder" />
+            </div>
+            <button type="submit" class="btn-primary">CREATE ROLE</button>
+        </form>
+    </div>
+
+</div>

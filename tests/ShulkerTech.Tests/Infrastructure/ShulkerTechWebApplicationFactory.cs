@@ -12,6 +12,7 @@ using ShulkerTech.Core.Data;
 using ShulkerTech.Core.Models;
 using ShulkerTech.Core.Services;
 using ShulkerTech.Web.Services;
+using System.IO;
 using Testcontainers.PostgreSql;
 
 namespace ShulkerTech.Tests.Infrastructure;
@@ -69,6 +70,19 @@ public class ShulkerTechWebApplicationFactory : WebApplicationFactory<Program>, 
             if (emailDescriptor != null) services.Remove(emailDescriptor);
             services.AddSingleton<IEmailSender>(Mock.Of<IEmailSender>());
 
+            // Replace IDatabaseExporter with a mock that writes a small known payload
+            var exporterDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IDatabaseExporter));
+            if (exporterDescriptor != null) services.Remove(exporterDescriptor);
+            var mockExporter = new Mock<IDatabaseExporter>();
+            mockExporter
+                .Setup(e => e.ExportAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                .Returns(async (Stream dest, CancellationToken _) =>
+                {
+                    var payload = "-- mock sql export"u8.ToArray();
+                    await dest.WriteAsync(payload);
+                });
+            services.AddScoped<IDatabaseExporter>(_ => mockExporter.Object);
+
             // Replace MinecraftPingService with a mock that always returns Offline
             var pingDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MinecraftPingService));
             if (pingDescriptor != null) services.Remove(pingDescriptor);
@@ -109,6 +123,15 @@ public class ShulkerTechWebApplicationFactory : WebApplicationFactory<Program>, 
         {
             if (!roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
                 roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
+        }
+
+        if (!db.SitePermissions.Any(p => p.RoleName == "Admin"))
+        {
+            db.SitePermissions.AddRange(
+                SiteResource.All
+                    .Where(r => !r.IsPublicByDefault)
+                    .Select(r => new SitePermission { RoleName = "Admin", Resource = r.Key }));
+            db.SaveChanges();
         }
 
         return host;
